@@ -364,9 +364,7 @@
 <p>并且要把 Can translate to self 取消勾选，不然 永远会卡第一帧</p>
 <hr>
 <p>我们先通过简单的键盘操作来控制刺蛇移动</p>
-<h2 id="设计我们的系统和实体"><a href="#设计我们的系统和实体" class="headerlink" title="设计我们的系统和实体"></a>设计我们的系统和实体</h2><p>先做出简单的运动系统来</p>
-<h3 id="实体"><a href="#实体" class="headerlink" title="实体"></a>实体</h3><p>刺蛇的实体 运动相关</p>
-<p>单位实体 Unit 包含的组件</p>
+<h2 id="设计我们的系统和实体"><a href="#设计我们的系统和实体" class="headerlink" title="设计我们的系统和实体"></a>设计我们的系统和实体</h2><h3 id="实体"><a href="#实体" class="headerlink" title="实体"></a>实体</h3><p>单位实体 Unit 包含的组件</p>
 <ul>
 <li>位置 Position</li>
 <li>速度 Velocity </li>
@@ -403,14 +401,14 @@
 <p>大家可以看到我们这边都是继承的 MonoBehavior ，有的还是一些空的类</p>
 <p>继承 MonoBehavior 才能被添加到 GameObject 中,至于空类的作用我们下面在讲系统的时候来讲</p>
 <h3 id="系统-1"><a href="#系统-1" class="headerlink" title="系统"></a>系统</h3><p>ECS 中的 S 意为 System 就是系统了，系统的做法，下面已经比较清楚了</p>
-<p>在系统中 可以通过 GetEntities 来获得自动声明好的 结构体数据</p>
-<p>结构体数据从哪里获得呢？</p>
-<p>就是从游戏中所有的 Entity 来自动获得，由于我们使用的是一个 GameObject ，要获得这个 GameObject 的数据，需要在这个 GameObject 中添加一个内置脚本 GameObjectEntity</p>
+<p>在系统中 可以通过 GetEntities 来自动获得声明好的 结构体数据</p>
+<p>结构体数据是从哪里获得的呢？</p>
+<p>答案是从游戏中所有的 Entity 来自动获取，由于我们使用的是一个 GameObject ，要获得这个 GameObject 的数据，需要在这个 GameObject 中添加一个内置脚本 GameObjectEntity</p>
 <p>表示我们这个 GameObject 是一个 Entity 了</p>
 <p>那么大家可能也就知道上面那些空类的作用了</p>
 <p>假如我们不对 GameObject 添加 Directable 脚本的话</p>
-<p>就无法被 SyncAnimatorDirectionSystem 中的 GetEntities<data> 来获得</data></p>
-<p>GetEntities<t> 的作用就是获取含有 T 中所有字段类型的 所有 Entity</t></p>
+<p>就无法被 SyncAnimatorDirectionSystem（见下方代码） 中的 GetEntities<data> 来获得</data></p>
+<p>GetEntities\<t> 的作用就是获取含有 T 中所有字段类型的 所有 Entity</t></p>
 <p>System 可以使用 UpdateAfter 或者 UpdateBefore 来控制其执行顺序</p>
 <h4 id="输入-1"><a href="#输入-1" class="headerlink" title="输入"></a>输入</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">using Unity.Entities;</span><br><span class="line">using Unity.Mathematics;</span><br><span class="line">using UnityEngine;</span><br><span class="line">public class PlayerInputSystem : ComponentSystem &#123;</span><br><span class="line">    struct PlayerData &#123;</span><br><span class="line"></span><br><span class="line">        public PlayerInput Input;</span><br><span class="line">        public Velocity Velocity;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    protected override void OnUpdate () &#123;</span><br><span class="line">        float dt = Time.deltaTime;</span><br><span class="line"></span><br><span class="line">        foreach (var entity in GetEntities&lt;PlayerData&gt; ()) &#123;</span><br><span class="line">            var pi = entity.Input;</span><br><span class="line"></span><br><span class="line">            pi.Move.x = Input.GetAxis (&quot;Horizontal&quot;);</span><br><span class="line">            pi.Move.y = Input.GetAxis (&quot;Vertical&quot;);</span><br><span class="line"></span><br><span class="line">            entity.Velocity.Value = new float2 (pi.Move.x, pi.Move.y);</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h4 id="移动"><a href="#移动" class="headerlink" title="移动"></a>移动</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">using Unity.Entities;</span><br><span class="line">using Unity.Mathematics;</span><br><span class="line">using UnityEngine;</span><br><span class="line">public class UnitMoveSystem : ComponentSystem &#123;</span><br><span class="line">    struct MoveUnit &#123;</span><br><span class="line"></span><br><span class="line">        public Position2D Position;</span><br><span class="line"></span><br><span class="line">        public Velocity MoveSpeed;</span><br><span class="line"></span><br><span class="line">        public Unit unit;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    protected override void OnUpdate () &#123;</span><br><span class="line">        var dt = Time.deltaTime;</span><br><span class="line">        foreach (var entity in GetEntities&lt;MoveUnit&gt; ()) &#123;</span><br><span class="line">            var pos = entity.Position;</span><br><span class="line">            pos.Value += entity.MoveSpeed.Value * dt;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
