@@ -1,0 +1,913 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Python,Django,Web," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/link-300x300.gif?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="原文地址：Mapz的blog 这是系列第二篇，第一篇请移步 Django项目的搭建 上一次我们介绍了如何搭建django项目，本次我们继续学习django项目的开发  数据库的接入我们这里使用mySql数据库 先在虚拟环境中装 pymysql （MySQLdb在Python3中已经不能用） 1pip install pymysql 打开settings.py 修改 123456789101112D">
+<meta name="keywords" content="Python,Django,Web">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Django项目开发（一）">
+<meta property="og:url" content="http://Mapz.github.io/2017/05/08/Django项目开发（一）/index.html">
+<meta property="og:site_name" content="Mapz&#39;s Blog">
+<meta property="og:description" content="原文地址：Mapz的blog 这是系列第二篇，第一篇请移步 Django项目的搭建 上一次我们介绍了如何搭建django项目，本次我们继续学习django项目的开发  数据库的接入我们这里使用mySql数据库 先在虚拟环境中装 pymysql （MySQLdb在Python3中已经不能用） 1pip install pymysql 打开settings.py 修改 123456789101112D">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2021-04-22T02:15:32.966Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Django项目开发（一）">
+<meta name="twitter:description" content="原文地址：Mapz的blog 这是系列第二篇，第一篇请移步 Django项目的搭建 上一次我们介绍了如何搭建django项目，本次我们继续学习django项目的开发  数据库的接入我们这里使用mySql数据库 先在虚拟环境中装 pymysql （MySQLdb在Python3中已经不能用） 1pip install pymysql 打开settings.py 修改 123456789101112D">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://Mapz.github.io/2017/05/08/Django项目开发（一）/"/>
+
+
+
+
+
+  <title> Django项目开发（一） | Mapz's Blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?69c67c43ced4b46e7ba1656a83e9c872";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Mapz's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">可以递归的函数指针</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2017/05/08/Django项目开发（一）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Django项目开发（一）
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-08T17:19:10+08:00">
+                2017-05-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/05/08/Django项目开发（一）/" class="leancloud_visitors" data-flag-title="Django项目开发（一）">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>原文地址：<a href="https://mapz.github.io/2017/05/08/Django%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%EF%BC%88%E4%B8%80%EF%BC%89/">Mapz的blog</a></p>
+<p><strong>这是系列第二篇，第一篇请移步</strong></p>
+<p><a href="https://mapz.github.io/2017/05/08/Django%E9%A1%B9%E7%9B%AE%E7%9A%84%E6%90%AD%E5%BB%BA/">Django项目的搭建</a></p>
+<p>上一次我们介绍了如何搭建django项目，本次我们继续学习django项目的开发</p>
+<hr>
+<h2 id="数据库的接入"><a href="#数据库的接入" class="headerlink" title="数据库的接入"></a>数据库的接入</h2><p>我们这里使用mySql数据库</p>
+<p>先在虚拟环境中装 pymysql <strong>（MySQLdb在Python3中已经不能用）</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install pymysql</span><br></pre></td></tr></table></figure>
+<p>打开settings.py</p>
+<p>修改</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">DATABASES = &#123;</span><br><span class="line">    <span class="string">'default'</span>: &#123;</span><br><span class="line">        <span class="comment"># 'ENGINE': 'django.db.backends.sqlite3',</span></span><br><span class="line">        <span class="string">'ENGINE'</span>: <span class="string">'django.db.backends.mysql'</span>, <span class="comment">#数据库引擎</span></span><br><span class="line">        <span class="comment"># 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),</span></span><br><span class="line">        <span class="string">'NAME'</span>: <span class="string">'proj_mgr_kits'</span>, <span class="comment">#你的数据库名称</span></span><br><span class="line">        <span class="string">'USER'</span>:<span class="string">'***'</span>, <span class="comment">#数据库用户</span></span><br><span class="line">        <span class="string">'PASSWORD'</span>:<span class="string">'***'</span>, <span class="comment">#数据库密码</span></span><br><span class="line">        <span class="string">'HOST'</span>:<span class="string">'***'</span>, <span class="comment">#数据库主机</span></span><br><span class="line">        <span class="string">'PORT'</span>:<span class="string">'3306'</span>, <span class="comment">#数据库端口</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>详细修改方式参见 <a href="https://docs.djangoproject.com/en/1.11/ref/settings/" target="_blank" rel="noopener">官网文档</a></p>
+<p>另外针对 pymysql 还需要配置站点的__init__.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pymysql</span><br><span class="line">pymysql.install_as_MySQLdb()</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="其他配置"><a href="#其他配置" class="headerlink" title="其他配置"></a>其他配置</h2><p>设置时区和语言</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">LANGUAGE_CODE = <span class="string">'zh-Hans'</span></span><br><span class="line"></span><br><span class="line">TIME_ZONE = <span class="string">'PRC'</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="Django结构简介"><a href="#Django结构简介" class="headerlink" title="Django结构简介"></a>Django结构简介</h2><p>django是一个MVC框架，数据上，使用模型model做ORM映射数据库</p>
+<p>view层使用django的模版来做渲染</p>
+<p>控制层用灵活的url路由来实现，后面我们陆续来介绍这些内容</p>
+<hr>
+<h2 id="创建数据库表"><a href="#创建数据库表" class="headerlink" title="创建数据库表"></a>创建数据库表</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python manage.py migrate</span><br></pre></td></tr></table></figure>
+<p>这个命令会创建所有已安装的APP所需的数据表</p>
+<p>所有已经安装的APP被配置在 <strong>settings.py</strong> 的<br><strong>INSTALLED_APPS</strong> 属性下</p>
+<hr>
+<h2 id="创建model"><a href="#创建model" class="headerlink" title="创建model"></a>创建model</h2><p>Model 是 Django做对象映射的模型，你创建的 Model 类会被diango映射到数据库中</p>
+<p>我们创建一个自己的model</p>
+<p>修改 models.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> django.db <span class="keyword">import</span> models</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Project</span><span class="params">(models.Model)</span>:</span></span><br><span class="line">    project_name = models.CharField(max_length=<span class="number">50</span>)</span><br></pre></td></tr></table></figure>
+<p>Model 支持的数据类型和创建参数参见 <a href="https://docs.djangoproject.com/en/1.11/ref/models/fields/#django.db.models.Field" target="_blank" rel="noopener">官方文档</a></p>
+<p>常用的参数比如choices,可以让参数在一个枚举中选择</p>
+<p>例如</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DeployProfile</span><span class="params">(models.Model)</span>:</span></span><br><span class="line">    deploy_type_choice = (</span><br><span class="line">        (<span class="string">'Server'</span>,<span class="string">'服务器'</span>), <span class="comment">#第一个参数为数据库保存值，第二个为显示在界面的值</span></span><br><span class="line">        (<span class="string">'CLient'</span>,<span class="string">'客户端'</span>)</span><br><span class="line">    )</span><br><span class="line">    deploy_type = models.CharField(max_length=<span class="number">20</span>, choices=deploy_type_choice, verbose_name=<span class="string">'部署类型'</span>)</span><br></pre></td></tr></table></figure>
+<p>其他的类型就不再赘述</p>
+<hr>
+<h2 id="把我们自己的app加入到项目app中"><a href="#把我们自己的app加入到项目app中" class="headerlink" title="把我们自己的app加入到项目app中"></a>把我们自己的app加入到项目app中</h2><p>编辑settings.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">INSTALLED_APPS = [</span><br><span class="line">    <span class="string">'xxxxx'</span></span><br><span class="line">    <span class="string">'qk_deploy.apps.QkDeployConfig'</span>,</span><br><span class="line">    <span class="string">'xxxxx'</span></span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+<p>重新创建表</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python manage.py makemigrations qk_deploy</span><br></pre></td></tr></table></figure>
+<p><strong>makemigrations</strong> 命令告诉系统，我的模型已经发生了变化，需要制作一个迁移</p>
+<p>迁移做好之后，我们再用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python manage.py migrate</span><br></pre></td></tr></table></figure>
+<p>重新制作数据表</p>
+<hr>
+<h2 id="创建管理员"><a href="#创建管理员" class="headerlink" title="创建管理员"></a>创建管理员</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python manage.py createsuperuser</span><br></pre></td></tr></table></figure>
+<p>然后按提示输入，来创建一个管理员</p>
+<p>启动服务器后</p>
+<p>进入页面</p>
+<p><a href="http://127.0.0.1:8000/admin/" target="_blank" rel="noopener">http://127.0.0.1:8000/admin/</a></p>
+<p>就可以用你的管理员来登陆管理界面了</p>
+<hr>
+<h2 id="把我们的app加入到管理界面中来"><a href="#把我们的app加入到管理界面中来" class="headerlink" title="把我们的app加入到管理界面中来"></a>把我们的app加入到管理界面中来</h2><p>修改app目录下的admin.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> django.contrib <span class="keyword">import</span> admin</span><br><span class="line"></span><br><span class="line"><span class="comment"># Register your models here.</span></span><br><span class="line"><span class="keyword">from</span> .models <span class="keyword">import</span> Project</span><br><span class="line">admin.site.register(Project)</span><br></pre></td></tr></table></figure>
+<p>就可以了</p>
+<p>register参数也接收一个可迭代容器</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">admin.site.register([Project,p1,p2,p3])</span><br></pre></td></tr></table></figure>
+<p>然后我们进入管理页面，发现上面的model已经可以管理了</p>
+<p>但是如果我们想有一个自定义的名称，而不是类的名字，怎么办呢？</p>
+<p>答案是在model中加上 meta </p>
+<p>编辑Project model</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Project</span><span class="params">(models.Model)</span>:</span></span><br><span class="line">    project_name = models.CharField(max_length=<span class="number">50</span>)</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Meta</span>:</span></span><br><span class="line">        verbose_name = <span class="string">'项目'</span></span><br><span class="line">        verbose_name_plural = verbose_name</span><br></pre></td></tr></table></figure>
+<p>其中 verbose_name 是显示的名称，而 plural是复数形式，我们中文没有复数形式，所以就直接一样就ok了</p>
+<p>双薪管理页面，我们发现管理中显示的内容已经是我们写的’项目’了</p>
+<p>至于模型的字段要显示我们想要的名字呢，也是一样的，修改model</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Project</span><span class="params">(models.Model)</span>:</span></span><br><span class="line">    project_name = models.CharField(max_length=<span class="number">50</span>, verbose_name=<span class="string">'项目名称'</span>)</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Meta</span>:</span></span><br><span class="line">        verbose_name = <span class="string">'项目'</span></span><br><span class="line">        verbose_name_plural = verbose_name</span><br></pre></td></tr></table></figure>
+<p>好奇的同学又要问了，APP名字在管理界面怎么改呀</p>
+<p>我们修改apps.py</p>
+<p>在QkDeployConfig类下面增加一个属性</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">QkDeployConfig</span><span class="params">(AppConfig)</span>:</span></span><br><span class="line">    name = <span class="string">'qk_deploy'</span></span><br><span class="line">    verbose_name = <span class="string">'部署管理器'</span></span><br></pre></td></tr></table></figure>
+<p>刷新管理界面再看看~~</p>
+<p>我们用管理工具创建新项目后，新项目在列表里面显示为 project object,这显然不是我们想要的，怎么办咧</p>
+<p>为model加上字符串返回函数就可以了</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Project</span><span class="params">(models.Model)</span>:</span></span><br><span class="line">    project_name = models.CharField(max_length=<span class="number">50</span>, verbose_name=<span class="string">'项目名称'</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__str__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> self.project_name</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Meta</span>:</span></span><br><span class="line">        verbose_name = <span class="string">'项目'</span></span><br><span class="line">        verbose_name_plural = verbose_name</span><br></pre></td></tr></table></figure>
+<p>刷新管理界面，显示的项目已经是我们设定的项目名称了</p>
+<hr>
+<h2 id="文本编码问题"><a href="#文本编码问题" class="headerlink" title="文本编码问题"></a>文本编码问题</h2><p>如果遇到中文无法录入管理系统的问题，请检查数据库编码是否和程序中一致哦</p>
+<p>不一致的话，请先修改数据库编码，然后删除数据表，重新migrate</p>
+<hr>
+<p>到此，我们的数据库管理功能已经完成，也就是MVC中的M</p>
+<p>下次我们继续说MVC中的V ，也就是 view 展示层</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+<div id="wechat_subscriber" style="display: block; padding: 10px 0; margin: 20px auto; width: 100%; text-align: center">
+    <img id="wechat_subscriber_qcode" src="/images/wechat-subs.jpg" alt="Mapz wechat" style="width: 200px; max-width: 100%;"/>
+    <div>码字不易，打赏随意 ^_^</div>
+</div>
+
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Python/" rel="tag"># Python</a>
+          
+            <a href="/tags/Django/" rel="tag"># Django</a>
+          
+            <a href="/tags/Web/" rel="tag"># Web</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/05/08/Django项目的搭建/" rel="next" title="Django项目的搭建">
+                <i class="fa fa-chevron-left"></i> Django项目的搭建
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/05/10/Django项目开发（二）View层/" rel="prev" title="Django项目开发（二）View层">
+                Django项目开发（二）View层 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/link-300x300.gif"
+               alt="Mapz" />
+          <p class="site-author-name" itemprop="name">Mapz</p>
+           
+              <p class="site-description motion-element" itemprop="description">FIND THE CHILD</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">24</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">27</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Mapz" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据库的接入"><span class="nav-number">1.</span> <span class="nav-text">数据库的接入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他配置"><span class="nav-number">2.</span> <span class="nav-text">其他配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Django结构简介"><span class="nav-number">3.</span> <span class="nav-text">Django结构简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建数据库表"><span class="nav-number">4.</span> <span class="nav-text">创建数据库表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建model"><span class="nav-number">5.</span> <span class="nav-text">创建model</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#把我们自己的app加入到项目app中"><span class="nav-number">6.</span> <span class="nav-text">把我们自己的app加入到项目app中</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建管理员"><span class="nav-number">7.</span> <span class="nav-text">创建管理员</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#把我们的app加入到管理界面中来"><span class="nav-number">8.</span> <span class="nav-text">把我们的app加入到管理界面中来</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#文本编码问题"><span class="nav-number">9.</span> <span class="nav-text">文本编码问题</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Mapz</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("r1k7xXPTo8S7UTzLv0ny4XLz-gzGzoHsz", "3QFN4XJbJvVAywXDtWKYeUV4");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

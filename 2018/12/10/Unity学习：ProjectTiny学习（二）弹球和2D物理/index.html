@@ -1,0 +1,948 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Unity,ECS,Project Tiny," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/link-300x300.gif?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="接着上次我们继续来玩 Tiny Mode 创建一个新项目菜单 -&amp;gt; tiny -&amp;gt; file -&amp;gt; new project  创建新的项目 TinyNew 我们可以看到，在 Asset 目录下创建了一个新的名为 TinyNew 的目录 下面有一个 TinyNew.utproject 文件 这个文件就是 tiny mode 的项目文件了 和 Unity 不同，tiny mode 不">
+<meta name="keywords" content="Unity,ECS,Project Tiny">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity学习：ProjectTiny学习（二）弹球和2D物理">
+<meta property="og:url" content="http://Mapz.github.io/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/index.html">
+<meta property="og:site_name" content="Mapz&#39;s Blog">
+<meta property="og:description" content="接着上次我们继续来玩 Tiny Mode 创建一个新项目菜单 -&amp;gt; tiny -&amp;gt; file -&amp;gt; new project  创建新的项目 TinyNew 我们可以看到，在 Asset 目录下创建了一个新的名为 TinyNew 的目录 下面有一个 TinyNew.utproject 文件 这个文件就是 tiny mode 的项目文件了 和 Unity 不同，tiny mode 不">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://mapz.github.io/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/hierarchy.jpg">
+<meta property="og:image" content="http://mapz.github.io/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/component_inspector.jpg">
+<meta property="og:image" content="http://mapz.github.io/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/run_game.jpg">
+<meta property="og:image" content="http://mapz.github.io/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/tiny_run.gif">
+<meta property="og:updated_time" content="2021-04-22T02:15:32.972Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Unity学习：ProjectTiny学习（二）弹球和2D物理">
+<meta name="twitter:description" content="接着上次我们继续来玩 Tiny Mode 创建一个新项目菜单 -&amp;gt; tiny -&amp;gt; file -&amp;gt; new project  创建新的项目 TinyNew 我们可以看到，在 Asset 目录下创建了一个新的名为 TinyNew 的目录 下面有一个 TinyNew.utproject 文件 这个文件就是 tiny mode 的项目文件了 和 Unity 不同，tiny mode 不">
+<meta name="twitter:image" content="http://mapz.github.io/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/hierarchy.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://Mapz.github.io/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/"/>
+
+
+
+
+
+  <title> Unity学习：ProjectTiny学习（二）弹球和2D物理 | Mapz's Blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?69c67c43ced4b46e7ba1656a83e9c872";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Mapz's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">可以递归的函数指针</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Unity学习：ProjectTiny学习（二）弹球和2D物理
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-10T14:40:38+08:00">
+                2018-12-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/" class="leancloud_visitors" data-flag-title="Unity学习：ProjectTiny学习（二）弹球和2D物理">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>接着上次我们继续来玩 Tiny Mode</p>
+<h2 id="创建一个新项目"><a href="#创建一个新项目" class="headerlink" title="创建一个新项目"></a>创建一个新项目</h2><p>菜单 -&gt; tiny -&gt; file -&gt; new project </p>
+<p>创建新的项目 TinyNew</p>
+<p>我们可以看到，在 Asset 目录下创建了一个新的名为 TinyNew 的目录</p>
+<p>下面有一个 TinyNew.utproject 文件</p>
+<p>这个文件就是 tiny mode 的项目文件了</p>
+<p>和 Unity 不同，tiny mode 不存在 Scene </p>
+<p>双击项目文件，就可以加载项目了</p>
+<p>项目的 Inspector 如图</p>
+
+<p>可以选择 Build 类型，需要加载的模块</p>
+<p>还有显示设置以及物理设置</p>
+<p>从可加载的模块看我们现在基本也可以知道 Tiny Mode 现有的功能有哪些</p>
+<p>物理选项只有一个重力，可以看出相比 Unity 本体非常的精简</p>
+<p>我们要做的是平面上球触边弹的效果，所以重力设置为 0</p>
+<hr>
+<h2 id="开始创建主实体"><a href="#开始创建主实体" class="headerlink" title="开始创建主实体"></a>开始创建主实体</h2><p>以前我们的各种玩意，都是放在 GameObject 上的，在 ECS 中，GameObject 没有了，用来放内容的变成了 Entity，所以还是老一套，需要一个 Entity 来放置摄像机什么的</p>
+<p>创建一个新的 Entity 现阶段只能从 Tiny 菜单 Create EntityGroup 或者层级图中，点击 Create EntityGroup</p>
+<p>我们在 Entities 目录下新建一个 MainGroup，点击后</p>
+<p>在 EntityGroup 的 Inspector 中可以看到两个按钮</p>
+
+<ul>
+<li>Load: 加载这个组的一个 Entity 实例到层级图中，方便操作</li>
+<li>Set as StartUp: 设置为初始 Group，游戏启动时，会自动加载，不能被 Unload</li>
+</ul>
+<p>我们把 MainGroup 设置为启动加载</p>
+<p>在 MainGroup 右边的小菜单里面选择 Camera 新增一个 Camera</p>
+<p>再 Create Empty，新建一个空组件，命名为 Spawner，用来产生球球</p>
+<p>再 Create Empty，新建一个空组件，命名为 Border，作为边界</p>
+<p>导入一个矩形 Sprite, 这里导入 Sprite 的方式和 Unity 本体是一样的，就不多说明了</p>
+<p>在 Border 下面 Create 2D Object -&gt; Sprite  </p>
+<p>做4个边</p>
+<p>给4个边加上 RigidBody2D 和 BoxCollider2D 来做物理效果</p>
+<img src="/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/hierarchy.jpg" title="如图">
+<p>刚体和碰撞检测的选项都比较简单</p>
+<p>说一下刚体的几个 BodyType</p>
+<ul>
+<li>Static：静态，不做物理模拟，质量无限，不会同其他 static 和 kinematic 做碰撞检测</li>
+<li>Kinematic：运动学，质量无限，运动靠 velocity，质量无限，所以不受力的作用，不会同其他 static 和 kinematic 做碰撞检测，移动靠设置他的 Position 或 velocity</li>
+<li>Dynamic：动态，全物理模拟，和其他三种类型的刚体做碰撞检测，一般靠给其施加一个力来运动，当然也可以直接设置 velocity 和 Position 但是意义不大</li>
+<li>BulletDynamic：子弹动态，和动态差不多，但是使用的连续碰撞检测，更精确，也更消耗资源，好处是不会因为速度过快而穿过其他刚体</li>
+</ul>
+<p>所以我们的边界选择什么很明显了-&gt; Static</p>
+<p>其他几个参数：</p>
+<ul>
+<li>freezeRotation：如果 true 则不能旋转</li>
+<li>friction：摩擦力，0 代表无摩擦，1 代表大摩擦，1 以上代表比 1 大的摩擦（废话）</li>
+<li>restitution：弹性系数，0 代表完全吸收，1 代表完全反弹</li>
+<li>density：密度，决定刚体的 质量 = 密度 * 体积</li>
+</ul>
+<p>这里我们选择全反弹 restitution 设置为 1</p>
+<h3 id="自定义我们的产生器-spawner"><a href="#自定义我们的产生器-spawner" class="headerlink" title="自定义我们的产生器 spawner"></a>自定义我们的产生器 spawner</h3><p>我们自定义一个组件来产生小球</p>
+<p>在 菜单 -&gt; Tiny -&gt; Component </p>
+<p>新建一个 Spawner 组件</p>
+<p>点击组件，在 inspector 中可以对其字段来做修改</p>
+<p>如果 hide_flags 设置为 hide in inspectors 则在层级图中即使添加到实体上了也不会显示出来</p>
+<p>add new field 可以添加任意可玩的数值和属性类型</p>
+<p>点击属性名称可以修改之，下面可以设置默认值</p>
+<p>最后设置如下</p>
+<p>我们在延时 1.5s 后每 1.5s 创建一个 spawnedGroup 的实体 最多 maxCount 个</p>
+<p>类型右边的 3 个图标分别是</p>
+<ul>
+<li>是否数组类型</li>
+<li>编辑器是否可见：比如我们的 curCount 这个字段编辑器不可见，因为是不用编辑也不能编辑</li>
+<li>子菜单 字面上的意思，Document 选项应该和自动生成文档的内容有关</li>
+</ul>
+<img src="/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/component_inspector.jpg" title="如图">
+<p>生成器组件有了，我们继续来搞生成系统</p>
+<p>菜单，创建 TypeScript System （后面省略哪里的菜单了哦）</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> game &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** New System */</span></span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">class</span> NewSystem <span class="keyword">extends</span> ut.ComponentSystem &#123;</span><br><span class="line">        </span><br><span class="line">        OnUpdate():<span class="built_in">void</span> &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们可以看到生成了一个继承 ut.ComponentSystem 的类，重写一个 OnUpdate 函数</p>
+<p>是不是和 Unity ECS 的方式一毛一样</p>
+<p>ut 是 unity tiny 的简称</p>
+<p>文件名修改为 SpawnSystem</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> game &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">class</span> SpawnSystem <span class="keyword">extends</span> ut.ComponentSystem &#123;</span><br><span class="line"></span><br><span class="line">        OnUpdate(): <span class="built_in">void</span> &#123;</span><br><span class="line">            <span class="keyword">this</span>.world.forEach([game.Spawner], <span class="function">(<span class="params">spawner</span>) =&gt;</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (spawner.isPaused)</span><br><span class="line">                    <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">let</span> time = spawner.time;</span><br><span class="line">                <span class="keyword">let</span> delay = spawner.delay;</span><br><span class="line"></span><br><span class="line">                time -= ut.Time.deltaTime();</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (time &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">                    time += delay;</span><br><span class="line">                    <span class="built_in">console</span>.log(<span class="string">"spawn"</span>);</span><br><span class="line">                    <span class="keyword">if</span> (spawner.curCount &lt; spawner.maxCount) &#123;</span><br><span class="line">                        ut.EntityGroup.instantiate(<span class="keyword">this</span>.world, spawner.spawnedGroup);</span><br><span class="line">                        spawner.curCount++</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                spawner.time = time;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>代码如上，循环 World 中的每一个 Spawner 来操作</p>
+<p>至此，生成器组件完成，我们在 MainGroup 的 Spawn 元素的 insepector 中点击 Add Tiny Component 增加一个 Spawner 组件</p>
+<p>于是就可以在编辑器中设置这个自定组件的值了</p>
+<p>spawnedGroup 设置为 game.BallGroup</p>
+<p>maxCount 设置为 10</p>
+<hr>
+<h2 id="创建球球实体"><a href="#创建球球实体" class="headerlink" title="创建球球实体"></a>创建球球实体</h2><p>创建新的实体组 名为 BallGroup</p>
+<p>点击 Load 按钮</p>
+<p>放到层级图中</p>
+<p>加入一个 2d sprite UnitBall 如图</p>
+<p>新建一个新的空组件 BallFlag 用来代表实体是球球</p>
+<p>再增加 CircleCollider2D RigidBody2D 组件到球球</p>
+<p>调整好圆形检测的半径</p>
+
+<p>做好之后 Unload BallGroup，后面我们都通过 Spawner 来生成球球</p>
+<h3 id="球球的行为"><a href="#球球的行为" class="headerlink" title="球球的行为"></a>球球的行为</h3><p>我们需要一个脚本来控制球球生成的地方，并且给一个力让他跑起来</p>
+<p>菜单 创建 TypeScript Behavior</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">namespace</span> game &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">class</span> NewBehaviourFilter <span class="keyword">extends</span> ut.EntityFilter &#123;</span><br><span class="line">        node: ut.Core2D.TransformNode;</span><br><span class="line">        position?: ut.Core2D.TransformLocalPosition;</span><br><span class="line">        rotation?: ut.Core2D.TransformLocalRotation;</span><br><span class="line">        scale?: ut.Core2D.TransformLocalScale;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">class</span> NewBehaviour <span class="keyword">extends</span> ut.ComponentBehaviour &#123;</span><br><span class="line"></span><br><span class="line">        data: NewBehaviourFilter;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// ComponentBehaviour lifecycle events</span></span><br><span class="line">        <span class="comment">// uncomment any method you need</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// this method is called for each entity matching the NewBehaviourFilter signature, once when enabled</span></span><br><span class="line">        <span class="comment">//OnEntityEnable():void &#123; &#125;</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// this method is called for each entity matching the NewBehaviourFilter signature, every frame it's enabled</span></span><br><span class="line">        <span class="comment">//OnEntityUpdate():void &#123; &#125;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// this method is called for each entity matching the NewBehaviourFilter signature, once when disabled</span></span><br><span class="line">        <span class="comment">//OnEntityDisable():void &#123; &#125;</span></span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>NewBehaviourFilter 相当于是 Unity ECS 中的 GetEntityGroup 中的 struct</p>
+<p>将会获得有这个过滤器下字段的所有 Entity</p>
+<p>所以我们需要给 UnitBall 增加一个 空的 BallFlag 来确认他是球球</p>
+<ul>
+<li>OnEntityEnable. Called only once, the first frame this entity is matched by this behaviour. 获得此Entity的第一帧执行</li>
+<li>OnEntityUpdate. Called every frame on matching entities. </li>
+<li>OnEntityDisable. Called only once, the first frame this entity is marked as disabled by this behaviour. 设置为 disable 的第一帧执行</li>
+</ul>
+<p>球球行为代码如下</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">namespace</span> game &#123;</span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">class</span> BallBehaviorFilter <span class="keyword">extends</span> ut.EntityFilter &#123;</span><br><span class="line"></span><br><span class="line">        position: ut.Core2D.TransformLocalPosition;</span><br><span class="line">        entity: ut.Entity;</span><br><span class="line">        ball: game.BallFlag;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">class</span> BallBehavior <span class="keyword">extends</span> ut.ComponentBehaviour &#123;</span><br><span class="line"></span><br><span class="line">        data: BallBehaviorFilter;</span><br><span class="line"></span><br><span class="line">        OnEntityEnable(): <span class="built_in">void</span> &#123;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">"ball Enabled"</span>);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 随机球球出现的位置</span></span><br><span class="line">            <span class="keyword">let</span> randomX = getRandom(<span class="number">-100</span>, <span class="number">100</span>)</span><br><span class="line">            <span class="keyword">let</span> randomY = getRandom(<span class="number">-100</span>, <span class="number">100</span>)</span><br><span class="line">            <span class="keyword">this</span>.data.position.position = <span class="keyword">new</span> Vector3(randomX, randomY, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 随机给球球一个力，动起来</span></span><br><span class="line">            <span class="comment">// 我们可以看到，这里用了 this.world.addComponentData 给球球添加了一个加力组件，这是一个特殊的组件</span></span><br><span class="line">            <span class="comment">// 这里的 AddImpulse2D 组件会在这一帧之后自动消失掉</span></span><br><span class="line">            <span class="keyword">let</span> impulse = <span class="keyword">new</span> ut.Physics2D.AddImpulse2D;</span><br><span class="line">            <span class="keyword">let</span> newImpulse = <span class="keyword">new</span> Vector2(getRandom(<span class="number">-1</span>, <span class="number">1</span>), getRandom(<span class="number">-1</span>, <span class="number">1</span>)).normalize();</span><br><span class="line">            impulse.impulse = <span class="keyword">new</span> Vector2(newImpulse.x * <span class="number">100</span>, newImpulse.y * <span class="number">100</span>);</span><br><span class="line">            <span class="keyword">this</span>.world.addComponentData(<span class="keyword">this</span>.data.entity, impulse);</span><br><span class="line"></span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">"ball created:"</span> + <span class="keyword">this</span>.data.position.position);</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        OnEntityUpdate(): <span class="built_in">void</span> &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">getRandom</span>(<span class="params">min, max</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">Math</span>.random() * (max - min + <span class="number">1</span>) + min;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h2><p>到此我们的工作告一段落，unity 执行后</p>
+<p>会在我们的默认浏览器打开一个窗口</p>
+<img src="/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/run_game.jpg" title="运行时 Unity 的 Game 窗口">
+<p>在浏览器中使用开发者模式可以看到打印</p>
+<p>也可以扫描二维码在移动设备上查看效果</p>
+<p>运行效果如图</p>
+<img src="/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/tiny_run.gif" title="运行">
+
+      
+    </div>
+
+    <div>
+      
+        
+<div id="wechat_subscriber" style="display: block; padding: 10px 0; margin: 20px auto; width: 100%; text-align: center">
+    <img id="wechat_subscriber_qcode" src="/images/wechat-subs.jpg" alt="Mapz wechat" style="width: 200px; max-width: 100%;"/>
+    <div>码字不易，打赏随意 ^_^</div>
+</div>
+
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Unity/" rel="tag"># Unity</a>
+          
+            <a href="/tags/ECS/" rel="tag"># ECS</a>
+          
+            <a href="/tags/Project-Tiny/" rel="tag"># Project Tiny</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/10/Unity学习：ProjectTiny学习（一）初识Tiny模式/" rel="next" title="Unity学习：ProjectTiny学习（一）初识Tiny模式">
+                <i class="fa fa-chevron-left"></i> Unity学习：ProjectTiny学习（一）初识Tiny模式
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/12/11/Unity学习：ProjectTiny现状（即时更新）/" rel="prev" title="Unity学习：ProjectTiny现状（即时更新）">
+                Unity学习：ProjectTiny现状（即时更新） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/link-300x300.gif"
+               alt="Mapz" />
+          <p class="site-author-name" itemprop="name">Mapz</p>
+           
+              <p class="site-description motion-element" itemprop="description">FIND THE CHILD</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">24</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">27</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Mapz" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#创建一个新项目"><span class="nav-number">1.</span> <span class="nav-text">创建一个新项目</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#开始创建主实体"><span class="nav-number">2.</span> <span class="nav-text">开始创建主实体</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义我们的产生器-spawner"><span class="nav-number">2.1.</span> <span class="nav-text">自定义我们的产生器 spawner</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建球球实体"><span class="nav-number">3.</span> <span class="nav-text">创建球球实体</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#球球的行为"><span class="nav-number">3.1.</span> <span class="nav-text">球球的行为</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运行"><span class="nav-number">4.</span> <span class="nav-text">运行</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Mapz</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("r1k7xXPTo8S7UTzLv0ny4XLz-gzGzoHsz", "3QFN4XJbJvVAywXDtWKYeUV4");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
