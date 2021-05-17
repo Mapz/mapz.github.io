@@ -74,7 +74,7 @@
 <link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="UE4," />
 
 
 
@@ -90,16 +90,18 @@
 
 
 
-<meta name="description" content="FIND THE CHILD">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Mapz&#39;s Blog">
-<meta property="og:url" content="http://Mapz.github.io/tags/工具/index.html">
+<meta name="description" content="有时候我们需要在 UE4 关闭游戏的时候，处理一些事情，那么可以重写 UGameInstance::ShutDown() 但是有时候在游戏关闭的时候，这个函数并未调用，于是我有必要探究一番他的调用链 这里仅讨论 Engine 而不讨论 EditorEngine 调用斩  UGameInstance::ShutDown() UGameEngine::PreExit() FEngineLoop::Ex">
+<meta name="keywords" content="UE4">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UE4 游戏关闭流程">
+<meta property="og:url" content="http://Mapz.github.io/2021/05/17/UE4-游戏关闭流程/index.html">
 <meta property="og:site_name" content="Mapz&#39;s Blog">
-<meta property="og:description" content="FIND THE CHILD">
+<meta property="og:description" content="有时候我们需要在 UE4 关闭游戏的时候，处理一些事情，那么可以重写 UGameInstance::ShutDown() 但是有时候在游戏关闭的时候，这个函数并未调用，于是我有必要探究一番他的调用链 这里仅讨论 Engine 而不讨论 EditorEngine 调用斩  UGameInstance::ShutDown() UGameEngine::PreExit() FEngineLoop::Ex">
 <meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2021-05-17T08:51:32.703Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Mapz&#39;s Blog">
-<meta name="twitter:description" content="FIND THE CHILD">
+<meta name="twitter:title" content="UE4 游戏关闭流程">
+<meta name="twitter:description" content="有时候我们需要在 UE4 关闭游戏的时候，处理一些事情，那么可以重写 UGameInstance::ShutDown() 但是有时候在游戏关闭的时候，这个函数并未调用，于是我有必要探究一番他的调用链 这里仅讨论 Engine 而不讨论 EditorEngine 调用斩  UGameInstance::ShutDown() UGameEngine::PreExit() FEngineLoop::Ex">
 
 
 
@@ -127,13 +129,13 @@
 
 
 
-  <link rel="canonical" href="http://Mapz.github.io/tags/工具/"/>
+  <link rel="canonical" href="http://Mapz.github.io/2021/05/17/UE4-游戏关闭流程/"/>
 
 
 
 
 
-  <title> 标签: 工具 | Mapz's Blog </title>
+  <title> UE4 游戏关闭流程 | Mapz's Blog </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -168,7 +170,7 @@
     
   
 
-  <div class="container sidebar-position-left  ">
+  <div class="container sidebar-position-left page-post-detail ">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -252,46 +254,189 @@
           <div id="content" class="content">
             
 
-  <div id="posts" class="posts-collapse">
-    <div class="collection-title">
-      <h2 >
-        工具
-        <small>标签</small>
-      </h2>
-    </div>
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2021/05/17/UE4-游戏关闭流程/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
 
     
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                UE4 游戏关闭流程
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-05-17T16:00:58+08:00">
+                2021-05-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2021/05/17/UE4-游戏关闭流程/" class="leancloud_visitors" data-flag-title="UE4 游戏关闭流程">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
       
 
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+      
+        <p>有时候我们需要在 UE4 关闭游戏的时候，处理一些事情，那么可以重写 UGameInstance::ShutDown()</p>
+<p>但是有时候在游戏关闭的时候，这个函数并未调用，于是我有必要探究一番他的调用链</p>
+<p>这里仅讨论 Engine 而不讨论 EditorEngine</p>
+<p>调用斩</p>
+<ul>
+<li>UGameInstance::ShutDown()</li>
+<li>UGameEngine::PreExit()</li>
+<li>FEngineLoop::Exit()</li>
+<li>调用 EngineExit 或者平台调用退出</li>
+<li>EngineExit 被放在了 GuardedMain 函数中定义的一个结构体中</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">   <span class="comment">// make sure GEngineLoop::Exit() is always called.</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">EngineLoopCleanupGuard</span> </span></span><br><span class="line"><span class="class">&#123;</span> </span><br><span class="line">	~EngineLoopCleanupGuard()</span><br><span class="line">	&#123;</span><br><span class="line">		EngineExit();</span><br><span class="line">	&#125;</span><br><span class="line">&#125; CleanupGuard;</span><br></pre></td></tr></table></figure>
+<p>也就是说游戏 Main 函数结束执行的时候，一定会执行 ShutDown</p>
+<p>那么为什么我测试的时候日志中没有出现 ShutDown 相关内容呢</p>
+<p>检查发现我们调用关闭游戏的时候用的是</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">FPlatformMisc::RequestExit(<span class="literal">true</span>);</span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> FWindowsPlatformMisc::RequestExit( <span class="keyword">bool</span> Force )</span><br><span class="line">&#123;</span><br><span class="line">	UE_LOG(LogWindows, Log,  TEXT(<span class="string">"FPlatformMisc::RequestExit(%i)"</span>), Force );</span><br><span class="line"></span><br><span class="line">	RequestEngineExit(TEXT(<span class="string">"Win RequestExit"</span>));</span><br><span class="line">	FCoreDelegates::ApplicationWillTerminateDelegate.Broadcast();</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span>( Force )</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">// Force immediate exit. In case of an error set the exit code to 3.</span></span><br><span class="line">		<span class="comment">// Dangerous because config code isn't flushed, global destructors aren't called, etc.</span></span><br><span class="line">		<span class="comment">// Suppress abort message and MS reports.</span></span><br><span class="line">		<span class="comment">//_set_abort_behavior( 0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT );</span></span><br><span class="line">		<span class="comment">//abort();</span></span><br><span class="line">	</span><br><span class="line">		<span class="comment">// Make sure the log is flushed.</span></span><br><span class="line">		<span class="keyword">if</span>( GLog )</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="comment">// This may be called from other thread, so set this thread as the master.</span></span><br><span class="line">			GLog-&gt;SetCurrentThreadAsMasterThread();</span><br><span class="line">			GLog-&gt;TearDown();</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		TerminateProcess(GetCurrentProcess(), GIsCriticalError ? <span class="number">3</span> : <span class="number">0</span>); </span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">// Tell the platform specific code we want to exit cleanly from the main loop.</span></span><br><span class="line">		PostQuitMessage( <span class="number">0</span> );</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可见传入 true 为参数的时候，直接把进程杀了，导致未执行 UGameInstance::ShutDown()</p>
 
-      <h1 class="post-title">
+      
+    </div>
+
+    <div>
+      
         
-            <a class="post-title-link" href="/2018/01/17/导出字体文件文本为PNG/" itemprop="url">
-              
-                <span itemprop="name">导出字体文件文本为PNG</span>
-              
-            </a>
+<div id="wechat_subscriber" style="display: block; padding: 10px 0; margin: 20px auto; width: 100%; text-align: center">
+    <img id="wechat_subscriber_qcode" src="/images/wechat-subs.jpg" alt="Mapz wechat" style="width: 200px; max-width: 100%;"/>
+    <div>码字不易，打赏随意 ^_^</div>
+</div>
+
+
+      
+    </div>
+
+    <div>
+      
         
-      </h1>
 
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2018-01-17T16:19:04+08:00"
-              content="2018-01-17" >
-          01-17
-        </time>
-      </div>
+      
+    </div>
 
-    </header>
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/UE4/" rel="tag"># UE4</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/01/17/Unity学习：像素FC还原游戏SuperSimon（一）准备工作/" rel="next" title="Unity学习：像素FC还原游戏SuperSimon（一）准备工作">
+                <i class="fa fa-chevron-left"></i> Unity学习：像素FC还原游戏SuperSimon（一）准备工作
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
   </article>
 
 
-    
-  </div>
 
-  
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -299,6 +444,10 @@
 
 
           
+  <div class="comments" id="comments">
+    
+  </div>
+
 
         </div>
         
@@ -496,6 +645,10 @@
   
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
 
   
 
