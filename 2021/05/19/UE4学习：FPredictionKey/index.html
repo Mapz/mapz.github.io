@@ -98,7 +98,7 @@
 <meta property="og:site_name" content="Mapz&#39;s Blog">
 <meta property="og:description" content="FPredicationKey 的基本信息FPredicationKey 是 UE4 在 Gameplay Ability System 插件中提供的一个结构体 编写目的是为了在 GAS 系统中实现客户端预测从而不用等待服务器返回提前就提前做一些操作 达到提高游戏流畅性的目的 服务器返回通过或者拒绝后，客户端可以相应的 Confirm 或者在 Reject 后回滚此次操作所做的修改 除了在 GAS">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2021-05-20T08:25:14.941Z">
+<meta property="og:updated_time" content="2021-05-20T08:31:26.487Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="UE4学习：FPredictionKey">
 <meta name="twitter:description" content="FPredicationKey 的基本信息FPredicationKey 是 UE4 在 Gameplay Ability System 插件中提供的一个结构体 编写目的是为了在 GAS 系统中实现客户端预测从而不用等待服务器返回提前就提前做一些操作 达到提高游戏流畅性的目的 服务器返回通过或者拒绝后，客户端可以相应的 Confirm 或者在 Reject 后回滚此次操作所做的修改 除了在 GAS">
@@ -393,7 +393,8 @@
 <li>Server 调用 InternalServerTryActivateAbility<br> a. Activate 失败的时候，调用客户端 RPC ，通知此 PK 调用失败，客户端调用此 PK 的拒绝委托，从而达到回滚等目的，并且执行 EndAbility<br> b. Activate 成功的时候，调用客户端 RPC ClientActivateAbilitySucceed 通知客户端激活 Ability 成功<br> c. 客户端和服务器在成功的时候，都会调用 CallActivateAbility 来启动 Activate Ability</li>
 </ol>
 <p>这个里面，一个 PredicationKey  通过 RPC 在客户端和服务器之间传递并储存，并且通过 RPC 通知执行成功或者失败，在成功和失败的时候，执行通过 PK 对应起来的成功和失败的委托</p>
-<p>Activate Ability 并没有用到回滚相关的内容，因为这里没有在客户端 Try Activate Ability 后做其他操作，而是等待服务器返回 Confirm 或者 Reject</p>
+<p>Activate Ability 并没有直接用到回滚相关的内容，因为这里没有在客户端 Try Activate Ability 后做其他操作，而是等待服务器返回 Confirm 或者 Reject</p>
+<p>我们在释放技能后，也可以会做过一些附加操作，这些操作可以在 Reject 委托中绑定自己的回滚操作</p>
 <p>写其他一些功能的时候，也可以直接在客户端发送 RPC 后，直接开始处理自己的操作，等待服务器 Reject 后，用挂在 Reject 的委托上，用于回滚客户端操作，例如停止播放动画</p>
 
       
