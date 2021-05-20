@@ -264,6 +264,290 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2018/12/03/Unity学习：切割Sprite/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2018/12/03/Unity学习：切割Sprite/" itemprop="url">
+                  Unity学习：切割Sprite
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-03T11:22:55+08:00">
+                2018-12-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/12/03/Unity学习：切割Sprite/" class="leancloud_visitors" data-flag-title="Unity学习：切割Sprite">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>很多2D老资源是打好成一张图的，我们需要去切成一个一个的sprite</p>
+<p>这时候导入图片后，材质类型选择 Sprite and UI ， Sprite 类型选择 Mutiple</p>
+<p>然后打开 Sprite Editor，自己切就可以了</p>
+<p>Sprite Editor 里面选择 Slice 切片</p>
+<p>如果图片中有框，选择 自动切应该就 OK</p>
+<p>否则还有按 大小切 和 按个数来切</p>
+<p>切完之后 点击每个片片，可以手动再修改一下</p>
+<hr>
+<h2 id="使用脚本来处理每个切片"><a href="#使用脚本来处理每个切片" class="headerlink" title="使用脚本来处理每个切片"></a>使用脚本来处理每个切片</h2><p>我们导入的素材每个sprite有个小黑框，这个小黑框我们不要，怎么办呢？</p>
+<p>每个手动去重新校正太麻烦，自己写个Editor脚本来解决吧</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">using System.Collections;</span><br><span class="line">using System.Collections.Generic;</span><br><span class="line">using UnityEditor;</span><br><span class="line">using UnityEngine;</span><br><span class="line"></span><br><span class="line">public class SpriteCustomScrips : MonoBehaviour &#123;</span><br><span class="line"></span><br><span class="line">	[MenuItem (&quot;Sprites/Rect small by 1&quot;)]</span><br><span class="line">	static void SpritesSmallBy1 () &#123;</span><br><span class="line">		// Debug.Log (Selection.</span><br><span class="line"></span><br><span class="line">		string path = AssetDatabase.GetAssetPath (Selection.activeObject);</span><br><span class="line">		Debug.Log (path);</span><br><span class="line"></span><br><span class="line">		TextureImporter ti = AssetImporter.GetAtPath (path) as TextureImporter;</span><br><span class="line">		SpriteMetaData[] spriteSheet = ti.spritesheet;</span><br><span class="line">		for (int i = 0; i &lt; spriteSheet.Length; i++) &#123;</span><br><span class="line"></span><br><span class="line">			if (spriteSheet[i].name.StartsWith (&quot;Hydra_walk_&quot;)) &#123;</span><br><span class="line">				spriteSheet[i].rect = new Rect (spriteSheet[i].rect.x + 1, spriteSheet[i].rect.y + 1, spriteSheet[i].rect.width - 2, spriteSheet[i].rect.height - 2);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		ti.spritesheet = spriteSheet;</span><br><span class="line">		EditorUtility.SetDirty (ti);</span><br><span class="line">		ti.SaveAndReimport ();</span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的脚本大家可以参考一下，修改了一下sprite的rect</p>
+<p>然后我们在project视图中选中刚才自动切好的资源，点击菜单处理一下，发现1px的小黑框没有了</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2018/11/30/Unity学习：UGUI按钮的导航属性/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2018/11/30/Unity学习：UGUI按钮的导航属性/" itemprop="url">
+                  Unity学习：UGUI按钮的导航属性
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-30T11:16:35+08:00">
+                2018-11-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/11/30/Unity学习：UGUI按钮的导航属性/" class="leancloud_visitors" data-flag-title="Unity学习：UGUI按钮的导航属性">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>UGUI 中的按钮有4个状态，包括 Normal highlighted pressed disabled</p>
+<p>而导航属性可以决定这几个状态之间的切换</p>
+<p>如果选中了导航属性，则按钮在点击后，会进入选中状态，表现为highlighted, 鼠标移出，也不会回复normal状态</p>
+<p>类似于老式录音机的 按下 或者说 单选组 状态，需要按其他的按钮才能回到 normal 状态</p>
+<p>所以我们搞单个按钮的时候 应当把按钮的导航关闭</p>
+<hr>
+<p>导航的另外一个功能，就是UI按钮的切换高光顺序</p>
+<p>类似于我们在UI上按 tab 按键 切换选中的元素一样</p>
+<p>至于导航的几个选项，就是字面上的意思啦</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2018/01/31/使用Node搭建静态文件服务器/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1734,299 +2018,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2017/05/01/在Mac上组合使用Scrapy和phantomJs/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Mapz">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/link-300x300.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Mapz's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2017/05/01/在Mac上组合使用Scrapy和phantomJs/" itemprop="url">
-                  在Mac上组合使用Scrapy和phantomJs
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-01T22:45:01+08:00">
-                2017-05-01
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-             <span id="/2017/05/01/在Mac上组合使用Scrapy和phantomJs/" class="leancloud_visitors" data-flag-title="在Mac上组合使用Scrapy和phantomJs">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数 </span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body han-init-context" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>我们做爬虫的的时候，经常会遇到页面中的部分是由js生成并渲染的情况，这时爬虫爬到的页面还并非呈现在用户面前的页面，要得到需要的内容，可以用大招…还是用浏览器核心来渲染一遍</p>
-<p>我准备尝试用PhantomJs–基于Webkit的服务端JS API（说大白话点，就是个隐形的浏览器，并且这货还提供了文件处理的IO操作）用来帮我们处理爬虫爬到的页面的渲染工作。</p>
-<hr>
-<h2 id="安装PhantomJS"><a href="#安装PhantomJS" class="headerlink" title="安装PhantomJS"></a>安装PhantomJS</h2><p><a href="https://npm.taobao.org/dist/phantomjs" target="_blank" rel="noopener">下载地址</a><br>这个是已经编译好的</p>
-<p>不要用npm装，不然会不能正常运行</p>
-<p>下载后解压后把目录下的bin路径加入PATH中就可以了</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">phantomjs --version</span><br></pre></td></tr></table></figure>
-<p>如果不报错，则已经安装好了</p>
-<hr>
-<h2 id="番外：想要安装HomeBrew"><a href="#番外：想要安装HomeBrew" class="headerlink" title="番外：想要安装HomeBrew"></a>番外：想要安装HomeBrew</h2><p>那就这么安吧<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ruby -e <span class="string">"<span class="variable">$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)</span>"</span> &lt; /dev/null 2&gt; /dev/null</span><br></pre></td></tr></table></figure></p>
-<hr>
-<h2 id="Scrapy安装"><a href="#Scrapy安装" class="headerlink" title="Scrapy安装"></a>Scrapy安装</h2><p><strong>略</strong> （假设你已经懂Scrapy怎么玩）</p>
-<hr>
-<h2 id="安装selenium"><a href="#安装selenium" class="headerlink" title="安装selenium"></a>安装selenium</h2><p>selenium支持在Python中使用多种浏览器来模拟行为，同样PhantomJS也不在话下</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo pip install selenium</span><br></pre></td></tr></table></figure>
-<hr>
-<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><p>Scrapy中间件增加一个</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> selenium <span class="keyword">import</span> webdriver</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">from</span> scrapy.http <span class="keyword">import</span> HtmlResponse</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">JSProcessMiddleware</span><span class="params">(object)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">process_request</span><span class="params">(self, request, spider)</span>:</span></span><br><span class="line">        driver = webdriver.PhantomJS(executable_path = <span class="string">'你的phantomjs安装路径'</span>)</span><br><span class="line">        driver.get(request.url)</span><br><span class="line">        time.sleep(<span class="number">1</span>)</span><br><span class="line">        js = <span class="string">"var q=document.documentElement.scrollTop=10000"</span></span><br><span class="line">        driver.execute_script(js)  <span class="comment"># 可执行js，模仿用户操作。此处为将页面拉至最底端。</span></span><br><span class="line">        time.sleep(<span class="number">3</span>)</span><br><span class="line">        body = driver.page_source</span><br><span class="line">        <span class="keyword">return</span> HtmlResponse(driver.current_url, body=body, encoding=<span class="string">'utf-8'</span>, request=request)</span><br></pre></td></tr></table></figure>
-<p>如果不想在所有爬虫中使用，可以在reqeust中加meta参数来控制</p>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2017/04/28/用Git做版本控制时忽略JetBrain系列IDE的工程信息/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Mapz">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/link-300x300.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Mapz's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2017/04/28/用Git做版本控制时忽略JetBrain系列IDE的工程信息/" itemprop="url">
-                  用Git做版本控制时忽略JetBrain系列IDE的工程信息
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-04-28T17:59:17+08:00">
-                2017-04-28
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-             <span id="/2017/04/28/用Git做版本控制时忽略JetBrain系列IDE的工程信息/" class="leancloud_visitors" data-flag-title="用Git做版本控制时忽略JetBrain系列IDE的工程信息">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数 </span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body han-init-context" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>我们在做版本控制的时候，需要去除本地的一些IDE信息</p>
-<p>这里介绍一下在使用<strong>JetBrain</strong>系列IDE(<strong>IntelliJ,PyCharm</strong>等)时，如何在<strong>Git</strong>上忽略IDE工程信息</p>
-<hr>
-<ol>
-<li><p>编辑项目下的.gitignore文件，添加</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.idea/</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>执行命令</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git rm -r --cached .</span><br><span class="line">git add .</span><br><span class="line">git commit -m <span class="string">"fixed untracked files"</span></span><br></pre></td></tr></table></figure>
-</li>
-</ol>
-<p>~~Done</p>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -2076,7 +2067,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-count">27</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>

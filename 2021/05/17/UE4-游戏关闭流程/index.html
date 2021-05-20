@@ -90,18 +90,18 @@
 
 
 
-<meta name="description" content="有时候我们需要在 UE4 关闭游戏的时候，处理一些事情，那么可以重写 UGameInstance::ShutDown() 但是有时候在游戏关闭的时候，这个函数并未调用，于是我有必要探究一番他的调用链 这里仅讨论 Engine 而不讨论 EditorEngine 调用斩  UGameInstance::ShutDown() UGameEngine::PreExit() FEngineLoop::Ex">
+<meta name="description" content="有时候我们需要在 UE4 关闭游戏的时候，处理一些事情，那么可以重写 UGameInstance::ShutDown() 但是有时候在游戏关闭的时候，这个函数并未调用，于是我有必要探究一番他的调用链 这里仅讨论 Engine 而不讨论 EditorEngine 调用栈  UGameInstance::ShutDown() UGameEngine::PreExit() FEngineLoop::Ex">
 <meta name="keywords" content="UE4">
 <meta property="og:type" content="article">
 <meta property="og:title" content="UE4 游戏关闭流程">
 <meta property="og:url" content="http://Mapz.github.io/2021/05/17/UE4-游戏关闭流程/index.html">
 <meta property="og:site_name" content="Mapz&#39;s Blog">
-<meta property="og:description" content="有时候我们需要在 UE4 关闭游戏的时候，处理一些事情，那么可以重写 UGameInstance::ShutDown() 但是有时候在游戏关闭的时候，这个函数并未调用，于是我有必要探究一番他的调用链 这里仅讨论 Engine 而不讨论 EditorEngine 调用斩  UGameInstance::ShutDown() UGameEngine::PreExit() FEngineLoop::Ex">
+<meta property="og:description" content="有时候我们需要在 UE4 关闭游戏的时候，处理一些事情，那么可以重写 UGameInstance::ShutDown() 但是有时候在游戏关闭的时候，这个函数并未调用，于是我有必要探究一番他的调用链 这里仅讨论 Engine 而不讨论 EditorEngine 调用栈  UGameInstance::ShutDown() UGameEngine::PreExit() FEngineLoop::Ex">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2021-05-17T08:51:32.703Z">
+<meta property="og:updated_time" content="2021-05-17T09:25:22.133Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="UE4 游戏关闭流程">
-<meta name="twitter:description" content="有时候我们需要在 UE4 关闭游戏的时候，处理一些事情，那么可以重写 UGameInstance::ShutDown() 但是有时候在游戏关闭的时候，这个函数并未调用，于是我有必要探究一番他的调用链 这里仅讨论 Engine 而不讨论 EditorEngine 调用斩  UGameInstance::ShutDown() UGameEngine::PreExit() FEngineLoop::Ex">
+<meta name="twitter:description" content="有时候我们需要在 UE4 关闭游戏的时候，处理一些事情，那么可以重写 UGameInstance::ShutDown() 但是有时候在游戏关闭的时候，这个函数并未调用，于是我有必要探究一番他的调用链 这里仅讨论 Engine 而不讨论 EditorEngine 调用栈  UGameInstance::ShutDown() UGameEngine::PreExit() FEngineLoop::Ex">
 
 
 
@@ -350,7 +350,7 @@
         <p>有时候我们需要在 UE4 关闭游戏的时候，处理一些事情，那么可以重写 UGameInstance::ShutDown()</p>
 <p>但是有时候在游戏关闭的时候，这个函数并未调用，于是我有必要探究一番他的调用链</p>
 <p>这里仅讨论 Engine 而不讨论 EditorEngine</p>
-<p>调用斩</p>
+<p>调用栈</p>
 <ul>
 <li>UGameInstance::ShutDown()</li>
 <li>UGameEngine::PreExit()</li>
@@ -422,6 +422,10 @@
 
           <div class="post-nav-prev post-nav-item">
             
+              <a href="/2021/05/19/UE4学习：FPredictionKey/" rel="prev" title="UE4学习：FPredictionKey">
+                UE4学习：FPredictionKey <i class="fa fa-chevron-right"></i>
+              </a>
+            
           </div>
         </div>
       
@@ -483,7 +487,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-count">27</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
