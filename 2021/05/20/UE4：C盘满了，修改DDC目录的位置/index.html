@@ -98,7 +98,7 @@
 <meta property="og:site_name" content="Mapz&#39;s Blog">
 <meta property="og:description" content="电脑上 C 盘空间太小，只有 100 G其他盘的 SSD 也不够大，虚拟内存都快放不下了打开 WinDirStat 一看 UE4 DDC 占了几十个 G 了这就准备移动一下  打开 UE4安装目录\Engine\Config\BaseEngine.ini 找到 InstalledDerivedDataBackendGraph 下的  1Local=(Type=FileSystem, ReadOnl">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2021-05-20T03:13:14.083Z">
+<meta property="og:updated_time" content="2021-05-24T02:01:10.858Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="UE4：C盘满了，修改DDC目录的位置">
 <meta name="twitter:description" content="电脑上 C 盘空间太小，只有 100 G其他盘的 SSD 也不够大，虚拟内存都快放不下了打开 WinDirStat 一看 UE4 DDC 占了几十个 G 了这就准备移动一下  打开 UE4安装目录\Engine\Config\BaseEngine.ini 找到 InstalledDerivedDataBackendGraph 下的  1Local=(Type=FileSystem, ReadOnl">
@@ -354,6 +354,9 @@
 </ol>
 <figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">Local</span>=(Type=FileSystem, ReadOnly=<span class="literal">false</span>, Clean=<span class="literal">false</span>, Flush=<span class="literal">false</span>, PurgeTransient=<span class="literal">true</span>, DeleteUnused=<span class="literal">true</span>, UnusedFileAge=<span class="number">34</span>, FoldersToClean=-<span class="number">1</span>, Path=<span class="string">"%ENGINEVERSIONAGNOSTICUSERDIR%DerivedDataCache"</span>)</span><br></pre></td></tr></table></figure>
 <p>修改 Path 到自己的目录即可</p>
+<p>如果没有成功，可以修改环境变量</p>
+<p>UE-LocalDataCachePath</p>
+<p>值修改为自己的目录即可</p>
 
       
     </div>
