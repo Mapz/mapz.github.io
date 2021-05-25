@@ -264,6 +264,252 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2021/05/25/UE4：UGameplayAbility类型简析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2021/05/25/UE4：UGameplayAbility类型简析/" itemprop="url">
+                  UE4：UGameplayAbility 类型简析
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-05-25T11:17:08+08:00">
+                2021-05-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2021/05/25/UE4：UGameplayAbility类型简析/" class="leancloud_visitors" data-flag-title="UE4：UGameplayAbility 类型简析">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>作为 GAS 系统中的核心元素之一 GameplayAbility 代表一个可大可小的 “能力”</p>
+<p>这个能力能干啥，基本全靠你自己定义的边界，大到一个复杂的技能，小到一个动作，都可以作为一个“能力”</p>
+<p>可以说 GA 的目的是基于一系列的行为控制来生成 GameplayEffect 改变 GameplayAttribue， 创建 GameplayCue 来处理显示和声音效果</p>
+<p>这次我们基于 UE 版本 4.26 来简析一下 UGameplayAbility 类</p>
+<h2 id="基本信息"><a href="#基本信息" class="headerlink" title="基本信息"></a>基本信息</h2><p>类型继承 UObject，并实现 IGameplayTaskOwnerInterface 接口</p>
+<p>实现 IGameplayTaskOwnerInterface 的目的是为了可以在其中执行异步的 UGameplayTask</p>
+<p>而 GA 使用的 GameplayTasksComponent 是 GA 的当前释放者的 AbilitySystemComponent （UAbilitySystemComponent 也是继承自 UGameplayTasksComponent 的）</p>
+<h2 id="重要的函数"><a href="#重要的函数" class="headerlink" title="重要的函数"></a>重要的函数</h2><p>如源码中的注释所写的，GA 里面有几个重要的函数</p>
+<h3 id="CanActivateAbility"><a href="#CanActivateAbility" class="headerlink" title="CanActivateAbility"></a>CanActivateAbility</h3><h4 id="函数定义"><a href="#函数定义" class="headerlink" title="函数定义"></a>函数定义</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">bool</span> <span class="title">CanActivateAbility</span><span class="params">(<span class="keyword">const</span> FGameplayAbilitySpecHandle Handle, <span class="keyword">const</span> FGameplayAbilityActorInfo* ActorInfo, <span class="keyword">const</span> FGameplayTagContainer* SourceTags = <span class="literal">nullptr</span>, <span class="keyword">const</span> FGameplayTagContainer* TargetTags = <span class="literal">nullptr</span>, OUT FGameplayTagContainer* OptionalRelevantTags = <span class="literal">nullptr</span>)</span> <span class="keyword">const</span></span>;</span><br></pre></td></tr></table></figure>
+<p>函数功能是检查是否可以激活此 Ability</p>
+<p>GAS 中在 UAbilitySystemComponent::TryActivateAbility 中调用</p>
+<ul>
+<li>Handle 参数：AbilitySpcHandle，这个代表一个 Ability 的实例和数据载体的 Handle</li>
+<li>ActorInfo 参数：当前技能的释放者信息，类型 FGameplayAbilityActorInfo 包括技能所有者，技能 Avatar Actor （代表物理上释放技能的 Actor，可以没有）和 PC ，骨架 Mesh ，是否本地 Actor 等信息</li>
+<li>SourceTags：表示释放者拥有的 Tags</li>
+<li>TargetTags：表示目标拥有的 Tags</li>
+<li>OptionalRelevantTags：用来存放一些额外的信息，本体里面用来放技能释放失败的原因 Tags</li>
+</ul>
+<h4 id="函数默认流程"><a href="#函数默认流程" class="headerlink" title="函数默认流程"></a>函数默认流程</h4><p>函数是 virtual 的，你可以自己重写</p>
+<p>默认流程如下</p>
+<ol>
+<li>判断是否符合执行策略（只能在服务器执行，只能在客户端发起之类的）</li>
+<li>判断 ActorInfo 中是否含有 AbilitySystemComponent ，没有则不可以释放</li>
+<li>判断用户是否禁止释放技能（AbilitySystemComponent.UserAbilityActivationInhibited，例如菜单状态下不能释放之类的)</li>
+<li>判断技能冷却是否完成<blockquote>
+<p>冷却是由 TSubclassOf<class ugameplayeffect=""> CooldownGameplayEffectClass 来控制的，在技能成功被 commit 的时候，会触发生成这个 GE，判断是否冷却了就是判断是否有这个 GE</class></p>
+</blockquote>
+</li>
+<li>判断技能消费是否够<blockquote>
+<p>同样的消费是由 TSubclassOf<class ugameplayeffect=""> CostGameplayEffectClass 来控制的，这个 GE 是懒加载的，这里会调用 AbilitySystemComponent-&gt;CanApplyAttributeModifiers 来检查是否有资源释放技能</class></p>
+</blockquote>
+</li>
+<li>检查当前 Tags 是否满足释放条件，包括需要的 Tag，Block 的 Tag 等</li>
+<li>获得技能实例的技能信息（FGameplayAbilitySpec）</li>
+<li>如果绑定了输入，检查是否为不允许输入的技能（AbilitySystemComponent-&gt;IsAbilityInputBlocked）</li>
+<li>检查蓝图覆盖的 K2_CanActivateAbility 是否可以释放</li>
+</ol>
+<h3 id="CallActivateAbility"><a href="#CallActivateAbility" class="headerlink" title="CallActivateAbility"></a>CallActivateAbility</h3><h4 id="函数定义-1"><a href="#函数定义-1" class="headerlink" title="函数定义"></a>函数定义</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">CallActivateAbility</span><span class="params">(<span class="keyword">const</span> FGameplayAbilitySpecHandle Handle, <span class="keyword">const</span> FGameplayAbilityActorInfo* ActorInfo, <span class="keyword">const</span> FGameplayAbilityActivationInfo ActivationInfo, FOnGameplayAbilityEnded::FDelegate* OnGameplayAbilityEndedDelegate = <span class="literal">nullptr</span>, <span class="keyword">const</span> FGameplayEventData* TriggerEventData = <span class="literal">nullptr</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>函数用来激活 Ability</p>
+<p>参数除了上面的以外还有</p>
+<ul>
+<li>ActivationInfo：FGameplayAbilityActivationInfo 类型，存储一些技能的激活信息，包括 PK 和 ActivationMode （激活的模式， Authority 或者 Client 等）</li>
+<li>OnGameplayAbilityEndedDelegate： Ability Ended 回调</li>
+<li>TriggerEventData：FGameplayEventData 类型，包括技能发起者，目标，目标数据，增幅，Tag容器等，还可以传入两个 Custom 的 UObject 用来传递数据</li>
+</ul>
+<h4 id="函数主要流程"><a href="#函数主要流程" class="headerlink" title="函数主要流程"></a>函数主要流程</h4><ol>
+<li>执行 PreActivate（Virtual 可覆盖）<br> a. 刷新对齐 ServerMovement<br> b. 如果是实例化的 Activity，设置 bIsActive 为激活状态，设置为 bIsBlockingOtherAbilities 为 True<br> c. 设置 Activity 的当前 ActorInfo 和 ActivationInfo<br> d. 加入需要激活的 GameplayTags<br> e. 加入 AbilityEnded 回调<br> f. 发送 AbilityActivatedCallbacks 事件<br> g. 更新 Ability 的 Blocking 和 Cancel Tags</li>
+<li>执行 ActivateAbility（Virtual 可覆盖）<br> a. 如果有蓝图实现，则使用蓝图实现 K2_ActivateAbility 激活任务<br> b. 如果有蓝图的 TriggerEvent 实现，则执行 K2_ActivateAbilityFromEvent(*TriggerEventData) 激活任务，灭有 TriggerData 则 End Ability<br> c. 如果没有蓝图实现，则直接 Commit Ability</li>
+</ol>
+<h3 id="CommitAbility"><a href="#CommitAbility" class="headerlink" title="CommitAbility"></a>CommitAbility</h3><h4 id="函数定义-2"><a href="#函数定义-2" class="headerlink" title="函数定义"></a>函数定义</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">bool</span> <span class="title">CommitAbility</span><span class="params">(<span class="keyword">const</span> FGameplayAbilitySpecHandle Handle, <span class="keyword">const</span> FGameplayAbilityActorInfo* ActorInfo, <span class="keyword">const</span> FGameplayAbilityActivationInfo ActivationInfo, OUT FGameplayTagContainer* OptionalRelevantTags = <span class="literal">nullptr</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>函数是确认 Ability</p>
+<h4 id="默认流程"><a href="#默认流程" class="headerlink" title="默认流程"></a>默认流程</h4><ol>
+<li>调用 CommitCheck 检查是否可以 Commit （和 CanActivateAbility 差不多，也可以做额外的检查）</li>
+<li>设置冷却，执行消耗资源 （ApplyCooldown 和 ApplyCost）</li>
+<li>执行蓝图 K2_CommitExecute</li>
+<li>发送 AbilityCommittedCallbacks 广播</li>
+</ol>
+<h3 id="CancelAbility"><a href="#CancelAbility" class="headerlink" title="CancelAbility"></a>CancelAbility</h3><h4 id="函数定义-3"><a href="#函数定义-3" class="headerlink" title="函数定义"></a>函数定义</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">CancelAbility</span><span class="params">(<span class="keyword">const</span> FGameplayAbilitySpecHandle Handle, <span class="keyword">const</span> FGameplayAbilityActorInfo* ActorInfo, <span class="keyword">const</span> FGameplayAbilityActivationInfo ActivationInfo, <span class="keyword">bool</span> bReplicateCancelAbility)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>函数用来取消 Ability </p>
+<h4 id="默认流程-1"><a href="#默认流程-1" class="headerlink" title="默认流程"></a>默认流程</h4><ol>
+<li>检查 Ability 是否可以被 Cancel （如果是非实例化的，则可以被 Cancel，如果是实例化的，检查是否可以被 Cancel 的设置）</li>
+<li>检查当前的 Ability 是否正在 ApplyGameplayEffectSpecToTarget （ScopeLockCount），如果正在被操作，加入 WaitingToExecute 中，并会在执行完成后，执行本次 Cancel 操作</li>
+<li>如果需要，执行 ReplicateEndOrCancelAbility 执行客户端或者服务器的 CancelAbility 或者 EndAbility 的 RPC</li>
+<li>广播 OnGameplayAbilityCancelled 事件</li>
+<li>执行 EndAbility</li>
+</ol>
+<h3 id="EndAbility"><a href="#EndAbility" class="headerlink" title="EndAbility"></a>EndAbility</h3><h4 id="函数定义-4"><a href="#函数定义-4" class="headerlink" title="函数定义"></a>函数定义</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">EndAbility</span><span class="params">(<span class="keyword">const</span> FGameplayAbilitySpecHandle Handle, <span class="keyword">const</span> FGameplayAbilityActorInfo* ActorInfo, <span class="keyword">const</span> FGameplayAbilityActivationInfo ActivationInfo, <span class="keyword">bool</span> bReplicateEndAbility, <span class="keyword">bool</span> bWasCancelled)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>函数用来结束 Ability</p>
+<h4 id="默认流程-2"><a href="#默认流程-2" class="headerlink" title="默认流程"></a>默认流程</h4><ol>
+<li>检查 Ability 是否可以被 End<br> a. 不是 Active 的实例化 Acitivity 不可以被 End<br> b. 检查 Handle 的 ActivitySpec 是否 Active</li>
+<li>查当前的 Ability 是否正在 ApplyGameplayEffectSpecToTarget （ScopeLockCount），如果正在被操作，加入 WaitingToExecute 中，并会在执行完成后，执行本次 EndAbility 操作</li>
+<li>执行蓝图 K2_OnEndAbility</li>
+<li>清除这个 Ability 在 World 中的所有 timer 和 latent actions</li>
+<li>广播 OnGameplayAbilityEnded 事件，并移除回调</li>
+<li>广播 OnGameplayAbilityEndedWithData 事件，并移除回调</li>
+<li>对于实例化 Ability 设置 bIsActive 为非激活</li>
+<li>结束所有挂在 Ability 上的 GameplayTask，并 Reset 列表来移除内存占用</li>
+<li>如果需要执行 ReplicateEndOrCancelAbility</li>
+<li>移除 ActivationTags</li>
+<li>移除技能添加的 GameplayCue</li>
+<li>移除 AbilityComponent 上的 Blocking 和 Cancel Tags</li>
+<li>移除 PK 缓存</li>
+<li>移除 AbilityComponent 上的 AnimatingAbility</li>
+<li>播出 AbilityComponent 上的  AbilityEndedCallbacks ， OnAbilityEnded 事件</li>
+<li>需要同步的 Ability ，移除 Spec 的 ReplicatedInstance（服务器）</li>
+<li>不需要同步的 Ability ，移除 Spec 的 NonReplicatedInstances</li>
+<li>服务器上如果没有活动的 Spec 则，且设置为在 Activation 后就从 Component 中移除 Ability 则 ClearAbility，否则 MarkAbilitySpecDirty</li>
+</ol>
+<p>这里的 ClearAbility，和 GiveAbility 对应，是从 AbilityComponent 中移除这个 Ability 的 Handle 而 MarkAbilitySpecDirty 是如字面意思表示 AbilitySpec 已经被修改过了</p>
+<h2 id="配置项"><a href="#配置项" class="headerlink" title="配置项"></a>配置项</h2><ul>
+<li>ReplicationPolicy：同步策略</li>
+<li>InstancingPolicy：实例化策略，可以设置为非实例化，每个 Actor 实例化，或者每次执行实例化，非实例化的 Ability 只是用其 CDO 来做逻辑</li>
+<li>bServerRespectsRemoteAbilityCancellation ： 是否可以从客户端来 Cancel 服务器上的 Ability</li>
+<li>bRetriggerInstancedAbility：是否在激活一个实例化的 Ability 的时候， 先 End 再重新激活</li>
+<li>NetExecutionPolicy：网络同步策略，包括本地预测，服务器 only 等</li>
+<li>NetSecurityPolicy：网络安全政策，设置 Ability 的执行权限</li>
+<li>CostGameplayEffectClass：消费的 GE</li>
+<li>AbilityTriggers：可以激活 Ability 的 Tags</li>
+<li>CooldownGameplayEffectClass：冷却的 GE</li>
+<li>CancelAbilitiesWithTag：执行的时候，会 Cancel 含有这些 Tag 的其他 Ability</li>
+<li>BlockAbilitiesWithTag：执行的时候，会 Block 含有这些 Tag 的其他 Ability</li>
+<li>ActivationOwnedTags：激活的时候附加到 Owner 的 Tags</li>
+<li>ActivationRequiredTags：激活的时候需要的 Tags</li>
+<li>ActivationBlockedTags：激活的时候，如果有这些 Tags 会阻止激活</li>
+<li>SourceRequiredTags：Source Actor 有这些 Tags 的时候才能激活</li>
+<li>SourceBlockedTags：Source Actor 有这些 Tags 的时候不能激活</li>
+<li>TargetRequiredTags：Target Actor 有这些 Tags 的时候才能激活</li>
+<li>TargetBlockedTags：Target Actor 有这些 Tags 的时候不能激活</li>
+<li>bReplicateInputDirectly: 是否直接把输入事件传到服务器</li>
+<li>AbilityTags：拥有的 Tags，会同其他的 Ability 的 CancelAbilitiesWithTag 和 CancelAbilitiesWithTag 协同作用</li>
+</ul>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><ol>
+<li>非实例化的 Ability ，总是可以被 Cancel，也总是会 Block 其他的 Ability，而不需要设置</li>
+<li>对于每个实例会不同的 Ability，需要设置为实例化，否则不要设置为实例化，以节省资源，Ability 所需的实例数据事实上存在 AbilitySpec 中</li>
+</ol>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2021/05/20/UE4：C盘满了，修改DDC目录的位置/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -585,7 +831,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2021/05/17/UE4-游戏关闭流程/">
+    <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2021/05/17/UE4：游戏关闭流程/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Mapz">
@@ -607,8 +853,8 @@
             
               
                 
-                <a class="post-title-link" href="/2021/05/17/UE4-游戏关闭流程/" itemprop="url">
-                  UE4 游戏关闭流程
+                <a class="post-title-link" href="/2021/05/17/UE4：游戏关闭流程/" itemprop="url">
+                  UE4：游戏关闭流程
                 </a>
               
             
@@ -642,7 +888,7 @@
 
           
           
-             <span id="/2021/05/17/UE4-游戏关闭流程/" class="leancloud_visitors" data-flag-title="UE4 游戏关闭流程">
+             <span id="/2021/05/17/UE4：游戏关闭流程/" class="leancloud_visitors" data-flag-title="UE4：游戏关闭流程">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -1713,223 +1959,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2018/12/03/Unity学习：ECS学习（一）Hybrid模式ECS控制刺蛇移动/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Mapz">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/link-300x300.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Mapz's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2018/12/03/Unity学习：ECS学习（一）Hybrid模式ECS控制刺蛇移动/" itemprop="url">
-                  Unity学习：ECS学习（一）Hybrid模式ECS控制刺蛇移动
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-03T15:53:23+08:00">
-                2018-12-03
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-             <span id="/2018/12/03/Unity学习：ECS学习（一）Hybrid模式ECS控制刺蛇移动/" class="leancloud_visitors" data-flag-title="Unity学习：ECS学习（一）Hybrid模式ECS控制刺蛇移动">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数 </span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body han-init-context" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>Unity 2018 的新功能 ECS 现在已经放出了预览版本，我们现在就来尝试一下</p>
-<p>—</p>
-<h2 id="Hybrid模式"><a href="#Hybrid模式" class="headerlink" title="Hybrid模式"></a>Hybrid模式</h2><p>hybrid 就是混合模式，因为 Unity ECS 现在还只有预览版本</p>
-<p>对 GameObject 和各种 Render 支持很差</p>
-<p>所以混合模式可以看成现在的 GameObject 模式到纯 ECS 之间的过渡模式</p>
-<p>Hybrid 模式下，并没有在效率上有非常大的提升</p>
-<p>比起纯 ECS 模式</p>
-<ul>
-<li>初始化时间（遍历寻找Entity的过程）无法优化</li>
-<li>载入时间无法优化</li>
-<li>数据在内存中是随机获取的，非线性，执行效率下降</li>
-<li>无法利用多核处理器</li>
-<li>没有SIMD</li>
-</ul>
-<p>但是我们任然可以先尝试通过这种方式，来提高编程效率</p>
-<p>并提前熟悉 Unity ECS 的思维模式</p>
-<hr>
-<h2 id="资源准备"><a href="#资源准备" class="headerlink" title="资源准备"></a>资源准备</h2><p>首先 导入了一组 星际争霸中刺蛇的 Sprite </p>
-<p>先在 Sprite Editor 中切好了刺蛇的 走路 Sprite</p>
-<p>做好了刺蛇16个方向走路的动作 Animation 和 Animator</p>
-<p>Animator 增加参数 Direction Float 控制刺蛇的移动方向</p>
-<p>总共 16 方向 做好从 AnyState 到每个方向的 Direction 条件</p>
-<img src="/2018/12/03/Unity学习：ECS学习（一）Hybrid模式ECS控制刺蛇移动/unity_01.png" title="做好刺蛇的相关动作">
-<p>我们不需要转换动画，所以 每个 translation 的 setting 里面的 duration 都改成 0</p>
-<p>并且要把 Can translate to self 取消勾选，不然 永远会卡第一帧</p>
-<hr>
-<p>我们先通过简单的键盘操作来控制刺蛇移动</p>
-<h2 id="设计我们的系统和实体"><a href="#设计我们的系统和实体" class="headerlink" title="设计我们的系统和实体"></a>设计我们的系统和实体</h2><h3 id="实体"><a href="#实体" class="headerlink" title="实体"></a>实体</h3><p>单位实体 Unit 包含的组件</p>
-<ul>
-<li>位置 Position</li>
-<li>速度 Velocity </li>
-<li>单位 Unit </li>
-<li>输入 PlayerInput</li>
-<li>可转向 Directable</li>
-</ul>
-<h3 id="系统"><a href="#系统" class="headerlink" title="系统"></a>系统</h3><h4 id="逻辑系统"><a href="#逻辑系统" class="headerlink" title="逻辑系统"></a>逻辑系统</h4><p>运动系统-需要</p>
-<ul>
-<li>位置 Position</li>
-<li>速度 Velocity</li>
-</ul>
-<p>输入系统-需要 的组件</p>
-<ul>
-<li>输入 PlayerInput </li>
-<li>速度 Velocity</li>
-</ul>
-<h4 id="同步-GameObject-状态的系统"><a href="#同步-GameObject-状态的系统" class="headerlink" title="同步 GameObject 状态的系统"></a>同步 GameObject 状态的系统</h4><p>同步 transform 系统</p>
-<ul>
-<li>位置 Position</li>
-<li>Transform</li>
-</ul>
-<p>同步刺蛇 Animator 方向状态的系统</p>
-<ul>
-<li>速度 Velocity （速度控制朝向）</li>
-<li>Animator</li>
-</ul>
-<hr>
-<h2 id="编写上述组件和系统的代码"><a href="#编写上述组件和系统的代码" class="headerlink" title="编写上述组件和系统的代码"></a>编写上述组件和系统的代码</h2><h3 id="组件"><a href="#组件" class="headerlink" title="组件"></a>组件</h3><h4 id="位置"><a href="#位置" class="headerlink" title="位置"></a>位置</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">using Unity.Mathematics;</span><br><span class="line">using UnityEngine;</span><br><span class="line">public class Position2D : MonoBehaviour &#123;</span><br><span class="line">    // 位置 x y</span><br><span class="line">    public float2 Value;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="输入"><a href="#输入" class="headerlink" title="输入"></a>输入</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">using Unity.Mathematics;</span><br><span class="line">using UnityEngine;</span><br><span class="line"></span><br><span class="line">public class PlayerInput : MonoBehaviour &#123;</span><br><span class="line">    // 输入 x y</span><br><span class="line">    public float2 Move;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="可转向"><a href="#可转向" class="headerlink" title="可转向"></a>可转向</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">using Unity.Mathematics;</span><br><span class="line">using UnityEngine;</span><br><span class="line"></span><br><span class="line">public class Directable : MonoBehaviour &#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="单位"><a href="#单位" class="headerlink" title="单位"></a>单位</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">using Unity.Mathematics;</span><br><span class="line">using UnityEngine;</span><br><span class="line"></span><br><span class="line">public class Unit : MonoBehaviour &#123;</span><br><span class="line">  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="速度"><a href="#速度" class="headerlink" title="速度"></a>速度</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">using Unity.Mathematics;</span><br><span class="line">using UnityEngine;</span><br><span class="line">public class Velocity : MonoBehaviour &#123;</span><br><span class="line">    // 速度 x y</span><br><span class="line">    public float2 Value;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>大家可以看到我们这边都是继承的 MonoBehavior ，有的还是一些空的类</p>
-<p>继承 MonoBehavior 才能被添加到 GameObject 中,至于空类的作用我们下面在讲系统的时候来讲</p>
-<h3 id="系统-1"><a href="#系统-1" class="headerlink" title="系统"></a>系统</h3><p>ECS 中的 S 意为 System 就是系统了，系统的做法，下面已经比较清楚了</p>
-<p>在系统中 可以通过 GetEntities 来自动获得声明好的 结构体数据</p>
-<p>结构体数据是从哪里获得的呢？</p>
-<p>答案是从游戏中所有的 Entity 来自动获取，由于我们使用的是一个 GameObject ，要获得这个 GameObject 的数据，需要在这个 GameObject 中添加一个内置脚本 GameObjectEntity</p>
-<p>表示我们这个 GameObject 是一个 Entity 了</p>
-<p>那么大家可能也就知道上面那些空类的作用了</p>
-<p>假如我们不对 GameObject 添加 Directable 脚本的话</p>
-<p>就无法被 SyncAnimatorDirectionSystem（见下方代码） 中的 GetEntities<data> 来获得</data></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GetEntities &lt;T&gt;</span><br></pre></td></tr></table></figure>
-<p> 的作用就是获取含有 T 中所有字段类型的 所有 Entity</p>
-<p>System 可以使用 UpdateAfter 或者 UpdateBefore 来控制其执行顺序</p>
-<h4 id="输入-1"><a href="#输入-1" class="headerlink" title="输入"></a>输入</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">using Unity.Entities;</span><br><span class="line">using Unity.Mathematics;</span><br><span class="line">using UnityEngine;</span><br><span class="line">public class PlayerInputSystem : ComponentSystem &#123;</span><br><span class="line">    struct PlayerData &#123;</span><br><span class="line"></span><br><span class="line">        public PlayerInput Input;</span><br><span class="line">        public Velocity Velocity;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    protected override void OnUpdate () &#123;</span><br><span class="line">        float dt = Time.deltaTime;</span><br><span class="line"></span><br><span class="line">        foreach (var entity in GetEntities&lt;PlayerData&gt; ()) &#123;</span><br><span class="line">            var pi = entity.Input;</span><br><span class="line"></span><br><span class="line">            pi.Move.x = Input.GetAxis (&quot;Horizontal&quot;);</span><br><span class="line">            pi.Move.y = Input.GetAxis (&quot;Vertical&quot;);</span><br><span class="line"></span><br><span class="line">            entity.Velocity.Value = new float2 (pi.Move.x, pi.Move.y);</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="移动"><a href="#移动" class="headerlink" title="移动"></a>移动</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">using Unity.Entities;</span><br><span class="line">using Unity.Mathematics;</span><br><span class="line">using UnityEngine;</span><br><span class="line">public class UnitMoveSystem : ComponentSystem &#123;</span><br><span class="line">    struct MoveUnit &#123;</span><br><span class="line"></span><br><span class="line">        public Position2D Position;</span><br><span class="line"></span><br><span class="line">        public Velocity MoveSpeed;</span><br><span class="line"></span><br><span class="line">        public Unit unit;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    protected override void OnUpdate () &#123;</span><br><span class="line">        var dt = Time.deltaTime;</span><br><span class="line">        foreach (var entity in GetEntities&lt;MoveUnit&gt; ()) &#123;</span><br><span class="line">            var pos = entity.Position;</span><br><span class="line">            pos.Value += entity.MoveSpeed.Value * dt;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="同步位置"><a href="#同步位置" class="headerlink" title="同步位置"></a>同步位置</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">using Unity.Collections;</span><br><span class="line">using Unity.Entities;</span><br><span class="line">using Unity.Mathematics;</span><br><span class="line">using UnityEngine;</span><br><span class="line"></span><br><span class="line">[UpdateAfter (typeof (UnitMoveSystem))]</span><br><span class="line">public class SyncTransformSystem : ComponentSystem &#123;</span><br><span class="line">    public struct Data &#123;</span><br><span class="line"></span><br><span class="line">        [ReadOnly] public Position2D Position;</span><br><span class="line"></span><br><span class="line">        public Transform Output;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    protected override void OnUpdate () &#123;</span><br><span class="line">        foreach (var entity in GetEntities&lt;Data&gt; ()) &#123;</span><br><span class="line">            float2 p = entity.Position.Value;</span><br><span class="line">            entity.Output.position = new float3 (p.x, p.y, 0);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">`</span><br></pre></td></tr></table></figure>
-<h4 id="同步动画朝向状态"><a href="#同步动画朝向状态" class="headerlink" title="同步动画朝向状态"></a>同步动画朝向状态</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">using Unity.Collections;</span><br><span class="line">using Unity.Entities;</span><br><span class="line">using Unity.Mathematics;</span><br><span class="line">using UnityEngine;</span><br><span class="line"></span><br><span class="line">[UpdateAfter (typeof (PlayerInputSystem))]</span><br><span class="line">public class SyncAnimatorDirectionSystem : ComponentSystem &#123;</span><br><span class="line"></span><br><span class="line">    public struct Data &#123;</span><br><span class="line"></span><br><span class="line">        [ReadOnly] public Velocity moveSpeed;</span><br><span class="line"></span><br><span class="line">        public Animator Output;</span><br><span class="line"></span><br><span class="line">        public Directable directable;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    protected override void OnUpdate () &#123;</span><br><span class="line">        foreach (var entity in GetEntities&lt;Data&gt; ()) &#123;</span><br><span class="line"></span><br><span class="line">            float2 p = entity.moveSpeed.Value;</span><br><span class="line"></span><br><span class="line">            var angle = Mathf.Atan2 (p.x, p.y) * Mathf.Rad2Deg;</span><br><span class="line">            if (angle &lt; 0) &#123;</span><br><span class="line">                angle = 360 + angle;</span><br><span class="line">            &#125;</span><br><span class="line">            </span><br><span class="line">            entity.Output.SetFloat (&quot;Direction&quot;, angle);</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>然后在 刺蛇的 Prefab 下添加需要的组件脚本</p>
-<p>如下图</p>
-
-<p>加载刺蛇预制体,这里使用 Lua 加载的</p>
-<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">local</span> go = UnityEngine.GameObject.Instantiate(prefab)</span><br></pre></td></tr></table></figure>
-<hr>
-<h2 id="效果"><a href="#效果" class="headerlink" title="效果"></a>效果</h2><p>按 wasd 来操作刺蛇移动</p>
-<img src="/2018/12/03/Unity学习：ECS学习（一）Hybrid模式ECS控制刺蛇移动/unity_03.gif" title="刺蛇可以移动了">
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -1979,7 +2008,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">27</span>
+                <span class="site-state-item-count">28</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
