@@ -264,6 +264,224 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2021/06/03/UE4：基于4-26的GameplayDebugger学习/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2021/06/03/UE4：基于4-26的GameplayDebugger学习/" itemprop="url">
+                  UE4：基于4.26的GameplayDebugger学习
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-06-03T14:35:05+08:00">
+                2021-06-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2021/06/03/UE4：基于4-26的GameplayDebugger学习/" class="leancloud_visitors" data-flag-title="UE4：基于4.26的GameplayDebugger学习">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="GameplayDebugger-简述"><a href="#GameplayDebugger-简述" class="headerlink" title="GameplayDebugger 简述"></a>GameplayDebugger 简述</h1><p>UE4 中有很多种把调试信息显示在屏幕上的办法</p>
+<p>比如 AHUD::OnShowDebugInfo 注册一个函数来打印</p>
+<p>比如 GEngine-&gt;AddOnScreenDebugMessage</p>
+<p>每种方式都有自己的适用场景</p>
+<p>GEngine-&gt;AddOnScreenDebugMessage 适用于一次性的打印</p>
+<p>AHUD::OnShowDebugInfo 适合于收集实时状态并显示在屏幕上</p>
+<p>而我们今天要说的 GameplayDebugger 则可以看做一个加强版的 OnShowDebugInfo</p>
+<p>它的定位也是实时收集状态并显示在屏幕上，但是他的原理更加复杂，提供的功能更多，适用场景也不完全相同</p>
+<p>相对于 OnShowDebugInfo，GameplayDebugger 解决的问题主要是收集显示服务器上的状态并打印在当前客户端上</p>
+<p>所以我们可以看到官方提供的几个调试类型，包括 NavMesh，EQS，AI，BehaviorTree，Ability 这些</p>
+<p>都是在服务器上运行主要或者全部逻辑，不靠同步就无法在客户端上查看平时非展示的信息</p>
+<p>依靠 Dedicated Server 的游戏，在调试版本开启 GameplayDebugger 宏，也可以轻松的在客户端屏幕上展示需要查看的服务器信息</p>
+<p>而不是只能事后查看日志</p>
+<p>如果是单机游戏，使用 AHUD::OnShowDebugInfo 也就够了，当然 GameplayDebugger 的代码结构性更强一点，一般只需要继承实现一些接口就可以了</p>
+<p>另外呢，GameplayDebugger 设计上也是最小化 Debugger 所用的网络带宽，提倡自定义序列化 Debugger 数据，并且还支持自定义调试者按键操作的功能</p>
+<p>这些支持在 OnShowDebugInfo 都是没有的</p>
+<h2 id="GameplayDebugger-的基本使用"><a href="#GameplayDebugger-的基本使用" class="headerlink" title="GameplayDebugger 的基本使用"></a>GameplayDebugger 的基本使用</h2><p>在游戏中，按下 ‘ 键，或者在控制台中输入 EnableGDT ，就会呼出 GameplayDebugger 控制台</p>
+<img src="/2021/06/03/UE4：基于4-26的GameplayDebugger学习/GameplayDebugger_1.png" title="Debugger开启的状态">
+<p>图片中上面的部分为 GameplayDebugger 状态栏</p>
+<p>0 到 n 是当前支持的 Debug Category，使用数字小键盘按下相应的数字开启或关闭，开启的是绿色，关闭的显示为白色</p>
+<p>右上角显示的是当前 Debug 的 Actor 和是否记录 VLog</p>
+<p>各个开启的 Category 的 Debug Info 会显示状态栏的下面部分，而 Debug 信息的绘制是完全自定义的</p>
+<h2 id="GameplayDebugger-的基本原理"><a href="#GameplayDebugger-的基本原理" class="headerlink" title="GameplayDebugger 的基本原理"></a>GameplayDebugger 的基本原理</h2><p>Debugger 会针对每个 Category 配置好的周期，针对在编辑器中选择的 Actor 来进行按一定规则的数据收集</p>
+<p>并把收集到的数据通过针对每个玩家独立的一个 Replicator 同步到测试者的客户端上</p>
+<p>然后通过自定义的规则，将数据显示在屏幕上</p>
+<h2 id="GameplayDebugger-的基本扩展"><a href="#GameplayDebugger-的基本扩展" class="headerlink" title="GameplayDebugger 的基本扩展"></a>GameplayDebugger 的基本扩展</h2><h3 id="实现自定义的-Category"><a href="#实现自定义的-Category" class="headerlink" title="实现自定义的 Category"></a>实现自定义的 Category</h3><h4 id="创建同步用结构体"><a href="#创建同步用结构体" class="headerlink" title="创建同步用结构体"></a>创建同步用结构体</h4><p>自定义一个同步用的 Struct ，用于描述需要同步的 Debug 信息</p>
+<p>这个 Struct 通常为了不过度占用游戏本身网络资源引起 Debugger 的副作用，会自定义序列化函数 void Serialize(FArchive&amp; Ar)，尽量减少网络占用</p>
+<h4 id="创建自定义-Category"><a href="#创建自定义-Category" class="headerlink" title="创建自定义 Category"></a>创建自定义 Category</h4><p>继承 FGameplayDebuggerCategory 类型，编写自定义的 Category 类，实现其中的几个接口</p>
+<ol>
+<li><p>收集数据</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">CollectData</span><span class="params">(APlayerController* OwnerPC, AActor* DebugActor)</span></span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>在服务器上面收集需要 Debug 的信息，收集完成后会根据同步数据包是否 Dirty 的情况进行同步，OnwerPC 是操作者的 PlayerContoller，DebugActor 是当前选中需要收集信息的 DebugActor<br>这个里面通常有设置同步用 Struct 内容的操作<br>收集的内容其实也不限于 DebugActor ，能够通过 DebuggerActor 收集到的数据，都可以作为信息被收集<br>更是可以突破 DebugActor 的限制，从其他的地方提前收集参数并缓存起来，再在 CollectData 的时候设置给同步用的 Struct</p>
+</blockquote>
+</li>
+<li><p>绘制Debug信息</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">DrawData</span><span class="params">(APlayerController* OwnerPC, FGameplayDebuggerCanvasContext&amp; CanvasContext)</span></span>;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>本地绘制需要显示在屏幕上的 Debug 信息</p>
+</blockquote>
+</li>
+<li><p>高级绘制</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">virtual</span> FDebugRenderSceneProxy* <span class="title">CreateDebugSceneProxy</span><span class="params">(<span class="keyword">const</span> UPrimitiveComponent* InComponent, FDebugDrawDelegateHelper*&amp; OutDelegateHelper)</span></span>;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>如果需要一些高级的Debug信息绘制方式，可以覆盖这个函数<br>详情可以了解 FDebugRenderSceneProxy 以及其父类 FPrimitiveSceneProxy 的工作方式<br>可以实现一些高级效果，比如在 Actor 周围绘制线条，或者图形，文本等</p>
+</blockquote>
+</li>
+<li><p>客户端接收同步回调</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">OnDataPackReplicated</span><span class="params">(int32 DataPackId)</span></span>;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Debug 信息同步完成的回调函数</p>
+</blockquote>
+</li>
+</ol>
+<p>为了不让 Debugger 影响游戏主体的网络过多，应当适当的设置 FGameplayDebuggerCategory 的参数</p>
+<blockquote>
+<p>float CollectDataInterval;</p>
+</blockquote>
+<p>或者说设置非收集，然后用</p>
+<blockquote>
+<p>void ForceImmediateCollect()</p>
+</blockquote>
+<p>在合适的时机来强制收集（通常这样会在游戏本身的部分嵌入一些代码，会加大耦合，GameplayDebugger 本意上通过重写收集函数是尽量去耦合的，可以考虑用事件等方式把游戏本身和 Debugger 的代码解耦）</p>
+<h4 id="配置同步用-Struct-地址"><a href="#配置同步用-Struct-地址" class="headerlink" title="配置同步用 Struct 地址"></a>配置同步用 Struct 地址</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="function">int32 <span class="title">SetDataPackReplication</span><span class="params">(T* DataPackAddr, EGameplayDebuggerDataPack Flags = EGameplayDebuggerDataPack::ResetOnTick)</span></span></span><br></pre></td></tr></table></figure>
+<p>这个函数会配置一个同步数据的 DataPack （FGameplayDebuggerDataPack 类型），传入的 T* 就是你自己的需要同步的 Struct Data 的地址</p>
+<p>函数内部会绑一下序列化函数和数据包清空等操作</p>
+<p>一个 DataPack 是复用的，内部包含数据的版本信息，传输状态等，也就是说，例如，我们通常通过一个 Struct 的地址来存放数据</p>
+<p>DataPack 会在 Collect Data 后判断里面的内容是否变化等，来触发同步和客户端的接收</p>
+<p>我们一般在 自定义的 Category 类中加一个同步用的 Struct 的成员</p>
+<p>然后在构造函数中调用 SetDataPackReplication 传入这个成员的地址，来配置一个同步包</p>
+<h4 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h4><p>其他的一些 FGameplayDebuggerCategory 的成员可在有需要的时候查看代码</p>
+<h3 id="启用-Category"><a href="#启用-Category" class="headerlink" title="启用 Category"></a>启用 Category</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">if</span> WITH_GAMEPLAY_DEBUGGER</span></span><br><span class="line">	IGameplayDebugger&amp; GameplayDebuggerModule = IGameplayDebugger::Get();</span><br><span class="line">	GameplayDebuggerModule.RegisterCategory(CUSTOM_DEBUG_CATAGORY_NAME, IGameplayDebugger::FOnGetCategory::CreateStatic(&amp;FCustomDebuggerCategory::MakeInstance), EGameplayDebuggerCategoryState::Disabled);</span><br><span class="line">	GameplayDebuggerModule.NotifyCategoriesChanged();</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+<p>通过上述代码来注册一个 Category 到 GameplayDebugger 系统中</p>
+<p>其中 FCustomDebuggerCategory::MakeInstance 函数指针返回一个 TSharedRef<fgameplaydebuggercategory> 也就是你自己的 Category 的一个智能引用</fgameplaydebuggercategory></p>
+<p>通常这段代码写在游戏模块的</p>
+<blockquote>
+<p>StartupModule()</p>
+</blockquote>
+<p>中，并在</p>
+<blockquote>
+<p>ShutdownModule()</p>
+</blockquote>
+<p>的时候通过</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">if</span> WITH_GAMEPLAY_DEBUGGER</span></span><br><span class="line">	IGameplayDebugger&amp; GameplayDebuggerModule = IGameplayDebugger::Get();</span><br><span class="line">	GameplayDebuggerModule.UnregisterCategory(CUSTOM_DEBUG_CATAGORY_NAME);</span><br><span class="line">	GameplayDebuggerModule.NotifyCategoriesChanged();</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+<p>来卸载</p>
+<h2 id="结个尾"><a href="#结个尾" class="headerlink" title="结个尾"></a>结个尾</h2><p>编写自定义的 Category 需要注意的是，Debugger 本身不应该过重的占用游戏本身的资源，包括计算力和网络，也应该做到和游戏本身的功能解耦合</p>
+<p>GameplayDebugger 除了 Category 之外，还有自定义测试者输入的功能，后续有空的时候再写</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2021/05/25/UE4：UGameplayAbility类型简析/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1801,164 +2019,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2018/12/10/Unity学习：ProjectTiny学习（一）初识Tiny模式/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Mapz">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/link-300x300.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Mapz's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2018/12/10/Unity学习：ProjectTiny学习（一）初识Tiny模式/" itemprop="url">
-                  Unity学习：ProjectTiny学习（一）初识Tiny模式
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-10T11:10:56+08:00">
-                2018-12-10
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-             <span id="/2018/12/10/Unity学习：ProjectTiny学习（一）初识Tiny模式/" class="leancloud_visitors" data-flag-title="Unity学习：ProjectTiny学习（一）初识Tiny模式">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数 </span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body han-init-context" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="Project-Tiny-是什么？"><a href="#Project-Tiny-是什么？" class="headerlink" title="Project Tiny 是什么？"></a>Project Tiny 是什么？</h2><p>2018年12月，Unity在2018.3beta版本上开放了一个新包的预览下载，叫做ProjectTiny</p>
-<p>并发布了一个基于此来制作的网页游戏</p>
-<p><a href="https://blogs.unity3d.com/cn/2018/12/05/project-tiny-preview-package-is-here/" target="_blank" rel="noopener">原文Blog传送门</a></p>
-<p><a href="https://tiny-match3.storage.googleapis.com/index.html" target="_blank" rel="noopener">Tiny Arms Revenge 游戏体验地址（需科学上网）</a></p>
-<p>Project Tiny 的目的，是为更多即开即玩的游戏和互动广告提供支持</p>
-<p>现在可以制作2D类型的Web游戏</p>
-<p>体验游戏大小仅仅只有 1.8 MB，启动只需下载 969 KB</p>
-<hr>
-<h2 id="Project-Tiny-现在是什么情况，以后会怎么样？"><a href="#Project-Tiny-现在是什么情况，以后会怎么样？" class="headerlink" title="Project Tiny 现在是什么情况，以后会怎么样？"></a>Project Tiny 现在是什么情况，以后会怎么样？</h2><p>现在正在预览版本，只支持2D游戏，只支持TS语言，将来会支持C#，并移除TS支持，并且不断完善工具链和特性，并支持3D和AR体验</p>
-<hr>
-<h2 id="Project-Tiny-的特色和亮点？"><a href="#Project-Tiny-的特色和亮点？" class="headerlink" title="Project Tiny 的特色和亮点？"></a>Project Tiny 的特色和亮点？</h2><ul>
-<li>纯的ECS模式，或许其编辑器可以看做未来Unity的ECS正式版编辑器的一个预览</li>
-<li>ECS模式带来的效率提高</li>
-<li>快速制作游戏和互动广告</li>
-</ul>
-<hr>
-<h2 id="我的感觉"><a href="#我的感觉" class="headerlink" title="我的感觉"></a>我的感觉</h2><p>Project Tiny 顾名思义就是一个精干版本的 Unity 啦，用来制作 web 内容，并且其 ECS 模式很可能就是以后的 Unity ECS 模式的预览，学习 Project Tiny 对于我们进一步熟悉 Unity ECS 和提前熟悉新的编辑器都有好处</p>
-<hr>
-<h2 id="如何开始制作我们的第一个项目？"><a href="#如何开始制作我们的第一个项目？" class="headerlink" title="如何开始制作我们的第一个项目？"></a>如何开始制作我们的第一个项目？</h2><ol>
-<li>下载 Unity 2018.3 Beta</li>
-<li>打开 Windows -&gt; package manager</li>
-<li>点击 Advanced，勾选 show preview packages </li>
-<li>下载 Tiny Mode 包</li>
-<li>菜单新增项目 Tiny，表示一切 OK</li>
-<li>Tiny -&gt; File -&gt; NewProject 新建项目</li>
-</ol>
-<h2 id="例子项目在哪里？"><a href="#例子项目在哪里？" class="headerlink" title="例子项目在哪里？"></a>例子项目在哪里？</h2><p>菜单 Tiny -&gt; Import Samples 会加载例子到项目中</p>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -2008,7 +2068,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">28</span>
+                <span class="site-state-item-count">29</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -2021,7 +2081,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">28</span>
+                <span class="site-state-item-count">29</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
