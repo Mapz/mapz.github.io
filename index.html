@@ -264,6 +264,161 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2021/06/09/UE4：RPC调用部分代码学习/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2021/06/09/UE4：RPC调用部分代码学习/" itemprop="url">
+                  UE4：RPC调用部分代码学习
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-06-09T16:06:35+08:00">
+                2021-06-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2021/06/09/UE4：RPC调用部分代码学习/" class="leancloud_visitors" data-flag-title="UE4：RPC调用部分代码学习">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="CallRemoteFunction"><a href="#CallRemoteFunction" class="headerlink" title="CallRemoteFunction"></a>CallRemoteFunction</h2><p>函数直接定义在 UObject 上，但是无意义</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Call the actor's function remotely</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * @param Function function to call</span></span><br><span class="line"><span class="comment"> * @param Parameters arguments to the function call</span></span><br><span class="line"><span class="comment"> * @param Stack stack frame for the function call</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">bool</span> <span class="title">CallRemoteFunction</span><span class="params">( UFunction* Function, <span class="keyword">void</span>* Parms, struct FOutParmRec* OutParms, FFrame* Stack )</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在需要的类型上，可以自己重载函数</p>
+<p>典型的就是 Actor 的 CallRemoteFunction</p>
+<h2 id="Actor-RPC-流程"><a href="#Actor-RPC-流程" class="headerlink" title="Actor RPC 流程"></a>Actor RPC 流程</h2><ol>
+<li>执行 AActor::CallRemoteFunction</li>
+<li>调用 UNetDriver::ProcessRemoteFunction</li>
+<li>尝试执行 UReplicationDriver::ProcessRemoteFunction<blockquote>
+<p>UReplicationDriver::ProcessRemoteFunction 默认实现总是会返回失败</p>
+</blockquote>
+</li>
+<li>尝试执行失败后，执行默认 RPC 方案<br> a. 是 Server Multicast 则遍历所有 Connection<br> b. 针对 Connection，判断 Actor 是否 IsNetRelevantFor，或者是否为 Reliable 的 RPC，排除不符合条件的 Connection<br> c. 调用 RepLayout-&gt;BuildSharedSerializationForRPC 生成共享的 RPC 数据缓存<br> d. 调用 UNetDriver::InternalProcessRemoteFunctionPrivate<br> e. 遍历完成后调用 RepLayout-&gt;ClearSharedSerializationForRPC 清除 RPC 数据共享缓存<br> f. 不是 Multicast，则调用 UNetDriver::InternalProcessRemoteFunction，内部依然调用的是 UNetDriver::InternalProcessRemoteFunctionPrivate</li>
+</ol>
+<h3 id="UNetDriver-InternalProcessRemoteFunctionPrivate-流程"><a href="#UNetDriver-InternalProcessRemoteFunctionPrivate-流程" class="headerlink" title="UNetDriver::InternalProcessRemoteFunctionPrivate 流程"></a>UNetDriver::InternalProcessRemoteFunctionPrivate 流程</h3><ol>
+<li>获得连接，判断类型和函数的 NetCache 是否存在</li>
+<li>获得或者创建 UActorChannel</li>
+<li><p>调用 UNetDriver::ProcessRemoteFunctionForChannelPrivate<br> a. 如果 ActorChanel 还没有 Open，则开启 Open 步骤，初始化同步一次 Actor<br> b. 开始搭建 RPC Bunch<br> c. 写入 RPC 参数的值</p>
+ <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">TSharedPtr&lt;FRepLayout&gt; RepLayout = GetFunctionRepLayout(Function);</span><br><span class="line">RepLayout-&gt;SendPropertiesForRPC(Function, Ch, TempWriter, Parms);</span><br></pre></td></tr></table></figure>
+<p> d. 装载类型ID，函数ID，和参数值到 Bunch<br> e. 根据是否使用队列，判断是加入 RPC 队列还是直接调用<br> f. 如果是 RPC 队列，则加入队列</p>
+ <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Ch-&gt;QueueRemoteFunctionBunch(TargetObj, Function, Bunch);</span><br></pre></td></tr></table></figure>
+<p> g. 如果直接发送，则发送 Bunch</p>
+ <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Ch-&gt;SendBunch(&amp;Bunch, <span class="literal">true</span>);</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2021/06/03/UE4：基于4-26的GameplayDebugger学习/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1782,248 +1937,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Mapz">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/link-300x300.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Mapz's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/" itemprop="url">
-                  Unity学习：ProjectTiny学习（二）弹球和2D物理
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-10T14:40:38+08:00">
-                2018-12-10
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-             <span id="/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/" class="leancloud_visitors" data-flag-title="Unity学习：ProjectTiny学习（二）弹球和2D物理">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数 </span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body han-init-context" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>接着上次我们继续来玩 Tiny Mode</p>
-<h2 id="创建一个新项目"><a href="#创建一个新项目" class="headerlink" title="创建一个新项目"></a>创建一个新项目</h2><p>菜单 -&gt; tiny -&gt; file -&gt; new project </p>
-<p>创建新的项目 TinyNew</p>
-<p>我们可以看到，在 Asset 目录下创建了一个新的名为 TinyNew 的目录</p>
-<p>下面有一个 TinyNew.utproject 文件</p>
-<p>这个文件就是 tiny mode 的项目文件了</p>
-<p>和 Unity 不同，tiny mode 不存在 Scene </p>
-<p>双击项目文件，就可以加载项目了</p>
-<p>项目的 Inspector 如图</p>
-
-<p>可以选择 Build 类型，需要加载的模块</p>
-<p>还有显示设置以及物理设置</p>
-<p>从可加载的模块看我们现在基本也可以知道 Tiny Mode 现有的功能有哪些</p>
-<p>物理选项只有一个重力，可以看出相比 Unity 本体非常的精简</p>
-<p>我们要做的是平面上球触边弹的效果，所以重力设置为 0</p>
-<hr>
-<h2 id="开始创建主实体"><a href="#开始创建主实体" class="headerlink" title="开始创建主实体"></a>开始创建主实体</h2><p>以前我们的各种玩意，都是放在 GameObject 上的，在 ECS 中，GameObject 没有了，用来放内容的变成了 Entity，所以还是老一套，需要一个 Entity 来放置摄像机什么的</p>
-<p>创建一个新的 Entity 现阶段只能从 Tiny 菜单 Create EntityGroup 或者层级图中，点击 Create EntityGroup</p>
-<p>我们在 Entities 目录下新建一个 MainGroup，点击后</p>
-<p>在 EntityGroup 的 Inspector 中可以看到两个按钮</p>
-
-<ul>
-<li>Load: 加载这个组的一个 Entity 实例到层级图中，方便操作</li>
-<li>Set as StartUp: 设置为初始 Group，游戏启动时，会自动加载，不能被 Unload</li>
-</ul>
-<p>我们把 MainGroup 设置为启动加载</p>
-<p>在 MainGroup 右边的小菜单里面选择 Camera 新增一个 Camera</p>
-<p>再 Create Empty，新建一个空组件，命名为 Spawner，用来产生球球</p>
-<p>再 Create Empty，新建一个空组件，命名为 Border，作为边界</p>
-<p>导入一个矩形 Sprite, 这里导入 Sprite 的方式和 Unity 本体是一样的，就不多说明了</p>
-<p>在 Border 下面 Create 2D Object -&gt; Sprite  </p>
-<p>做4个边</p>
-<p>给4个边加上 RigidBody2D 和 BoxCollider2D 来做物理效果</p>
-<img src="/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/hierarchy.jpg" title="如图">
-<p>刚体和碰撞检测的选项都比较简单</p>
-<p>说一下刚体的几个 BodyType</p>
-<ul>
-<li>Static：静态，不做物理模拟，质量无限，不会同其他 static 和 kinematic 做碰撞检测</li>
-<li>Kinematic：运动学，质量无限，运动靠 velocity，质量无限，所以不受力的作用，不会同其他 static 和 kinematic 做碰撞检测，移动靠设置他的 Position 或 velocity</li>
-<li>Dynamic：动态，全物理模拟，和其他三种类型的刚体做碰撞检测，一般靠给其施加一个力来运动，当然也可以直接设置 velocity 和 Position 但是意义不大</li>
-<li>BulletDynamic：子弹动态，和动态差不多，但是使用的连续碰撞检测，更精确，也更消耗资源，好处是不会因为速度过快而穿过其他刚体</li>
-</ul>
-<p>所以我们的边界选择什么很明显了-&gt; Static</p>
-<p>其他几个参数：</p>
-<ul>
-<li>freezeRotation：如果 true 则不能旋转</li>
-<li>friction：摩擦力，0 代表无摩擦，1 代表大摩擦，1 以上代表比 1 大的摩擦（废话）</li>
-<li>restitution：弹性系数，0 代表完全吸收，1 代表完全反弹</li>
-<li>density：密度，决定刚体的 质量 = 密度 * 体积</li>
-</ul>
-<p>这里我们选择全反弹 restitution 设置为 1</p>
-<h3 id="自定义我们的产生器-spawner"><a href="#自定义我们的产生器-spawner" class="headerlink" title="自定义我们的产生器 spawner"></a>自定义我们的产生器 spawner</h3><p>我们自定义一个组件来产生小球</p>
-<p>在 菜单 -&gt; Tiny -&gt; Component </p>
-<p>新建一个 Spawner 组件</p>
-<p>点击组件，在 inspector 中可以对其字段来做修改</p>
-<p>如果 hide_flags 设置为 hide in inspectors 则在层级图中即使添加到实体上了也不会显示出来</p>
-<p>add new field 可以添加任意可玩的数值和属性类型</p>
-<p>点击属性名称可以修改之，下面可以设置默认值</p>
-<p>最后设置如下</p>
-<p>我们在延时 1.5s 后每 1.5s 创建一个 spawnedGroup 的实体 最多 maxCount 个</p>
-<p>类型右边的 3 个图标分别是</p>
-<ul>
-<li>是否数组类型</li>
-<li>编辑器是否可见：比如我们的 curCount 这个字段编辑器不可见，因为是不用编辑也不能编辑</li>
-<li>子菜单 字面上的意思，Document 选项应该和自动生成文档的内容有关</li>
-</ul>
-<img src="/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/component_inspector.jpg" title="如图">
-<p>生成器组件有了，我们继续来搞生成系统</p>
-<p>菜单，创建 TypeScript System （后面省略哪里的菜单了哦）</p>
-<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> game &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** New System */</span></span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">class</span> NewSystem <span class="keyword">extends</span> ut.ComponentSystem &#123;</span><br><span class="line">        </span><br><span class="line">        OnUpdate():<span class="built_in">void</span> &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>我们可以看到生成了一个继承 ut.ComponentSystem 的类，重写一个 OnUpdate 函数</p>
-<p>是不是和 Unity ECS 的方式一毛一样</p>
-<p>ut 是 unity tiny 的简称</p>
-<p>文件名修改为 SpawnSystem</p>
-<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> game &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">class</span> SpawnSystem <span class="keyword">extends</span> ut.ComponentSystem &#123;</span><br><span class="line"></span><br><span class="line">        OnUpdate(): <span class="built_in">void</span> &#123;</span><br><span class="line">            <span class="keyword">this</span>.world.forEach([game.Spawner], <span class="function">(<span class="params">spawner</span>) =&gt;</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (spawner.isPaused)</span><br><span class="line">                    <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">let</span> time = spawner.time;</span><br><span class="line">                <span class="keyword">let</span> delay = spawner.delay;</span><br><span class="line"></span><br><span class="line">                time -= ut.Time.deltaTime();</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (time &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">                    time += delay;</span><br><span class="line">                    <span class="built_in">console</span>.log(<span class="string">"spawn"</span>);</span><br><span class="line">                    <span class="keyword">if</span> (spawner.curCount &lt; spawner.maxCount) &#123;</span><br><span class="line">                        ut.EntityGroup.instantiate(<span class="keyword">this</span>.world, spawner.spawnedGroup);</span><br><span class="line">                        spawner.curCount++</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                spawner.time = time;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>代码如上，循环 World 中的每一个 Spawner 来操作</p>
-<p>至此，生成器组件完成，我们在 MainGroup 的 Spawn 元素的 insepector 中点击 Add Tiny Component 增加一个 Spawner 组件</p>
-<p>于是就可以在编辑器中设置这个自定组件的值了</p>
-<p>spawnedGroup 设置为 game.BallGroup</p>
-<p>maxCount 设置为 10</p>
-<hr>
-<h2 id="创建球球实体"><a href="#创建球球实体" class="headerlink" title="创建球球实体"></a>创建球球实体</h2><p>创建新的实体组 名为 BallGroup</p>
-<p>点击 Load 按钮</p>
-<p>放到层级图中</p>
-<p>加入一个 2d sprite UnitBall 如图</p>
-<p>新建一个新的空组件 BallFlag 用来代表实体是球球</p>
-<p>再增加 CircleCollider2D RigidBody2D 组件到球球</p>
-<p>调整好圆形检测的半径</p>
-
-<p>做好之后 Unload BallGroup，后面我们都通过 Spawner 来生成球球</p>
-<h3 id="球球的行为"><a href="#球球的行为" class="headerlink" title="球球的行为"></a>球球的行为</h3><p>我们需要一个脚本来控制球球生成的地方，并且给一个力让他跑起来</p>
-<p>菜单 创建 TypeScript Behavior</p>
-<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">namespace</span> game &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">class</span> NewBehaviourFilter <span class="keyword">extends</span> ut.EntityFilter &#123;</span><br><span class="line">        node: ut.Core2D.TransformNode;</span><br><span class="line">        position?: ut.Core2D.TransformLocalPosition;</span><br><span class="line">        rotation?: ut.Core2D.TransformLocalRotation;</span><br><span class="line">        scale?: ut.Core2D.TransformLocalScale;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">class</span> NewBehaviour <span class="keyword">extends</span> ut.ComponentBehaviour &#123;</span><br><span class="line"></span><br><span class="line">        data: NewBehaviourFilter;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// ComponentBehaviour lifecycle events</span></span><br><span class="line">        <span class="comment">// uncomment any method you need</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// this method is called for each entity matching the NewBehaviourFilter signature, once when enabled</span></span><br><span class="line">        <span class="comment">//OnEntityEnable():void &#123; &#125;</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// this method is called for each entity matching the NewBehaviourFilter signature, every frame it's enabled</span></span><br><span class="line">        <span class="comment">//OnEntityUpdate():void &#123; &#125;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// this method is called for each entity matching the NewBehaviourFilter signature, once when disabled</span></span><br><span class="line">        <span class="comment">//OnEntityDisable():void &#123; &#125;</span></span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>NewBehaviourFilter 相当于是 Unity ECS 中的 GetEntityGroup 中的 struct</p>
-<p>将会获得有这个过滤器下字段的所有 Entity</p>
-<p>所以我们需要给 UnitBall 增加一个 空的 BallFlag 来确认他是球球</p>
-<ul>
-<li>OnEntityEnable. Called only once, the first frame this entity is matched by this behaviour. 获得此Entity的第一帧执行</li>
-<li>OnEntityUpdate. Called every frame on matching entities. </li>
-<li>OnEntityDisable. Called only once, the first frame this entity is marked as disabled by this behaviour. 设置为 disable 的第一帧执行</li>
-</ul>
-<p>球球行为代码如下</p>
-<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">namespace</span> game &#123;</span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">class</span> BallBehaviorFilter <span class="keyword">extends</span> ut.EntityFilter &#123;</span><br><span class="line"></span><br><span class="line">        position: ut.Core2D.TransformLocalPosition;</span><br><span class="line">        entity: ut.Entity;</span><br><span class="line">        ball: game.BallFlag;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">class</span> BallBehavior <span class="keyword">extends</span> ut.ComponentBehaviour &#123;</span><br><span class="line"></span><br><span class="line">        data: BallBehaviorFilter;</span><br><span class="line"></span><br><span class="line">        OnEntityEnable(): <span class="built_in">void</span> &#123;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">"ball Enabled"</span>);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 随机球球出现的位置</span></span><br><span class="line">            <span class="keyword">let</span> randomX = getRandom(<span class="number">-100</span>, <span class="number">100</span>)</span><br><span class="line">            <span class="keyword">let</span> randomY = getRandom(<span class="number">-100</span>, <span class="number">100</span>)</span><br><span class="line">            <span class="keyword">this</span>.data.position.position = <span class="keyword">new</span> Vector3(randomX, randomY, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 随机给球球一个力，动起来</span></span><br><span class="line">            <span class="comment">// 我们可以看到，这里用了 this.world.addComponentData 给球球添加了一个加力组件，这是一个特殊的组件</span></span><br><span class="line">            <span class="comment">// 这里的 AddImpulse2D 组件会在这一帧之后自动消失掉</span></span><br><span class="line">            <span class="keyword">let</span> impulse = <span class="keyword">new</span> ut.Physics2D.AddImpulse2D;</span><br><span class="line">            <span class="keyword">let</span> newImpulse = <span class="keyword">new</span> Vector2(getRandom(<span class="number">-1</span>, <span class="number">1</span>), getRandom(<span class="number">-1</span>, <span class="number">1</span>)).normalize();</span><br><span class="line">            impulse.impulse = <span class="keyword">new</span> Vector2(newImpulse.x * <span class="number">100</span>, newImpulse.y * <span class="number">100</span>);</span><br><span class="line">            <span class="keyword">this</span>.world.addComponentData(<span class="keyword">this</span>.data.entity, impulse);</span><br><span class="line"></span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">"ball created:"</span> + <span class="keyword">this</span>.data.position.position);</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        OnEntityUpdate(): <span class="built_in">void</span> &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">getRandom</span>(<span class="params">min, max</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">Math</span>.random() * (max - min + <span class="number">1</span>) + min;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<hr>
-<h2 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h2><p>到此我们的工作告一段落，unity 执行后</p>
-<p>会在我们的默认浏览器打开一个窗口</p>
-<img src="/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/run_game.jpg" title="运行时 Unity 的 Game 窗口">
-<p>在浏览器中使用开发者模式可以看到打印</p>
-<p>也可以扫描二维码在移动设备上查看效果</p>
-<p>运行效果如图</p>
-<img src="/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/tiny_run.gif" title="运行">
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -2073,7 +1986,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">29</span>
+                <span class="site-state-item-count">30</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -2086,7 +1999,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">29</span>
+                <span class="site-state-item-count">31</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

@@ -264,6 +264,248 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/" itemprop="url">
+                  Unity学习：ProjectTiny学习（二）弹球和2D物理
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-10T14:40:38+08:00">
+                2018-12-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/" class="leancloud_visitors" data-flag-title="Unity学习：ProjectTiny学习（二）弹球和2D物理">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>接着上次我们继续来玩 Tiny Mode</p>
+<h2 id="创建一个新项目"><a href="#创建一个新项目" class="headerlink" title="创建一个新项目"></a>创建一个新项目</h2><p>菜单 -&gt; tiny -&gt; file -&gt; new project </p>
+<p>创建新的项目 TinyNew</p>
+<p>我们可以看到，在 Asset 目录下创建了一个新的名为 TinyNew 的目录</p>
+<p>下面有一个 TinyNew.utproject 文件</p>
+<p>这个文件就是 tiny mode 的项目文件了</p>
+<p>和 Unity 不同，tiny mode 不存在 Scene </p>
+<p>双击项目文件，就可以加载项目了</p>
+<p>项目的 Inspector 如图</p>
+
+<p>可以选择 Build 类型，需要加载的模块</p>
+<p>还有显示设置以及物理设置</p>
+<p>从可加载的模块看我们现在基本也可以知道 Tiny Mode 现有的功能有哪些</p>
+<p>物理选项只有一个重力，可以看出相比 Unity 本体非常的精简</p>
+<p>我们要做的是平面上球触边弹的效果，所以重力设置为 0</p>
+<hr>
+<h2 id="开始创建主实体"><a href="#开始创建主实体" class="headerlink" title="开始创建主实体"></a>开始创建主实体</h2><p>以前我们的各种玩意，都是放在 GameObject 上的，在 ECS 中，GameObject 没有了，用来放内容的变成了 Entity，所以还是老一套，需要一个 Entity 来放置摄像机什么的</p>
+<p>创建一个新的 Entity 现阶段只能从 Tiny 菜单 Create EntityGroup 或者层级图中，点击 Create EntityGroup</p>
+<p>我们在 Entities 目录下新建一个 MainGroup，点击后</p>
+<p>在 EntityGroup 的 Inspector 中可以看到两个按钮</p>
+
+<ul>
+<li>Load: 加载这个组的一个 Entity 实例到层级图中，方便操作</li>
+<li>Set as StartUp: 设置为初始 Group，游戏启动时，会自动加载，不能被 Unload</li>
+</ul>
+<p>我们把 MainGroup 设置为启动加载</p>
+<p>在 MainGroup 右边的小菜单里面选择 Camera 新增一个 Camera</p>
+<p>再 Create Empty，新建一个空组件，命名为 Spawner，用来产生球球</p>
+<p>再 Create Empty，新建一个空组件，命名为 Border，作为边界</p>
+<p>导入一个矩形 Sprite, 这里导入 Sprite 的方式和 Unity 本体是一样的，就不多说明了</p>
+<p>在 Border 下面 Create 2D Object -&gt; Sprite  </p>
+<p>做4个边</p>
+<p>给4个边加上 RigidBody2D 和 BoxCollider2D 来做物理效果</p>
+<img src="/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/hierarchy.jpg" title="如图">
+<p>刚体和碰撞检测的选项都比较简单</p>
+<p>说一下刚体的几个 BodyType</p>
+<ul>
+<li>Static：静态，不做物理模拟，质量无限，不会同其他 static 和 kinematic 做碰撞检测</li>
+<li>Kinematic：运动学，质量无限，运动靠 velocity，质量无限，所以不受力的作用，不会同其他 static 和 kinematic 做碰撞检测，移动靠设置他的 Position 或 velocity</li>
+<li>Dynamic：动态，全物理模拟，和其他三种类型的刚体做碰撞检测，一般靠给其施加一个力来运动，当然也可以直接设置 velocity 和 Position 但是意义不大</li>
+<li>BulletDynamic：子弹动态，和动态差不多，但是使用的连续碰撞检测，更精确，也更消耗资源，好处是不会因为速度过快而穿过其他刚体</li>
+</ul>
+<p>所以我们的边界选择什么很明显了-&gt; Static</p>
+<p>其他几个参数：</p>
+<ul>
+<li>freezeRotation：如果 true 则不能旋转</li>
+<li>friction：摩擦力，0 代表无摩擦，1 代表大摩擦，1 以上代表比 1 大的摩擦（废话）</li>
+<li>restitution：弹性系数，0 代表完全吸收，1 代表完全反弹</li>
+<li>density：密度，决定刚体的 质量 = 密度 * 体积</li>
+</ul>
+<p>这里我们选择全反弹 restitution 设置为 1</p>
+<h3 id="自定义我们的产生器-spawner"><a href="#自定义我们的产生器-spawner" class="headerlink" title="自定义我们的产生器 spawner"></a>自定义我们的产生器 spawner</h3><p>我们自定义一个组件来产生小球</p>
+<p>在 菜单 -&gt; Tiny -&gt; Component </p>
+<p>新建一个 Spawner 组件</p>
+<p>点击组件，在 inspector 中可以对其字段来做修改</p>
+<p>如果 hide_flags 设置为 hide in inspectors 则在层级图中即使添加到实体上了也不会显示出来</p>
+<p>add new field 可以添加任意可玩的数值和属性类型</p>
+<p>点击属性名称可以修改之，下面可以设置默认值</p>
+<p>最后设置如下</p>
+<p>我们在延时 1.5s 后每 1.5s 创建一个 spawnedGroup 的实体 最多 maxCount 个</p>
+<p>类型右边的 3 个图标分别是</p>
+<ul>
+<li>是否数组类型</li>
+<li>编辑器是否可见：比如我们的 curCount 这个字段编辑器不可见，因为是不用编辑也不能编辑</li>
+<li>子菜单 字面上的意思，Document 选项应该和自动生成文档的内容有关</li>
+</ul>
+<img src="/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/component_inspector.jpg" title="如图">
+<p>生成器组件有了，我们继续来搞生成系统</p>
+<p>菜单，创建 TypeScript System （后面省略哪里的菜单了哦）</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> game &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** New System */</span></span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">class</span> NewSystem <span class="keyword">extends</span> ut.ComponentSystem &#123;</span><br><span class="line">        </span><br><span class="line">        OnUpdate():<span class="built_in">void</span> &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们可以看到生成了一个继承 ut.ComponentSystem 的类，重写一个 OnUpdate 函数</p>
+<p>是不是和 Unity ECS 的方式一毛一样</p>
+<p>ut 是 unity tiny 的简称</p>
+<p>文件名修改为 SpawnSystem</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> game &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">class</span> SpawnSystem <span class="keyword">extends</span> ut.ComponentSystem &#123;</span><br><span class="line"></span><br><span class="line">        OnUpdate(): <span class="built_in">void</span> &#123;</span><br><span class="line">            <span class="keyword">this</span>.world.forEach([game.Spawner], <span class="function">(<span class="params">spawner</span>) =&gt;</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (spawner.isPaused)</span><br><span class="line">                    <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">let</span> time = spawner.time;</span><br><span class="line">                <span class="keyword">let</span> delay = spawner.delay;</span><br><span class="line"></span><br><span class="line">                time -= ut.Time.deltaTime();</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (time &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">                    time += delay;</span><br><span class="line">                    <span class="built_in">console</span>.log(<span class="string">"spawn"</span>);</span><br><span class="line">                    <span class="keyword">if</span> (spawner.curCount &lt; spawner.maxCount) &#123;</span><br><span class="line">                        ut.EntityGroup.instantiate(<span class="keyword">this</span>.world, spawner.spawnedGroup);</span><br><span class="line">                        spawner.curCount++</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                spawner.time = time;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>代码如上，循环 World 中的每一个 Spawner 来操作</p>
+<p>至此，生成器组件完成，我们在 MainGroup 的 Spawn 元素的 insepector 中点击 Add Tiny Component 增加一个 Spawner 组件</p>
+<p>于是就可以在编辑器中设置这个自定组件的值了</p>
+<p>spawnedGroup 设置为 game.BallGroup</p>
+<p>maxCount 设置为 10</p>
+<hr>
+<h2 id="创建球球实体"><a href="#创建球球实体" class="headerlink" title="创建球球实体"></a>创建球球实体</h2><p>创建新的实体组 名为 BallGroup</p>
+<p>点击 Load 按钮</p>
+<p>放到层级图中</p>
+<p>加入一个 2d sprite UnitBall 如图</p>
+<p>新建一个新的空组件 BallFlag 用来代表实体是球球</p>
+<p>再增加 CircleCollider2D RigidBody2D 组件到球球</p>
+<p>调整好圆形检测的半径</p>
+
+<p>做好之后 Unload BallGroup，后面我们都通过 Spawner 来生成球球</p>
+<h3 id="球球的行为"><a href="#球球的行为" class="headerlink" title="球球的行为"></a>球球的行为</h3><p>我们需要一个脚本来控制球球生成的地方，并且给一个力让他跑起来</p>
+<p>菜单 创建 TypeScript Behavior</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">namespace</span> game &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">class</span> NewBehaviourFilter <span class="keyword">extends</span> ut.EntityFilter &#123;</span><br><span class="line">        node: ut.Core2D.TransformNode;</span><br><span class="line">        position?: ut.Core2D.TransformLocalPosition;</span><br><span class="line">        rotation?: ut.Core2D.TransformLocalRotation;</span><br><span class="line">        scale?: ut.Core2D.TransformLocalScale;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">class</span> NewBehaviour <span class="keyword">extends</span> ut.ComponentBehaviour &#123;</span><br><span class="line"></span><br><span class="line">        data: NewBehaviourFilter;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// ComponentBehaviour lifecycle events</span></span><br><span class="line">        <span class="comment">// uncomment any method you need</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// this method is called for each entity matching the NewBehaviourFilter signature, once when enabled</span></span><br><span class="line">        <span class="comment">//OnEntityEnable():void &#123; &#125;</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// this method is called for each entity matching the NewBehaviourFilter signature, every frame it's enabled</span></span><br><span class="line">        <span class="comment">//OnEntityUpdate():void &#123; &#125;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// this method is called for each entity matching the NewBehaviourFilter signature, once when disabled</span></span><br><span class="line">        <span class="comment">//OnEntityDisable():void &#123; &#125;</span></span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>NewBehaviourFilter 相当于是 Unity ECS 中的 GetEntityGroup 中的 struct</p>
+<p>将会获得有这个过滤器下字段的所有 Entity</p>
+<p>所以我们需要给 UnitBall 增加一个 空的 BallFlag 来确认他是球球</p>
+<ul>
+<li>OnEntityEnable. Called only once, the first frame this entity is matched by this behaviour. 获得此Entity的第一帧执行</li>
+<li>OnEntityUpdate. Called every frame on matching entities. </li>
+<li>OnEntityDisable. Called only once, the first frame this entity is marked as disabled by this behaviour. 设置为 disable 的第一帧执行</li>
+</ul>
+<p>球球行为代码如下</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">namespace</span> game &#123;</span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">class</span> BallBehaviorFilter <span class="keyword">extends</span> ut.EntityFilter &#123;</span><br><span class="line"></span><br><span class="line">        position: ut.Core2D.TransformLocalPosition;</span><br><span class="line">        entity: ut.Entity;</span><br><span class="line">        ball: game.BallFlag;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">class</span> BallBehavior <span class="keyword">extends</span> ut.ComponentBehaviour &#123;</span><br><span class="line"></span><br><span class="line">        data: BallBehaviorFilter;</span><br><span class="line"></span><br><span class="line">        OnEntityEnable(): <span class="built_in">void</span> &#123;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">"ball Enabled"</span>);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 随机球球出现的位置</span></span><br><span class="line">            <span class="keyword">let</span> randomX = getRandom(<span class="number">-100</span>, <span class="number">100</span>)</span><br><span class="line">            <span class="keyword">let</span> randomY = getRandom(<span class="number">-100</span>, <span class="number">100</span>)</span><br><span class="line">            <span class="keyword">this</span>.data.position.position = <span class="keyword">new</span> Vector3(randomX, randomY, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 随机给球球一个力，动起来</span></span><br><span class="line">            <span class="comment">// 我们可以看到，这里用了 this.world.addComponentData 给球球添加了一个加力组件，这是一个特殊的组件</span></span><br><span class="line">            <span class="comment">// 这里的 AddImpulse2D 组件会在这一帧之后自动消失掉</span></span><br><span class="line">            <span class="keyword">let</span> impulse = <span class="keyword">new</span> ut.Physics2D.AddImpulse2D;</span><br><span class="line">            <span class="keyword">let</span> newImpulse = <span class="keyword">new</span> Vector2(getRandom(<span class="number">-1</span>, <span class="number">1</span>), getRandom(<span class="number">-1</span>, <span class="number">1</span>)).normalize();</span><br><span class="line">            impulse.impulse = <span class="keyword">new</span> Vector2(newImpulse.x * <span class="number">100</span>, newImpulse.y * <span class="number">100</span>);</span><br><span class="line">            <span class="keyword">this</span>.world.addComponentData(<span class="keyword">this</span>.data.entity, impulse);</span><br><span class="line"></span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">"ball created:"</span> + <span class="keyword">this</span>.data.position.position);</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        OnEntityUpdate(): <span class="built_in">void</span> &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">getRandom</span>(<span class="params">min, max</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">Math</span>.random() * (max - min + <span class="number">1</span>) + min;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h2><p>到此我们的工作告一段落，unity 执行后</p>
+<p>会在我们的默认浏览器打开一个窗口</p>
+<img src="/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/run_game.jpg" title="运行时 Unity 的 Game 窗口">
+<p>在浏览器中使用开发者模式可以看到打印</p>
+<p>也可以扫描二维码在移动设备上查看效果</p>
+<p>运行效果如图</p>
+<img src="/2018/12/10/Unity学习：ProjectTiny学习（二）弹球和2D物理/tiny_run.gif" title="运行">
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2018/12/10/Unity学习：ProjectTiny学习（一）初识Tiny模式/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1816,218 +2058,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2017/05/08/Django项目开发（一）/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Mapz">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/link-300x300.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Mapz's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2017/05/08/Django项目开发（一）/" itemprop="url">
-                  Django项目开发（一）
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-08T17:19:10+08:00">
-                2017-05-08
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-             <span id="/2017/05/08/Django项目开发（一）/" class="leancloud_visitors" data-flag-title="Django项目开发（一）">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数 </span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body han-init-context" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>原文地址：<a href="https://mapz.github.io/2017/05/08/Django%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%EF%BC%88%E4%B8%80%EF%BC%89/">Mapz的blog</a></p>
-<p><strong>这是系列第二篇，第一篇请移步</strong></p>
-<p><a href="https://mapz.github.io/2017/05/08/Django%E9%A1%B9%E7%9B%AE%E7%9A%84%E6%90%AD%E5%BB%BA/">Django项目的搭建</a></p>
-<p>上一次我们介绍了如何搭建django项目，本次我们继续学习django项目的开发</p>
-<hr>
-<h2 id="数据库的接入"><a href="#数据库的接入" class="headerlink" title="数据库的接入"></a>数据库的接入</h2><p>我们这里使用mySql数据库</p>
-<p>先在虚拟环境中装 pymysql <strong>（MySQLdb在Python3中已经不能用）</strong></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install pymysql</span><br></pre></td></tr></table></figure>
-<p>打开settings.py</p>
-<p>修改</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">DATABASES = &#123;</span><br><span class="line">    <span class="string">'default'</span>: &#123;</span><br><span class="line">        <span class="comment"># 'ENGINE': 'django.db.backends.sqlite3',</span></span><br><span class="line">        <span class="string">'ENGINE'</span>: <span class="string">'django.db.backends.mysql'</span>, <span class="comment">#数据库引擎</span></span><br><span class="line">        <span class="comment"># 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),</span></span><br><span class="line">        <span class="string">'NAME'</span>: <span class="string">'proj_mgr_kits'</span>, <span class="comment">#你的数据库名称</span></span><br><span class="line">        <span class="string">'USER'</span>:<span class="string">'***'</span>, <span class="comment">#数据库用户</span></span><br><span class="line">        <span class="string">'PASSWORD'</span>:<span class="string">'***'</span>, <span class="comment">#数据库密码</span></span><br><span class="line">        <span class="string">'HOST'</span>:<span class="string">'***'</span>, <span class="comment">#数据库主机</span></span><br><span class="line">        <span class="string">'PORT'</span>:<span class="string">'3306'</span>, <span class="comment">#数据库端口</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>详细修改方式参见 <a href="https://docs.djangoproject.com/en/1.11/ref/settings/" target="_blank" rel="noopener">官网文档</a></p>
-<p>另外针对 pymysql 还需要配置站点的__init__.py</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pymysql</span><br><span class="line">pymysql.install_as_MySQLdb()</span><br></pre></td></tr></table></figure>
-<hr>
-<h2 id="其他配置"><a href="#其他配置" class="headerlink" title="其他配置"></a>其他配置</h2><p>设置时区和语言</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">LANGUAGE_CODE = <span class="string">'zh-Hans'</span></span><br><span class="line"></span><br><span class="line">TIME_ZONE = <span class="string">'PRC'</span></span><br></pre></td></tr></table></figure>
-<hr>
-<h2 id="Django结构简介"><a href="#Django结构简介" class="headerlink" title="Django结构简介"></a>Django结构简介</h2><p>django是一个MVC框架，数据上，使用模型model做ORM映射数据库</p>
-<p>view层使用django的模版来做渲染</p>
-<p>控制层用灵活的url路由来实现，后面我们陆续来介绍这些内容</p>
-<hr>
-<h2 id="创建数据库表"><a href="#创建数据库表" class="headerlink" title="创建数据库表"></a>创建数据库表</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python manage.py migrate</span><br></pre></td></tr></table></figure>
-<p>这个命令会创建所有已安装的APP所需的数据表</p>
-<p>所有已经安装的APP被配置在 <strong>settings.py</strong> 的<br><strong>INSTALLED_APPS</strong> 属性下</p>
-<hr>
-<h2 id="创建model"><a href="#创建model" class="headerlink" title="创建model"></a>创建model</h2><p>Model 是 Django做对象映射的模型，你创建的 Model 类会被diango映射到数据库中</p>
-<p>我们创建一个自己的model</p>
-<p>修改 models.py</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> django.db <span class="keyword">import</span> models</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Project</span><span class="params">(models.Model)</span>:</span></span><br><span class="line">    project_name = models.CharField(max_length=<span class="number">50</span>)</span><br></pre></td></tr></table></figure>
-<p>Model 支持的数据类型和创建参数参见 <a href="https://docs.djangoproject.com/en/1.11/ref/models/fields/#django.db.models.Field" target="_blank" rel="noopener">官方文档</a></p>
-<p>常用的参数比如choices,可以让参数在一个枚举中选择</p>
-<p>例如</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DeployProfile</span><span class="params">(models.Model)</span>:</span></span><br><span class="line">    deploy_type_choice = (</span><br><span class="line">        (<span class="string">'Server'</span>,<span class="string">'服务器'</span>), <span class="comment">#第一个参数为数据库保存值，第二个为显示在界面的值</span></span><br><span class="line">        (<span class="string">'CLient'</span>,<span class="string">'客户端'</span>)</span><br><span class="line">    )</span><br><span class="line">    deploy_type = models.CharField(max_length=<span class="number">20</span>, choices=deploy_type_choice, verbose_name=<span class="string">'部署类型'</span>)</span><br></pre></td></tr></table></figure>
-<p>其他的类型就不再赘述</p>
-<hr>
-<h2 id="把我们自己的app加入到项目app中"><a href="#把我们自己的app加入到项目app中" class="headerlink" title="把我们自己的app加入到项目app中"></a>把我们自己的app加入到项目app中</h2><p>编辑settings.py</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">INSTALLED_APPS = [</span><br><span class="line">    <span class="string">'xxxxx'</span></span><br><span class="line">    <span class="string">'qk_deploy.apps.QkDeployConfig'</span>,</span><br><span class="line">    <span class="string">'xxxxx'</span></span><br><span class="line">]</span><br></pre></td></tr></table></figure>
-<p>重新创建表</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python manage.py makemigrations qk_deploy</span><br></pre></td></tr></table></figure>
-<p><strong>makemigrations</strong> 命令告诉系统，我的模型已经发生了变化，需要制作一个迁移</p>
-<p>迁移做好之后，我们再用</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python manage.py migrate</span><br></pre></td></tr></table></figure>
-<p>重新制作数据表</p>
-<hr>
-<h2 id="创建管理员"><a href="#创建管理员" class="headerlink" title="创建管理员"></a>创建管理员</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python manage.py createsuperuser</span><br></pre></td></tr></table></figure>
-<p>然后按提示输入，来创建一个管理员</p>
-<p>启动服务器后</p>
-<p>进入页面</p>
-<p><a href="http://127.0.0.1:8000/admin/" target="_blank" rel="noopener">http://127.0.0.1:8000/admin/</a></p>
-<p>就可以用你的管理员来登陆管理界面了</p>
-<hr>
-<h2 id="把我们的app加入到管理界面中来"><a href="#把我们的app加入到管理界面中来" class="headerlink" title="把我们的app加入到管理界面中来"></a>把我们的app加入到管理界面中来</h2><p>修改app目录下的admin.py</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> django.contrib <span class="keyword">import</span> admin</span><br><span class="line"></span><br><span class="line"><span class="comment"># Register your models here.</span></span><br><span class="line"><span class="keyword">from</span> .models <span class="keyword">import</span> Project</span><br><span class="line">admin.site.register(Project)</span><br></pre></td></tr></table></figure>
-<p>就可以了</p>
-<p>register参数也接收一个可迭代容器</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">admin.site.register([Project,p1,p2,p3])</span><br></pre></td></tr></table></figure>
-<p>然后我们进入管理页面，发现上面的model已经可以管理了</p>
-<p>但是如果我们想有一个自定义的名称，而不是类的名字，怎么办呢？</p>
-<p>答案是在model中加上 meta </p>
-<p>编辑Project model</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Project</span><span class="params">(models.Model)</span>:</span></span><br><span class="line">    project_name = models.CharField(max_length=<span class="number">50</span>)</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Meta</span>:</span></span><br><span class="line">        verbose_name = <span class="string">'项目'</span></span><br><span class="line">        verbose_name_plural = verbose_name</span><br></pre></td></tr></table></figure>
-<p>其中 verbose_name 是显示的名称，而 plural是复数形式，我们中文没有复数形式，所以就直接一样就ok了</p>
-<p>双薪管理页面，我们发现管理中显示的内容已经是我们写的’项目’了</p>
-<p>至于模型的字段要显示我们想要的名字呢，也是一样的，修改model</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Project</span><span class="params">(models.Model)</span>:</span></span><br><span class="line">    project_name = models.CharField(max_length=<span class="number">50</span>, verbose_name=<span class="string">'项目名称'</span>)</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Meta</span>:</span></span><br><span class="line">        verbose_name = <span class="string">'项目'</span></span><br><span class="line">        verbose_name_plural = verbose_name</span><br></pre></td></tr></table></figure>
-<p>好奇的同学又要问了，APP名字在管理界面怎么改呀</p>
-<p>我们修改apps.py</p>
-<p>在QkDeployConfig类下面增加一个属性</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">QkDeployConfig</span><span class="params">(AppConfig)</span>:</span></span><br><span class="line">    name = <span class="string">'qk_deploy'</span></span><br><span class="line">    verbose_name = <span class="string">'部署管理器'</span></span><br></pre></td></tr></table></figure>
-<p>刷新管理界面再看看~~</p>
-<p>我们用管理工具创建新项目后，新项目在列表里面显示为 project object,这显然不是我们想要的，怎么办咧</p>
-<p>为model加上字符串返回函数就可以了</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Project</span><span class="params">(models.Model)</span>:</span></span><br><span class="line">    project_name = models.CharField(max_length=<span class="number">50</span>, verbose_name=<span class="string">'项目名称'</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__str__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> self.project_name</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Meta</span>:</span></span><br><span class="line">        verbose_name = <span class="string">'项目'</span></span><br><span class="line">        verbose_name_plural = verbose_name</span><br></pre></td></tr></table></figure>
-<p>刷新管理界面，显示的项目已经是我们设定的项目名称了</p>
-<hr>
-<h2 id="文本编码问题"><a href="#文本编码问题" class="headerlink" title="文本编码问题"></a>文本编码问题</h2><p>如果遇到中文无法录入管理系统的问题，请检查数据库编码是否和程序中一致哦</p>
-<p>不一致的话，请先修改数据库编码，然后删除数据表，重新migrate</p>
-<hr>
-<p>到此，我们的数据库管理功能已经完成，也就是MVC中的M</p>
-<p>下次我们继续说MVC中的V ，也就是 view 展示层</p>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -2077,7 +2107,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">29</span>
+                <span class="site-state-item-count">30</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -2090,7 +2120,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">29</span>
+                <span class="site-state-item-count">31</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
