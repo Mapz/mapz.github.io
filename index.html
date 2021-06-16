@@ -264,6 +264,178 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2021/06/16/UE4：虚幻竞技场的延迟补偿机制/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2021/06/16/UE4：虚幻竞技场的延迟补偿机制/" itemprop="url">
+                  UE4：虚幻竞技场的延迟补偿机制
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-06-16T11:20:12+08:00">
+                2021-06-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2021/06/16/UE4：虚幻竞技场的延迟补偿机制/" class="leancloud_visitors" data-flag-title="UE4：虚幻竞技场的延迟补偿机制">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>UE4引擎采用的是状态同步的网络同步方式，虚幻竞技场为了优化客户端体验，减少不一致的情况，使用了延迟补偿机制</p>
+<p>在 PlayerController 中，定义了一些补偿相关的参数</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UNREALTOURNAMENT_API</span> <span class="title">AUTPlayerController</span> :</span> <span class="keyword">public</span> AUTBasePlayerController</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//..... 略</span></span><br><span class="line">    <span class="comment">//-----------------------------------------------</span></span><br><span class="line">	<span class="comment">// Perceived latency reduction</span></span><br><span class="line">	<span class="comment">/** Used to correct prediction error. */</span></span><br><span class="line">	UPROPERTY(EditAnywhere, Replicated, GlobalConfig, Category=Network)</span><br><span class="line">	<span class="keyword">float</span> PredictionFudgeFactor;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** Negotiated max amount of ping to predict ahead for. */</span></span><br><span class="line">	UPROPERTY(BlueprintReadOnly, Category=Network, Replicated)</span><br><span class="line">	<span class="keyword">float</span> MaxPredictionPing;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** user configurable desired prediction ping (will be negotiated with server. */</span></span><br><span class="line">	UPROPERTY(BlueprintReadOnly, GlobalConfig, Category=Network)</span><br><span class="line">	<span class="keyword">float</span> DesiredPredictionPing;</span><br><span class="line"></span><br><span class="line">	UPROPERTY(GlobalConfig, EditAnywhere, Category = Debug)</span><br><span class="line">	<span class="keyword">bool</span> bIsDebuggingProjectiles;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** Propose a desired ping to server */</span></span><br><span class="line">	UFUNCTION(reliable, server, WithValidation)</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">ServerNegotiatePredictionPing</span><span class="params">(<span class="keyword">float</span> NewPredictionPing)</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** Console command to change prediction ping */</span></span><br><span class="line">	UFUNCTION(Exec)</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">Predict</span><span class="params">(<span class="keyword">float</span> NewDesiredPredictionPing)</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** Return amount of time to tick or simulate to make up for network lag */</span></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">float</span> <span class="title">GetPredictionTime</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** How long fake projectile should sleep before starting to simulate (because client ping is greater than MaxPredictionPing). */</span></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">float</span> <span class="title">GetProjectileSleepTime</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** List of fake projectiles currently out there for this client */</span></span><br><span class="line">	UPROPERTY()</span><br><span class="line">	TArray&lt;<span class="class"><span class="keyword">class</span> <span class="title">AUTProjectile</span>*&gt; <span class="title">FakeProjectiles</span>;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//..... 略</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在客户端的 PlayerController 会通过 ServerNegotiatePredictionPing RPC 在在服务器上设置 MaxPredictionPing</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> AUTPlayerController::BeginPlay()</span><br><span class="line">&#123;</span><br><span class="line">	bSpectatorMouseChangesView = <span class="literal">false</span>;</span><br><span class="line">	Super::BeginPlay();</span><br><span class="line">	<span class="keyword">if</span> (Role &lt; ROLE_Authority)</span><br><span class="line">	&#123;</span><br><span class="line">		ServerNegotiatePredictionPing(DesiredPredictionPing);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> AUTPlayerController::ServerNegotiatePredictionPing_Implementation(<span class="keyword">float</span> NewPredictionPing)</span><br><span class="line">&#123;</span><br><span class="line">	MaxPredictionPing = FMath::Clamp(NewPredictionPing, <span class="number">0.f</span>, UUTGameEngine::StaticClass()-&gt;GetDefaultObject&lt;UUTGameEngine&gt;()-&gt;ServerMaxPredictionPing);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过 GetPredictionTime 函数，可以取得需要补偿的时间</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">float</span> AUTPlayerController::GetPredictionTime()</span><br><span class="line">&#123;</span><br><span class="line">	<span class="comment">// exact ping is in msec, divide by 1000 to get time in seconds</span></span><br><span class="line">	<span class="comment">//if (Role == ROLE_Authority) &#123; UE_LOG(UT, Warning, TEXT("Server ExactPing %f"), PlayerState-&gt;ExactPing); &#125;</span></span><br><span class="line">	<span class="keyword">return</span> (PlayerState &amp;&amp; (GetNetMode() != NM_Standalone)) ? (<span class="number">0.0005f</span>*FMath::Clamp(PlayerState-&gt;ExactPing - PredictionFudgeFactor, <span class="number">0.f</span>, MaxPredictionPing)) : <span class="number">0.f</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>再查看 Character 的代码</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UNREALTOURNAMENT_API</span> <span class="title">AUTCharacter</span> :</span> <span class="keyword">public</span> ACharacter, <span class="keyword">public</span> IUTTeamInterface</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//...略</span></span><br><span class="line">    <span class="comment">/** Stored past positions of this player.  Used for bot aim error model, and for server side hit resolution. */</span></span><br><span class="line">	UPROPERTY()</span><br><span class="line">	TArray&lt;FSavedPosition&gt; SavedPositions;	</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** Maximum interval to hold saved positions for. */</span></span><br><span class="line">	UPROPERTY()</span><br><span class="line">	<span class="keyword">float</span> MaxSavedPositionAge;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">/** Mark the last saved position as where a shot was spawned so can synch firing to client position. */</span></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">NotifyPendingServerFire</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** Called by CharacterMovement after movement */</span></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">PositionUpdated</span><span class="params">(<span class="keyword">bool</span> bShotSpawned)</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** Returns this character's position PredictionTime seconds ago. */</span></span><br><span class="line">	UFUNCTION(BlueprintCallable, Category = Pawn)</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> FVector <span class="title">GetRewindLocation</span><span class="params">(<span class="keyword">float</span> PredictionTime, AUTPlayerController* DebugViewer=<span class="literal">nullptr</span>)</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** Max time server will look back to found client synchronized shot position. */</span></span><br><span class="line">	UPROPERTY(EditAnyWhere, Category = <span class="string">"Weapon"</span>)</span><br><span class="line">	<span class="keyword">float</span> MaxShotSynchDelay;</span><br><span class="line"></span><br><span class="line">	UPROPERTY(BlueprintReadOnly, Category = Pawn)</span><br><span class="line">		<span class="class"><span class="keyword">class</span> <span class="title">AUTGameVolume</span>* <span class="title">LastGameVolume</span>;</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">/** Returns most recent position with bShotSpawned. */</span></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> FVector <span class="title">GetDelayedShotPosition</span><span class="params">()</span></span>;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> FRotator <span class="title">GetDelayedShotRotation</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** Return true if there's a recent delayed shot */</span></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">bool</span> <span class="title">DelayedShotFound</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** returns a simplified set of SavedPositions containing only the latest position for a given frame (i.e. each element has a unique Time)</span></span><br><span class="line"><span class="comment">	 * @param bStopAtTeleport - removes any positions prior to and including the most recent teleportation</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">GetSimplifiedSavedPositions</span><span class="params">(TArray&lt;FSavedPosition&gt;&amp; OutPositions, <span class="keyword">bool</span> bStopAtTeleport)</span> <span class="keyword">const</span></span>;</span><br><span class="line">    <span class="comment">//...略</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到角色上使用 TArray 存储了一组 FSavedPosition 信息</p>
+<p>包括了位置，旋转，速度，是否发出了射击，时间戳等</p>
+<p>定义如下</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">USTRUCT(BlueprintType)</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">FSavedPosition</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	GENERATED_USTRUCT_BODY()</span><br><span class="line"></span><br><span class="line">	FSavedPosition() : Position(FVector(<span class="number">0.f</span>)), Rotation(FRotator(<span class="number">0.f</span>)), Velocity(FVector(<span class="number">0.f</span>)), bTeleported(<span class="literal">false</span>), bShotSpawned(<span class="literal">false</span>), Time(<span class="number">0.f</span>), TimeStamp(<span class="number">0.f</span>) &#123;&#125;;</span><br><span class="line"></span><br><span class="line">	FSavedPosition(FVector InPos, FRotator InRot, FVector InVel, <span class="keyword">bool</span> InTeleported, <span class="keyword">bool</span> InShotSpawned, <span class="keyword">float</span> InTime, <span class="keyword">float</span> InTimeStamp) : Position(InPos), Rotation(InRot), Velocity(InVel), bTeleported(InTeleported), bShotSpawned(InShotSpawned), Time(InTime), TimeStamp(InTimeStamp) &#123;&#125;;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** Position of player at time Time. */</span></span><br><span class="line">	UPROPERTY()</span><br><span class="line">	FVector Position;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** Rotation of player at time Time. */</span></span><br><span class="line">	UPROPERTY()</span><br><span class="line">	FRotator Rotation;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** Keep velocity also for bots to use in realistic reaction time based aiming error model. */</span></span><br><span class="line">	UPROPERTY()</span><br><span class="line">	FVector Velocity;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** true if teleport occurred getting to current position (so don't interpolate) */</span></span><br><span class="line">	UPROPERTY()</span><br><span class="line">	<span class="keyword">bool</span> bTeleported;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** true if shot was spawned at this position */</span></span><br><span class="line">	UPROPERTY()</span><br><span class="line">	<span class="keyword">bool</span> bShotSpawned;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** Current server world time when this position was updated. */</span></span><br><span class="line">	<span class="keyword">float</span> Time;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** Client timestamp associated with this position. */</span></span><br><span class="line">	<span class="keyword">float</span> TimeStamp;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>更新位置信息 TArray 的地方是</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> AUTCharacter::PositionUpdated(<span class="keyword">bool</span> bShotSpawned)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">const</span> <span class="keyword">float</span> WorldTime = GetWorld()-&gt;GetTimeSeconds();</span><br><span class="line">	<span class="keyword">if</span> (GetCharacterMovement())</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">new</span>(SavedPositions)FSavedPosition(GetActorLocation(), GetViewRotation(), GetCharacterMovement()-&gt;Velocity, GetCharacterMovement()-&gt;bJustTeleported, bShotSpawned, WorldTime, (UTCharacterMovement ? UTCharacterMovement-&gt;GetCurrentSynchTime() : <span class="number">0.f</span>));</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// maintain one position beyond MaxSavedPositionAge for interpolation</span></span><br><span class="line">	<span class="keyword">if</span> (SavedPositions.Num() &gt; <span class="number">1</span> &amp;&amp; SavedPositions[<span class="number">1</span>].Time &lt; WorldTime - MaxSavedPositionAge)</span><br><span class="line">	&#123;</span><br><span class="line">		SavedPositions.RemoveAt(<span class="number">0</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到加入新位置的时候会移除超过保存时间限制的位置</p>
+<p>调用栈<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">+ AUTCharacter::PositionUpdated(bool bShotSpawned)</span><br><span class="line">+ UUTCharacterMovement::PerformMovement()</span><br></pre></td></tr></table></figure></p>
+<p>可见每帧会保存一个当前帧的数据，其中 bShotSpawned 参数传入当前帧是否会发射射击，是否射击的状态在武器类上维护</p>
+<p>下面我们继续查看抛射物如何做预测</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">调用 AUTProjectile* AUTWeapon::FireProjectile()</span><br><span class="line">调用 AUTProjectile* AUTWeapon::SpawnNetPredictedProjectile(TSubclassOf&lt;AUTProjectile&gt; ProjectileClass, FVector SpawnLocation, FRotator SpawnRotation)</span><br></pre></td></tr></table></figure>
+<p>在客户端上，如果当前延迟超过了最大预测延迟，会在等待一段超出最大预测延迟的时间后，射出模拟子弹，避免延迟过高的情况下，补偿产生的副作用</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GetWorldTimerManager().SetTimer(SpawnDelayedFakeProjHandle, <span class="keyword">this</span>, &amp;AUTWeapon::SpawnDelayedFakeProjectile, SleepTime, <span class="literal">false</span>);</span><br></pre></td></tr></table></figure>
+<p>如果当前延迟没有超过最大延迟补偿</p>
+<p>在服务器上，则会直接对抛射物和它的 MovememtComponent 执行一次 tick</p>
+<p>tick 传入的时间就是补偿的时间</p>
+<p>从而达到补偿的目的</p>
+<p>客户端上则会执行 InitFakeProjectile 初始化一个模拟抛射物</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (Role == ROLE_Authority)</span><br><span class="line">    &#123;</span><br><span class="line">        NewProjectile-&gt;HitsStatsName = HitsStatsName;</span><br><span class="line">        <span class="keyword">if</span> ((CatchupTickDelta &gt; <span class="number">0.f</span>) &amp;&amp; NewProjectile-&gt;ProjectileMovement)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">// server ticks projectile to match with when client actually fired</span></span><br><span class="line">            <span class="comment">// <span class="doctag">TODO:</span> account for CustomTimeDilation?</span></span><br><span class="line">            <span class="keyword">if</span> (NewProjectile-&gt;PrimaryActorTick.IsTickFunctionEnabled())</span><br><span class="line">            &#123;</span><br><span class="line">                NewProjectile-&gt;TickActor(CatchupTickDelta * NewProjectile-&gt;CustomTimeDilation, LEVELTICK_All, NewProjectile-&gt;PrimaryActorTick);</span><br><span class="line">            &#125;</span><br><span class="line">            NewProjectile-&gt;ProjectileMovement-&gt;TickComponent(CatchupTickDelta * NewProjectile-&gt;CustomTimeDilation, LEVELTICK_All, <span class="literal">NULL</span>);</span><br><span class="line">            NewProjectile-&gt;SetForwardTicked(<span class="literal">true</span>);</span><br><span class="line">            <span class="keyword">if</span> (NewProjectile-&gt;GetLifeSpan() &gt; <span class="number">0.f</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                NewProjectile-&gt;SetLifeSpan(<span class="number">0.1f</span> + FMath::Max(<span class="number">0.01f</span>, NewProjectile-&gt;GetLifeSpan() - CatchupTickDelta));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            NewProjectile-&gt;SetForwardTicked(<span class="literal">false</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        NewProjectile-&gt;InitFakeProjectile(OwningPlayer);</span><br><span class="line">        NewProjectile-&gt;SetLifeSpan(FMath::Min(NewProjectile-&gt;GetLifeSpan(), <span class="number">2.f</span> * FMath::Max(<span class="number">0.f</span>, CatchupTickDelta)));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于其他同步下来的抛射物，客户端也会在同步到位置信息或者 BeginPlay 的时候，直接给予一个延迟补偿</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> AUTProjectile::PostNetReceiveLocationAndRotation()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//...略</span></span><br><span class="line">    <span class="comment">// forward predict to get to position on server now</span></span><br><span class="line">	<span class="keyword">if</span> (!bFakeClientProjectile)</span><br><span class="line">	&#123;</span><br><span class="line">		AUTPlayerController* MyPlayer = Cast&lt;AUTPlayerController&gt;(InstigatorController ? InstigatorController : GEngine-&gt;GetFirstLocalPlayerController(GetWorld()));</span><br><span class="line">		<span class="keyword">if</span> (MyPlayer)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">float</span> CatchupTickDelta = MyPlayer-&gt;GetPredictionTime();</span><br><span class="line">			<span class="keyword">if</span> ((CatchupTickDelta &gt; <span class="number">0.f</span>) &amp;&amp; ProjectileMovement)</span><br><span class="line">			&#123;</span><br><span class="line">				ProjectileMovement-&gt;TickComponent(CatchupTickDelta, LEVELTICK_All, <span class="literal">NULL</span>);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">    <span class="comment">//...略</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> AUTProjectile::BeginPlay()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//...略</span></span><br><span class="line">	<span class="keyword">if</span> (Role == ROLE_Authority)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//...略</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        AUTPlayerController* MyPlayer = Cast&lt;AUTPlayerController&gt;(InstigatorController ? InstigatorController : GEngine-&gt;GetFirstLocalPlayerController(GetWorld()));</span><br><span class="line">		<span class="keyword">if</span> (MyPlayer)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="comment">// Move projectile to match where it is on server now (to make up for replication time)</span></span><br><span class="line">			<span class="keyword">float</span> CatchupTickDelta = MyPlayer-&gt;GetPredictionTime();</span><br><span class="line">			<span class="keyword">if</span> (CatchupTickDelta &gt; <span class="number">0.f</span>)</span><br><span class="line">			&#123;</span><br><span class="line">				CatchupTick(CatchupTickDelta);</span><br><span class="line">			&#125;</span><br><span class="line">        <span class="comment">//...略</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//...略</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>那么 Rewind 机制是在哪儿使用的咧？<br>我们查找寻回角色历史位置的函数</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** Returns this character's position PredictionTime seconds ago. */</span></span><br><span class="line">UFUNCTION(BlueprintCallable, Category = Pawn)</span><br><span class="line"><span class="function"><span class="keyword">virtual</span> FVector <span class="title">GetRewindLocation</span><span class="params">(<span class="keyword">float</span> PredictionTime, AUTPlayerController* DebugViewer=<span class="literal">nullptr</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>在武器的发射函数中</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> AUTWeapon::FireShot()</span><br></pre></td></tr></table></figure>
+<p>有抛射物模式和快速检测命中模式两种类型的发射<br>如果是抛射物，执行的上面提到的通过 TickActor 和 TickMovement 来补偿的方式<br>如果是快速检测命中<br>则会执行射线检测</p>
+<p>射线检测会遍历所有的 Character<br>然后对每个 Character 在其当前位置（客户端），或者补偿位置（服务器），也就是通过 GetRewindLocation 传入补偿时间获得的历史位置<br>来检查位置和射线的最近距离<br>再把最近距离和胶囊体大小比较来判断是否击中</p>
+<p>如果是客户端，会先快速在客户端本地做一次无补偿的射线检测<br>如果有射中目标，则会通过</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">UFUNCTION(Server, Unreliable, WithValidation)</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">ServerHitScanHit</span><span class="params">(AUTCharacter* HitScanChar, uint8 HitScanEventIndex)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>上报服务器客户端命中的目标和命中事件的 Index</p>
+<p>同时服务器上也会做一次带补偿的射线检测</p>
+<p>如果客户端有上报数据，那么服务器上的对于客户端上报的命中数据会有一些额外的优惠（更容易被判定为击中）</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2021/06/09/UE4：RPC调用部分代码学习/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1803,145 +1975,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://Mapz.github.io/2018/12/11/Unity学习：ProjectTiny现状（即时更新）/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Mapz">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/link-300x300.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Mapz's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2018/12/11/Unity学习：ProjectTiny现状（即时更新）/" itemprop="url">
-                  Unity学习：ProjectTiny现状（即时更新）
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-11T15:33:34+08:00">
-                2018-12-11
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-             <span id="/2018/12/11/Unity学习：ProjectTiny现状（即时更新）/" class="leancloud_visitors" data-flag-title="Unity学习：ProjectTiny现状（即时更新）">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数 </span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body han-init-context" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="TileMap"><a href="#TileMap" class="headerlink" title="TileMap"></a>TileMap</h2><ul>
-<li>可以编辑，可以使用，但是现在无物理特性（Platform游戏可以先等等），不能设置碰撞</li>
-</ul>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1986,7 +2024,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">30</span>
+                <span class="site-state-item-count">31</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1999,7 +2037,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">31</span>
+                <span class="site-state-item-count">32</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
