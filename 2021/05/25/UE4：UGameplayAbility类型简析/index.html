@@ -217,6 +217,7 @@
 <p>而 GA 使用的 GameplayTasksComponent 是 GA 的当前释放者的 AbilitySystemComponent （UAbilitySystemComponent 也是继承自 UGameplayTasksComponent 的）</p>
 <h2 id="重要的函数"><a href="#重要的函数" class="headerlink" title="重要的函数"></a>重要的函数</h2><p>如源码中的注释所写的，GA 里面有几个重要的函数</p>
 <h3 id="CanActivateAbility"><a href="#CanActivateAbility" class="headerlink" title="CanActivateAbility"></a>CanActivateAbility</h3><h4 id="函数定义"><a href="#函数定义" class="headerlink" title="函数定义"></a>函数定义</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">bool</span> <span class="title">CanActivateAbility</span><span class="params">(<span class="keyword">const</span> FGameplayAbilitySpecHandle Handle, <span class="keyword">const</span> FGameplayAbilityActorInfo* ActorInfo, <span class="keyword">const</span> FGameplayTagContainer* SourceTags = <span class="literal">nullptr</span>, <span class="keyword">const</span> FGameplayTagContainer* TargetTags = <span class="literal">nullptr</span>, OUT FGameplayTagContainer* OptionalRelevantTags = <span class="literal">nullptr</span>)</span> <span class="keyword">const</span></span>;</span><br></pre></td></tr></table></figure>
+
 <p>函数功能是检查是否可以激活此 Ability</p>
 <p>GAS 中在 UAbilitySystemComponent::TryActivateAbility 中调用</p>
 <ul>
@@ -233,11 +234,11 @@
 <li>判断 ActorInfo 中是否含有 AbilitySystemComponent ，没有则不可以释放</li>
 <li>判断用户是否禁止释放技能（AbilitySystemComponent.UserAbilityActivationInhibited，例如菜单状态下不能释放之类的)</li>
 <li>判断技能冷却是否完成<blockquote>
-<p>冷却是由 TSubclassOf<class ugameplayeffect=""> CooldownGameplayEffectClass 来控制的，在技能成功被 commit 的时候，会触发生成这个 GE，判断是否冷却了就是判断是否有这个 GE</class></p>
+<p>冷却是由 TSubclassOf<class UGameplayEffect> CooldownGameplayEffectClass 来控制的，在技能成功被 commit 的时候，会触发生成这个 GE，判断是否冷却了就是判断是否有这个 GE</p>
 </blockquote>
 </li>
 <li>判断技能消费是否够<blockquote>
-<p>同样的消费是由 TSubclassOf<class ugameplayeffect=""> CostGameplayEffectClass 来控制的，这个 GE 是懒加载的，这里会调用 AbilitySystemComponent-&gt;CanApplyAttributeModifiers 来检查是否有资源释放技能</class></p>
+<p>同样的消费是由 TSubclassOf<class UGameplayEffect> CostGameplayEffectClass 来控制的，这个 GE 是懒加载的，这里会调用 AbilitySystemComponent-&gt;CanApplyAttributeModifiers 来检查是否有资源释放技能</p>
 </blockquote>
 </li>
 <li>检查当前 Tags 是否满足释放条件，包括需要的 Tag，Block 的 Tag 等</li>
@@ -246,6 +247,7 @@
 <li>检查蓝图覆盖的 K2_CanActivateAbility 是否可以释放</li>
 </ol>
 <h3 id="CallActivateAbility"><a href="#CallActivateAbility" class="headerlink" title="CallActivateAbility"></a>CallActivateAbility</h3><h4 id="函数定义-1"><a href="#函数定义-1" class="headerlink" title="函数定义"></a>函数定义</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">CallActivateAbility</span><span class="params">(<span class="keyword">const</span> FGameplayAbilitySpecHandle Handle, <span class="keyword">const</span> FGameplayAbilityActorInfo* ActorInfo, <span class="keyword">const</span> FGameplayAbilityActivationInfo ActivationInfo, FOnGameplayAbilityEnded::FDelegate* OnGameplayAbilityEndedDelegate = <span class="literal">nullptr</span>, <span class="keyword">const</span> FGameplayEventData* TriggerEventData = <span class="literal">nullptr</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+
 <p>函数用来激活 Ability</p>
 <p>参数除了上面的以外还有</p>
 <ul>
@@ -258,6 +260,7 @@
 <li>执行 ActivateAbility（Virtual 可覆盖）<br> a. 如果有蓝图实现，则使用蓝图实现 K2_ActivateAbility 激活任务<br> b. 如果有蓝图的 TriggerEvent 实现，则执行 K2_ActivateAbilityFromEvent(*TriggerEventData) 激活任务，灭有 TriggerData 则 End Ability<br> c. 如果没有蓝图实现，则直接 Commit Ability</li>
 </ol>
 <h3 id="CommitAbility"><a href="#CommitAbility" class="headerlink" title="CommitAbility"></a>CommitAbility</h3><h4 id="函数定义-2"><a href="#函数定义-2" class="headerlink" title="函数定义"></a>函数定义</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">bool</span> <span class="title">CommitAbility</span><span class="params">(<span class="keyword">const</span> FGameplayAbilitySpecHandle Handle, <span class="keyword">const</span> FGameplayAbilityActorInfo* ActorInfo, <span class="keyword">const</span> FGameplayAbilityActivationInfo ActivationInfo, OUT FGameplayTagContainer* OptionalRelevantTags = <span class="literal">nullptr</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+
 <p>函数是确认 Ability</p>
 <h4 id="默认流程"><a href="#默认流程" class="headerlink" title="默认流程"></a>默认流程</h4><ol>
 <li>调用 CommitCheck 检查是否可以 Commit （和 CanActivateAbility 差不多，也可以做额外的检查）</li>
@@ -266,6 +269,7 @@
 <li>发送 AbilityCommittedCallbacks 广播</li>
 </ol>
 <h3 id="CancelAbility"><a href="#CancelAbility" class="headerlink" title="CancelAbility"></a>CancelAbility</h3><h4 id="函数定义-3"><a href="#函数定义-3" class="headerlink" title="函数定义"></a>函数定义</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">CancelAbility</span><span class="params">(<span class="keyword">const</span> FGameplayAbilitySpecHandle Handle, <span class="keyword">const</span> FGameplayAbilityActorInfo* ActorInfo, <span class="keyword">const</span> FGameplayAbilityActivationInfo ActivationInfo, <span class="keyword">bool</span> bReplicateCancelAbility)</span></span>;</span><br></pre></td></tr></table></figure>
+
 <p>函数用来取消 Ability </p>
 <h4 id="默认流程-1"><a href="#默认流程-1" class="headerlink" title="默认流程"></a>默认流程</h4><ol>
 <li>检查 Ability 是否可以被 Cancel （如果是非实例化的，则可以被 Cancel，如果是实例化的，检查是否可以被 Cancel 的设置）</li>
@@ -275,6 +279,7 @@
 <li>执行 EndAbility</li>
 </ol>
 <h3 id="EndAbility"><a href="#EndAbility" class="headerlink" title="EndAbility"></a>EndAbility</h3><h4 id="函数定义-4"><a href="#函数定义-4" class="headerlink" title="函数定义"></a>函数定义</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">EndAbility</span><span class="params">(<span class="keyword">const</span> FGameplayAbilitySpecHandle Handle, <span class="keyword">const</span> FGameplayAbilityActorInfo* ActorInfo, <span class="keyword">const</span> FGameplayAbilityActivationInfo ActivationInfo, <span class="keyword">bool</span> bReplicateEndAbility, <span class="keyword">bool</span> bWasCancelled)</span></span>;</span><br></pre></td></tr></table></figure>
+
 <p>函数用来结束 Ability</p>
 <h4 id="默认流程-2"><a href="#默认流程-2" class="headerlink" title="默认流程"></a>默认流程</h4><ol>
 <li>检查 Ability 是否可以被 End<br> a. 不是 Active 的实例化 Acitivity 不可以被 End<br> b. 检查 Handle 的 ActivitySpec 是否 Active</li>

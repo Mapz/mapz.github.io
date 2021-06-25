@@ -226,7 +226,8 @@
 <li>一个 Predication Key 可以看做是一个行为在服务器和客户端的唯一标识</li>
 <li>Predication Key 的 ID 是全局唯一的，参考：</li>
 </ul>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> FPredictionKey::GenerateNewPredictionKey()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// GKey 作为静态局部变量，其值为全局唯一，每次都 ++ </span></span><br><span class="line">    <span class="keyword">static</span> KeyType GKey = <span class="number">1</span>;</span><br><span class="line">    Current = GKey++;</span><br><span class="line">    <span class="keyword">if</span> (GKey &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        GKey = <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    bIsStale = <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FPredictionKey::GenerateNewPredictionKey</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// GKey 作为静态局部变量，其值为全局唯一，每次都 ++ </span></span><br><span class="line">    <span class="keyword">static</span> KeyType GKey = <span class="number">1</span>;</span><br><span class="line">    Current = GKey++;</span><br><span class="line">    <span class="keyword">if</span> (GKey &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        GKey = <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    bIsStale = <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <ul>
 <li><p>在服务器上创建的 PK 则只作为一个行为的标识，不作为客户端预测用</p>
 </li>
@@ -238,11 +239,8 @@
 </li>
 <li><p>PK 的网络序列化是自定义的</p>
 <ul>
-<li><p>第一位是 PK 是否在当前 Connection 可用，在序列化的时候设置，如果是服务器创建的，则都可用，否则只有 PK 的连接信息和当前连接一致的时候可用</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ValidKeyForConnection = (PredictiveConnection == <span class="literal">nullptr</span> || (Map == PredictiveConnection) || bIsServerInitiated) &amp;&amp; (Current &gt; <span class="number">0</span>);</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>第二位是是否有依赖的 PK （仅当当前 Connection 可用的时候可用）</p>
-</li>
+<li>第一位是 PK 是否在当前 Connection 可用，在序列化的时候设置，如果是服务器创建的，则都可用，否则只有 PK 的连接信息和当前连接一致的时候可用<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ValidKeyForConnection = (PredictiveConnection == <span class="literal">nullptr</span> || (Map == PredictiveConnection) || bIsServerInitiated) &amp;&amp; (Current &gt; <span class="number">0</span>);</span><br></pre></td></tr></table></figure></li>
+<li>第二位是是否有依赖的 PK （仅当当前 Connection 可用的时候可用）</li>
 <li>第三位是是否为服务器创建</li>
 <li>如果是可用连接，则写入当前的 PK ID</li>
 <li>如果有依赖的 PK 则写入依赖 PK ID</li>

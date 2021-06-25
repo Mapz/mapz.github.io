@@ -225,10 +225,11 @@
 <p>其实Mac上是内置了PHP的，但是版本可能不满足大家的需要</p>
 <p>如果说出现问题，我们可以使用一个神奇的命令来安装你需要的php版本，而不是走一般的安装方式</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://php-osx.liip.ch/install.sh | bash -s 5.6</span><br></pre></td></tr></table></figure>
+
 <p>后面的参数替换为你需要的版本号即可</p>
 <h2 id="安装MySQL"><a href="#安装MySQL" class="headerlink" title="安装MySQL"></a>安装MySQL</h2><hr>
-<p><a href="https://dev.mysql.com/downloads/" target="_blank" rel="noopener">官网下载区</a></p>
-<p><a href="https://dev.mysql.com/downloads/mysql/" target="_blank" rel="noopener">MySQL Community Server</a></p>
+<p><a target="_blank" rel="noopener" href="https://dev.mysql.com/downloads/">官网下载区</a></p>
+<p><a target="_blank" rel="noopener" href="https://dev.mysql.com/downloads/mysql/">MySQL Community Server</a></p>
 <p>选择你的版本来下载安装即可<br>安装时会生成临时密码</p>
 <blockquote>
 <p>  2017-04-24T03:36:10.495551Z 1 [Note] A temporary password is generated for root@localhost: f)a=u!Jl2s-U<br>If you lose this password, please consult the section How to Reset the Root Password in the MySQL reference manual.</p>
@@ -236,12 +237,13 @@
 <p>请记住这个临时密码</p>
 <p>为了方便操作mysql我们再下载一个mysql workbench 作为管理工具</p>
 <h2 id="安装wordpress"><a href="#安装wordpress" class="headerlink" title="安装wordpress"></a>安装wordpress</h2><hr>
-<p>在<a href="https://cn.wordpress.org/" target="_blank" rel="noopener">wordpress中文网站</a>下载</p>
-<p>然后移步<a href="https://codex.wordpress.org/zh-cn:%E5%AE%89%E8%A3%85WordPress" target="_blank" rel="noopener">安装文档</a></p>
+<p>在<a target="_blank" rel="noopener" href="https://cn.wordpress.org/">wordpress中文网站</a>下载</p>
+<p>然后移步<a target="_blank" rel="noopener" href="https://codex.wordpress.org/zh-cn:%E5%AE%89%E8%A3%85WordPress">安装文档</a></p>
 <p>下载后解压至某目录，然后编辑apache2的httpd.conf配置此目录到apache服务器下</p>
 <p>例如</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Alias /wordpress "/Volumes/store/wordpress/wordpress"</span><br><span class="line"><span class="tag">&lt;<span class="name">Directory</span> "/<span class="attr">Volumes</span>/<span class="attr">store</span>/<span class="attr">wordpress</span>/<span class="attr">wordpress</span>"&gt;</span></span><br><span class="line">    Options Indexes MultiViews</span><br><span class="line">    AllowOverride None</span><br><span class="line">    Order allow,deny</span><br><span class="line">    Allow from all</span><br><span class="line"><span class="tag">&lt;/<span class="name">Directory</span>&gt;</span></span><br></pre></td></tr></table></figure>
-<p>浏览器打开 <strong><a href="http://localhost/wordpress" target="_blank" rel="noopener">http://localhost/wordpress</a></strong> 可以看到wordpress欢迎界面</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Alias /wordpress &quot;/Volumes/store/wordpress/wordpress&quot;</span><br><span class="line"><span class="tag">&lt;<span class="name">Directory</span> &quot;/<span class="attr">Volumes</span>/<span class="attr">store</span>/<span class="attr">wordpress</span>/<span class="attr">wordpress</span>&quot;&gt;</span></span><br><span class="line">    Options Indexes MultiViews</span><br><span class="line">    AllowOverride None</span><br><span class="line">    Order allow,deny</span><br><span class="line">    Allow from all</span><br><span class="line"><span class="tag">&lt;/<span class="name">Directory</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>浏览器打开 <strong><a target="_blank" rel="noopener" href="http://localhost/wordpress">http://localhost/wordpress</a></strong> 可以看到wordpress欢迎界面</p>
 <h2 id="配置wordpress"><a href="#配置wordpress" class="headerlink" title="配置wordpress"></a>配置wordpress</h2><hr>
 <p>按照欢迎页面的提示，我们准备好以下信息：</p>
 <ol>
@@ -251,7 +253,7 @@
 <li>数据库主机</li>
 <li>数据表前缀（table prefix，特别是当您要在一个数据库中安装多个WordPress时）</li>
 </ol>
-<h3 id="启动mysql"><a href="#启动mysql" class="headerlink" title="启动mysql"></a>启动mysql</h3><p>在<strong>系统偏好设置</strong>中找到<strong>mySql</strong>然后点击<strong>Start MySql Server</strong></p>
+<h3 id="启动mysql"><a href="#启动mysql" class="headerlink" title="启动mysql"></a>启动mysql</h3><p>在__系统偏好设置__中找到__mySql__然后点击__Start MySql Server__</p>
 <p>我们打开mysql workbench创建一个localhost的连接</p>
 <p>第一次登录会让我们修改密码，然后老密码写入上面那个临时密码，登入服务器</p>
 <p>使用 <strong>new schema</strong> 创建新库</p>

@@ -205,9 +205,11 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>我们在hexo中新建一篇文章使用的命令是：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo new  <span class="string">"新文章"</span></span><br></pre></td></tr></table></figure></p>
-<p>在执行这个命令的时候，其实是触发了 <strong>hexo.on</strong> 这个回调的，那么怎样在新建时打开编辑器就很简单了<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> spawn = <span class="built_in">require</span>(<span class="string">'child_process'</span>).spawn;</span><br><span class="line">hexo.on(<span class="string">'new'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">data</span>)</span>&#123;</span><br><span class="line">    spawn(<span class="string">'start  "markdown编辑器绝对路径.exe" '</span> + data.path);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></p>
+          <p>我们在hexo中新建一篇文章使用的命令是：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo new  <span class="string">&quot;新文章&quot;</span></span><br></pre></td></tr></table></figure>
 
+<p>在执行这个命令的时候，其实是触发了 <strong>hexo.on</strong> 这个回调的，那么怎样在新建时打开编辑器就很简单了</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> spawn = <span class="built_in">require</span>(<span class="string">&#x27;child_process&#x27;</span>).spawn;</span><br><span class="line">hexo.on(<span class="string">&#x27;new&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">data</span>)</span>&#123;</span><br><span class="line">    spawn(<span class="string">&#x27;start  &quot;markdown编辑器绝对路径.exe&quot; &#x27;</span> + data.path);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
       
     </div>
 
