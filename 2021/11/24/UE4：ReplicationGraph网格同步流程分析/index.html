@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/link-300x300.gif">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/link-300x300.gif">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/link-300x300.gif">
+  <link rel="mask-icon" href="/images/link-300x300.gif" color="#222">
+  <link rel="manifest" href="/images/manifest.json">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"mapz.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="前言UE4 中的网格分块同步是基于 UReplicationGraphNode_GridSpatialization2D 同步节点的，本文尝试分析 UReplicationGraphNode_GridSpatialization2D 节点的同步流程 UReplicationGraphNode_GridSpatialization2D 下文简称 “分块节点”  相关配置CellSize：网格的大小S">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UE4：ReplicationGraph网格同步流程分析">
+<meta property="og:url" content="http://mapz.github.io/2021/11/24/UE4%EF%BC%9AReplicationGraph%E7%BD%91%E6%A0%BC%E5%90%8C%E6%AD%A5%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="Mapz&#39;s Blog">
+<meta property="og:description" content="前言UE4 中的网格分块同步是基于 UReplicationGraphNode_GridSpatialization2D 同步节点的，本文尝试分析 UReplicationGraphNode_GridSpatialization2D 节点的同步流程 UReplicationGraphNode_GridSpatialization2D 下文简称 “分块节点”  相关配置CellSize：网格的大小S">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-11-24T03:34:12.000Z">
+<meta property="article:modified_time" content="2021-11-24T09:25:43.129Z">
+<meta property="article:author" content="Mapz">
+<meta property="article:tag" content="UE4">
+<meta property="article:tag" content="Network">
+<meta property="article:tag" content="ReplicationGraph">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://mapz.github.io/2021/11/24/UE4%EF%BC%9AReplicationGraph%E7%BD%91%E6%A0%BC%E5%90%8C%E6%AD%A5%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>UE4：ReplicationGraph网格同步流程分析 | Mapz's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?69c67c43ced4b46e7ba1656a83e9c872";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Mapz's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">可以递归的函数指针</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2021/11/24/UE4%EF%BC%9AReplicationGraph%E7%BD%91%E6%A0%BC%E5%90%8C%E6%AD%A5%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="FIND THE CHILD">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          UE4：ReplicationGraph网格同步流程分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-11-24 11:34:12 / 修改时间：17:25:43" itemprop="dateCreated datePublished" datetime="2021-11-24T11:34:12+08:00">2021-11-24</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>UE4 中的网格分块同步是基于 UReplicationGraphNode_GridSpatialization2D 同步节点的，本文尝试分析 UReplicationGraphNode_GridSpatialization2D 节点的同步流程</p>
+<p>UReplicationGraphNode_GridSpatialization2D 下文简称 <strong>“分块节点”</strong></p>
+<hr>
+<h2 id="相关配置"><a href="#相关配置" class="headerlink" title="相关配置"></a>相关配置</h2><p>CellSize：网格的大小<br>SpatialBias：网格的边界，超过边界会重建网格<br>ConnectionMaxZ：大于这个高度的玩家不会参与到收集同步 Actor 的过程中</p>
+<hr>
+<h2 id="添加和移除同步对象"><a href="#添加和移除同步对象" class="headerlink" title="添加和移除同步对象"></a>添加和移除同步对象</h2><p>分块节点本身不保存和移除任何同步对象，对象的记录是通过</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">AddActor_Static</span><span class="params">(<span class="keyword">const</span> FNewReplicatedActorInfo&amp; ActorInfo, FGlobalActorReplicationInfo&amp; ActorRepInfo)</span> </span>&#123; <span class="built_in">AddActorInternal_Static</span>(ActorInfo, ActorRepInfo, <span class="literal">false</span>); &#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">AddActor_Dynamic</span><span class="params">(<span class="keyword">const</span> FNewReplicatedActorInfo&amp; ActorInfo, FGlobalActorReplicationInfo&amp; ActorRepInfo)</span> </span>&#123; <span class="built_in">AddActorInternal_Dynamic</span>(ActorInfo); &#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">AddActor_Dormancy</span><span class="params">(<span class="keyword">const</span> FNewReplicatedActorInfo&amp; ActorInfo, FGlobalActorReplicationInfo&amp; ActorRepInfo)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">RemoveActor_Static</span><span class="params">(<span class="keyword">const</span> FNewReplicatedActorInfo&amp; ActorInfo)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">RemoveActor_Dynamic</span><span class="params">(<span class="keyword">const</span> FNewReplicatedActorInfo&amp; ActorInfo)</span> </span>&#123; <span class="built_in">RemoveActorInternal_Dynamic</span>(ActorInfo); &#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">RemoveActor_Dormancy</span><span class="params">(<span class="keyword">const</span> FNewReplicatedActorInfo&amp; ActorInfo)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>来处理的，其中 AddActor_Dynamic 是会移动的 Actor，Static 则是静态不会移动的, AddActor_Dormancy 则是休眠的时候看做静态的，非休眠的时候变为可移动的 Actor</p>
+<p>其中 Internal 的几个函数都是 virtual ，可继承后在子类改变其行为</p>
+<p>这里只讨论默认的行为</p>
+<h3 id="Add-Dynamic"><a href="#Add-Dynamic" class="headerlink" title="Add Dynamic"></a>Add Dynamic</h3><p>如果 Actor 的属性为 bAlwaysRelevant ，会什么也不干，并触发 Warning</p>
+<p>否则加入</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TMap&lt;FActorRepListType, FCachedDynamicActorInfo&gt; DynamicSpatializedActors;</span><br></pre></td></tr></table></figure>
+
+<p>中</p>
+<h3 id="Add-Static"><a href="#Add-Static" class="headerlink" title="Add Static"></a>Add Static</h3><p>如果 Actor 还未初始化，会加入一个</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TArray&lt;FPendingStaticActors&gt; PendingStaticSpatializedActors;</span><br></pre></td></tr></table></figure>
+
+<p>中</p>
+<p>否则会把它的 GlobalActorReplicationInfo (下文称Actor全局同步Info)<br>的位置属性赋值为当前 Actor 位置</p>
+<p>如果分块节点有范围限制，则在此 Actor 可撑大范围的前提下（通过 Class 过滤）<br>重新按此 Actor 位置来设定范围</p>
+<p>设定规则为当前 Actor 2D 位置减去单个网格大小的二分之一（即是扩展到 Actor 外侧多二分之一网格大小）</p>
+<p>然后把对象加入到</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TMap&lt;FActorRepListType, FCachedStaticActorInfo&gt; StaticSpatializedActors;</span><br></pre></td></tr></table></figure>
+
+<p>并根据其位置，获取到对应的 UReplicationGraphNode_GridCell 结点（代表单个网格的节点，下文称 __网格节点__）</p>
+<p>并调用其 UReplicationGraphNode_GridCell::AddStaticActor 函数加入到网格节点中</p>
+<p>网格节点在分块节点下保存在</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TArray&lt; TArray&lt;UReplicationGraphNode_GridCell*&gt; &gt; Grid;</span><br></pre></td></tr></table></figure>
+
+<p>中，为一个二维数组，按 X 和 Y 划分</p>
+<h4 id="UReplicationGraphNode-GridCell-AddStaticActor"><a href="#UReplicationGraphNode-GridCell-AddStaticActor" class="headerlink" title="UReplicationGraphNode_GridCell::AddStaticActor"></a>UReplicationGraphNode_GridCell::AddStaticActor</h4><p>网格节点继承自 UReplicationGraphNode_ActorList</p>
+<p>自带一个同步对象列表</p>
+<p>当 Actor全局同步Info 的 bWantsToBeDormant 为 true 的时候</p>
+<p>会把这个 Actor 加入到网格节点的 UReplicationGraphNode_DormancyNode 子节点中</p>
+<p>否则会直接加入网格节点</p>
+<h3 id="Remove-Static"><a href="#Remove-Static" class="headerlink" title="Remove Static"></a>Remove Static</h3><p>Add Static 的反操作，没啥可说的</p>
+<h3 id="Remove-Dynamic"><a href="#Remove-Dynamic" class="headerlink" title="Remove Dynamic"></a>Remove Dynamic</h3><p>先从 DynamicSpatializedActors 中找到 Actor 的 FCachedDynamicActorInfo</p>
+<p>然后根据其中储存的网格信息找到相关网格，然后调用网格的</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UReplicationGraphNode_GridCell::<span class="built_in">RemoveDynamicActor</span>(<span class="keyword">const</span> FNewReplicatedActorInfo&amp; ActorInfo)</span><br></pre></td></tr></table></figure>
+
+<p>移除 Actor，<br>然后再移除 DynamicSpatializedActors 中相应的 Actor</p>
+<h4 id="UReplicationGraphNode-GridCell-RemoveDynamicActor"><a href="#UReplicationGraphNode-GridCell-RemoveDynamicActor" class="headerlink" title="UReplicationGraphNode_GridCell::RemoveDynamicActor"></a>UReplicationGraphNode_GridCell::RemoveDynamicActor</h4><p>找到网格节点的 DynamicNode ,并调用其 NotifyRemoveNetworkActor</p>
+<p>DynamicNode 的默认实现为 UReplicationGraphNode_ActorListFrequencyBuckets</p>
+<p>但是可以自定义其类型</p>
+<p>最终获取同步对象的时候，Dynamic 类型的 Actor 都是从 DynamicNode 上获取的<br>，而从上面 Static Add 的部分我们可以看出来 Static 类型的 Actor 是直接从网格节点上获取的</p>
+<h4 id="关于-UReplicationGraphNode-ActorListFrequencyBuckets"><a href="#关于-UReplicationGraphNode-ActorListFrequencyBuckets" class="headerlink" title="关于 UReplicationGraphNode_ActorListFrequencyBuckets"></a>关于 UReplicationGraphNode_ActorListFrequencyBuckets</h4><p>这个节点用于限制每次同步的时候从节点上获取的 Actor 数量，来处理避免扎堆同步的情况，细节上先不表</p>
+<h3 id="AddDormancy"><a href="#AddDormancy" class="headerlink" title="AddDormancy"></a>AddDormancy</h3><p>如果是 ActorRepInfo.bWantsToBeDormant 为 true<br>直接调用 AddActorInternal_Static，只是休眠参数传入 true<br>否则直接调用 AddActorInternal_Dynamic</p>
+<p>简单明了</p>
+<p>休眠状态的变化，则是通过 Add 的时候添加休眠事件的回调来处理的</p>
+<h3 id="RemoveDormancy"><a href="#RemoveDormancy" class="headerlink" title="RemoveDormancy"></a>RemoveDormancy</h3><p>和上面那个相反的操作，没啥可说的</p>
+<h3 id="Actor-信息存放位置总结"><a href="#Actor-信息存放位置总结" class="headerlink" title="Actor 信息存放位置总结"></a>Actor 信息存放位置总结</h3><p>Static 对象引用是放在网格节点上的<br>Dynamic 对象引用是放在网格节点的 Dynamic 节点上的<br>Dormancy 对象在休眠的时候，放在网格节点的 Dormancy 子节点，非休眠的时候，放在 Dynamic 子节点上</p>
+<hr>
+<h2 id="同步前：PrepareForReplication"><a href="#同步前：PrepareForReplication" class="headerlink" title="同步前：PrepareForReplication"></a>同步前：PrepareForReplication</h2><p>我们来查看函数</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UReplicationGraphNode_GridSpatialization2D::<span class="built_in">PrepareForReplication</span>()</span><br></pre></td></tr></table></figure>
+
+<p>首先，遍历 DynamicSpatializedActors，做以下操作：</p>
+<ol>
+<li><p>获取其 Actor 位置，并查看是否需要扩大同步的范围（和 AddStatic 中的操作一样）</p>
+</li>
+<li><p>无需重新创建网格的时候，执行以下操作</p>
+<p> a. 获取当前 Actor 所在网格信息</p>
+<p> b. 检测当前所在网格和上次所在网格的关系，如发生改变了，移除不在的网格节点中的 Actor 信息，新增新网格节点中的 Actor 信息</p>
+<p> c. 如果有更新网格信息，则重设 Actor 同步信息中的网格信息</p>
+</li>
+</ol>
+<p>然后，遍历 PendingStaticSpatializedActors，检查是否初始化完毕了，并加入 Static 列表中</p>
+<p>如果需要重建网格，执行以下操作</p>
+<ol>
+<li>移除当前的所有网格节点</li>
+<li>遍历 DynamicSpatializedActors 和 StaticSpatializedActors，根据现有 Actor 重建网格节点并加入 Actor 信息</li>
+</ol>
+<h3 id="同步前处理内容总结"><a href="#同步前处理内容总结" class="headerlink" title="同步前处理内容总结"></a>同步前处理内容总结</h3><p>同步之前，主要做的是重新设定 Actor 的网格的工作，如有需要，会重建网格节点列表</p>
+<hr>
+<h2 id="搜集需要同步的-Actor-列表：GatherActorListsForConnection"><a href="#搜集需要同步的-Actor-列表：GatherActorListsForConnection" class="headerlink" title="搜集需要同步的 Actor 列表：GatherActorListsForConnection"></a>搜集需要同步的 Actor 列表：GatherActorListsForConnection</h2><p>首先，遍历每个玩家角色</p>
+<ol>
+<li><p>获得当前玩家所在的网格信息</p>
+</li>
+<li><p>获得玩家上次的位置</p>
+</li>
+<li><p>合并相同玩家的网格信息，在合并后的网格中，收集需要同步的 Actor</p>
+<p> a. 和上面的 <a href="#%E5%AD%98%E6%94%BE%E4%BD%8D%E7%BD%AE%E6%80%BB%E7%BB%93">位置</a> 一样，找到相应的网格节点的子节点，收集相关内容</p>
+</li>
+<li><p>把玩家所在的网格标记为 Active 网格</p>
+</li>
+</ol>
+<p>如果需要销毁 Dynamic 的休眠 Actor，则遍历 Active 网格，如果 Active 网格发生改变了，则</p>
+<ol>
+<li>找到网格的 DormancyNode 并获取休眠 Actor 列表</li>
+<li>找到 Active 网格的上次的玩家网格信息的 DormancyNode 并获取休眠 Actor 列表</li>
+</ol>
+<p>如果 Active 网格发生改变了，并且上次的玩家网格中有休眠 Actor，则遍历休眠 Actor 列表</p>
+<ol>
+<li>通知客户端 Destroy 这个 Actor</li>
+<li>修改这个 Actor 的网格节点上的休眠节点的这个 Actor 的同步状态</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/UE4/" rel="tag"># UE4</a>
+              <a href="/tags/Network/" rel="tag"># Network</a>
+              <a href="/tags/ReplicationGraph/" rel="tag"># ReplicationGraph</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/06/16/UE4%EF%BC%9A%E8%99%9A%E5%B9%BB%E7%AB%9E%E6%8A%80%E5%9C%BA%E7%9A%84%E5%BB%B6%E8%BF%9F%E8%A1%A5%E5%81%BF%E6%9C%BA%E5%88%B6/" rel="prev" title="UE4：虚幻竞技场的延迟补偿机制">
+      <i class="fa fa-chevron-left"></i> UE4：虚幻竞技场的延迟补偿机制
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE"><span class="nav-number">2.</span> <span class="nav-text">相关配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0%E5%92%8C%E7%A7%BB%E9%99%A4%E5%90%8C%E6%AD%A5%E5%AF%B9%E8%B1%A1"><span class="nav-number">3.</span> <span class="nav-text">添加和移除同步对象</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Add-Dynamic"><span class="nav-number">3.1.</span> <span class="nav-text">Add Dynamic</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Add-Static"><span class="nav-number">3.2.</span> <span class="nav-text">Add Static</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#UReplicationGraphNode-GridCell-AddStaticActor"><span class="nav-number">3.2.1.</span> <span class="nav-text">UReplicationGraphNode_GridCell::AddStaticActor</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Remove-Static"><span class="nav-number">3.3.</span> <span class="nav-text">Remove Static</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Remove-Dynamic"><span class="nav-number">3.4.</span> <span class="nav-text">Remove Dynamic</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#UReplicationGraphNode-GridCell-RemoveDynamicActor"><span class="nav-number">3.4.1.</span> <span class="nav-text">UReplicationGraphNode_GridCell::RemoveDynamicActor</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-UReplicationGraphNode-ActorListFrequencyBuckets"><span class="nav-number">3.4.2.</span> <span class="nav-text">关于 UReplicationGraphNode_ActorListFrequencyBuckets</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AddDormancy"><span class="nav-number">3.5.</span> <span class="nav-text">AddDormancy</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RemoveDormancy"><span class="nav-number">3.6.</span> <span class="nav-text">RemoveDormancy</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Actor-%E4%BF%A1%E6%81%AF%E5%AD%98%E6%94%BE%E4%BD%8D%E7%BD%AE%E6%80%BB%E7%BB%93"><span class="nav-number">3.7.</span> <span class="nav-text">Actor 信息存放位置总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%8C%E6%AD%A5%E5%89%8D%EF%BC%9APrepareForReplication"><span class="nav-number">4.</span> <span class="nav-text">同步前：PrepareForReplication</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8C%E6%AD%A5%E5%89%8D%E5%A4%84%E7%90%86%E5%86%85%E5%AE%B9%E6%80%BB%E7%BB%93"><span class="nav-number">4.1.</span> <span class="nav-text">同步前处理内容总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%90%9C%E9%9B%86%E9%9C%80%E8%A6%81%E5%90%8C%E6%AD%A5%E7%9A%84-Actor-%E5%88%97%E8%A1%A8%EF%BC%9AGatherActorListsForConnection"><span class="nav-number">5.</span> <span class="nav-text">搜集需要同步的 Actor 列表：GatherActorListsForConnection</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Mapz"
+      src="/images/link-300x300.gif">
+  <p class="site-author-name" itemprop="name">Mapz</p>
+  <div class="site-description" itemprop="description">FIND THE CHILD</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">34</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Mapz" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Mapz" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
