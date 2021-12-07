@@ -160,6 +160,160 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2017/05/12/Django%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%EF%BC%88%E5%9B%9B%EF%BC%89Vue2%20ElementUI%E9%A1%B5%E9%9D%A2%E5%88%B6%E4%BD%9C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="FIND THE CHILD">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/05/12/Django%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%EF%BC%88%E5%9B%9B%EF%BC%89Vue2%20ElementUI%E9%A1%B5%E9%9D%A2%E5%88%B6%E4%BD%9C/" class="post-title-link" itemprop="url">Django项目开发（四）Vue2 ElementUI页面制作</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-05-12 10:22:19" itemprop="dateCreated datePublished" datetime="2017-05-12T10:22:19+08:00">2017-05-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-22 10:15:32" itemprop="dateModified" datetime="2021-04-22T10:15:32+08:00">2021-04-22</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>原文地址：<a href="">Mapz的blog</a></p>
+<p>前文目录：</p>
+<ol>
+<li><a href="https://mapz.github.io/2017/05/08/Django%E9%A1%B9%E7%9B%AE%E7%9A%84%E6%90%AD%E5%BB%BA/">Django项目的搭建</a></li>
+<li><a href="https://mapz.github.io/2017/05/08/Django%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%EF%BC%88%E4%B8%80%EF%BC%89/">Django项目开发（一）</a></li>
+<li><a href="https://mapz.github.io/2017/05/10/Django%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%EF%BC%88%E4%BA%8C%EF%BC%89View%E5%B1%82/">Django项目开发（二）View层</a></li>
+<li><a href="https://mapz.github.io/2017/05/10/Django%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%EF%BC%88%E4%B8%89%EF%BC%89%E7%BB%93%E5%90%88Vue/">Django项目开发（三）结合Vue</a></li>
+</ol>
+<p>前文讲了我们怎么把vue和django结合起来，这次我们讲讲vue的基本开发</p>
+<h2 id="初见Vue"><a href="#初见Vue" class="headerlink" title="初见Vue"></a>初见Vue</h2><h3 id="项目结构"><a href="#项目结构" class="headerlink" title="项目结构"></a>项目结构</h3><p>假设我们已经知道了css html 和 JavaScript 基础，那 Vue 对你来说肯定不是难事，他的简单易用性可以快速上手</p>
+<p>我们查看我们之前生成的单页应用的src目录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── App.vue <span class="comment"># 入口vue组件</span></span><br><span class="line">├── assets <span class="comment"># 资源目录</span></span><br><span class="line">│   └── logo.png </span><br><span class="line">├── components <span class="comment"># 组件目录</span></span><br><span class="line">│   └── Hello.vue <span class="comment"># 组件</span></span><br><span class="line">├── main.js <span class="comment"># 启动代码</span></span><br><span class="line">└── router <span class="comment"># 路由</span></span><br><span class="line">    └── index.js </span><br></pre></td></tr></table></figure>
+
+<p>.vue 文件是 vue 的基本组成形式，一个文件代表一个组件</p>
+<p>其中 template 区域表示本组件的模版， script 区是代码区 type 标签里面则是样式声明</p>
+<p>type 可以使用多种样式表语言 css less 什么的都可以（需要安装相关支持）</p>
+<p>我们再看App.vue</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">&lt;template&gt;</span><br><span class="line">  <span class="xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;app&quot;</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">&quot;./assets/logo.png&quot;</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">router-view</span>&gt;</span><span class="tag">&lt;/<span class="name">router-view</span>&gt;</span></span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;/<span class="name">template</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="javascript"></span></span></span><br><span class="line"><span class="javascript"><span class="xml"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span></span></span><br><span class="line"><span class="javascript"><span class="xml">  <span class="attr">name</span>: <span class="string">&#x27;app&#x27;</span></span></span></span><br><span class="line"><span class="javascript"><span class="xml">&#125;</span></span></span><br><span class="line"><span class="javascript"><span class="xml"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">style</span>&gt;</span><span class="css"></span></span></span><br><span class="line"><span class="css"><span class="xml"><span class="selector-id">#app</span> &#123;</span></span></span><br><span class="line"><span class="css"><span class="xml">  <span class="attribute">font-family</span>: <span class="string">&#x27;Avenir&#x27;</span>, Helvetica, Arial, sans-serif;</span></span></span><br><span class="line"><span class="css"><span class="xml">  -webkit-<span class="attribute">font-smoothing</span>: antialiased;</span></span></span><br><span class="line"><span class="css"><span class="xml">  -moz-osx-<span class="attribute">font-smoothing</span>: grayscale;</span></span></span><br><span class="line"><span class="css"><span class="xml">  <span class="attribute">text-align</span>: center;</span></span></span><br><span class="line"><span class="css"><span class="xml">  <span class="attribute">color</span>: <span class="number">#2c3e50</span>;</span></span></span><br><span class="line"><span class="css"><span class="xml">  <span class="attribute">margin-top</span>: <span class="number">60px</span>;</span></span></span><br><span class="line"><span class="css"><span class="xml">&#125;</span></span></span><br><span class="line"><span class="css"><span class="xml"></span><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+
+<p>那么这个组件是怎么变成入口的呢</p>
+<p>可以看外面的index.html</p>
+<p>中间有个 id=app 的div</p>
+<p>在 main.js 中有这么一段</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* eslint-disable no-new */</span></span><br><span class="line"><span class="keyword">new</span> Vue(&#123;</span><br><span class="line">  <span class="attr">el</span>: <span class="string">&#x27;#app&#x27;</span>,</span><br><span class="line">  router,</span><br><span class="line">  <span class="attr">template</span>: <span class="string">&#x27;&lt;App/&gt;&#x27;</span>,</span><br><span class="line">  <span class="attr">components</span>: &#123; App &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>这里的 el 就是这个 vue 实例要挂载的元素<br>template 是用来挂在的模版<br>components 是用来挂在的内容，也就是我们的 App.vue</p>
+<p>这样App.vue的内容就自动注入到index.html中了</p>
+<h3 id="数据绑定"><a href="#数据绑定" class="headerlink" title="数据绑定"></a>数据绑定</h3><p>前面我们讲了，Vue 的特点之一是数据双向绑定，也就是说展示的内容和模型的内容是绑定的，同步的，修改一个，另一个就会一起变化，Vue在实现这个功能的时候，为了将所有数据都收归 Vue 来管理，所以数据的声明必须由 Vue 来操作</p>
+<p>我们移步hello.vue</p>
+<p>在代码块中有个 data() 函数，这个函数里面就是声明我们的数据区，在这里面声明的内容，Vue会自动给他加上 getter和setter，这个过程对使用者来说事透明的，你不会注意到她，当一个数据读取或者变化的时候，就会调用setter和getter，从而触发 Vue 对绑定这个数据的内容的刷新，所以我们的数据块，都在 data() 区声明，是很重要的</p>
+<p>另外，data() 返回的不是一个数据实例，而是一个返回数据副本的函数，这个很重要</p>
+<p>为什么呢，因为我们知道 Vue 的组件是可以复用的，所以每次都要返回单独的数据实例呀，否则不是成了相当于 Java 中 static 数据的东西了吗</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">&lt;h1&gt;&#123;&#123; msg &#125;&#125;&lt;/h1&gt;</span><br><span class="line"></span><br><span class="line">data () &#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        <span class="attr">msg</span>: <span class="string">&#x27;Welcome to Your Vue.js App&#x27;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们看到，我们声明的数据，在写模版的时候用双层引号来渲染</p>
+<h3 id="路由"><a href="#路由" class="headerlink" title="路由"></a>路由</h3><p>我们的App.vue是怎么显示出hello.vue组件的内容的呢</p>
+<p>我们看到 app 的模版中 有个 </p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">router-view</span>&gt;</span><span class="tag">&lt;/<span class="name">router-view</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这个标签会自动渲染路由的内容</p>
+<p>在 main.js 中我们引入了路由</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> router <span class="keyword">from</span> <span class="string">&#x27;./router&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>在router的index.js中我们看到</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> Vue <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span></span><br><span class="line"><span class="keyword">import</span> Router <span class="keyword">from</span> <span class="string">&#x27;vue-router&#x27;</span></span><br><span class="line"><span class="keyword">import</span> Hello <span class="keyword">from</span> <span class="string">&#x27;@/components/Hello&#x27;</span></span><br><span class="line"></span><br><span class="line">Vue.use(Router)</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">new</span> Router(&#123;</span><br><span class="line">  <span class="attr">routes</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">path</span>: <span class="string">&#x27;/&#x27;</span>, <span class="comment">//配置访问路径</span></span><br><span class="line">      <span class="attr">name</span>: <span class="string">&#x27;Hello&#x27;</span>, <span class="comment">//配置路径“页面”名称</span></span><br><span class="line">      <span class="attr">component</span>: Hello <span class="comment">//配置要渲染的组件</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>使用了vue-router工具来做路由</p>
+<p>导出了一个路由配置</p>
+<p>所以我们在访问路径/的时候，Hello.vue就渲染在了 router-view 上</p>
+<hr>
+<h2 id="安装vue-admin"><a href="#安装vue-admin" class="headerlink" title="安装vue-admin"></a>安装vue-admin</h2><p><a target="_blank" rel="noopener" href="http://element.eleme.io/#/zh-CN/component/quickstart">ElementUI文档</a></p>
+<p>ElementUI是饿了吗弄的一个模版，适合来做管理工具的前端</p>
+<p>我们这里就直接使用一个基于elementui的开源模版vue-admin来开发</p>
+<p>开发的时候又问题随时参考文档</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/taylorchen709/vue-admin">vue-admin</a></p>
+<p>下载下来</p>
+<p>删掉 frontend 目录里面的所有内容，然后把下载下来的 vue-admin 内容解压 copy 进去</p>
+<p>然后在 frontend 中执行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install --registry=https://registry.npm.taobao.org</span><br></pre></td></tr></table></figure>
+
+<p>因为里面有安装node-sass</p>
+<p>如果安装出错了，可以先安装这个东西(支持一种css加强语法的工具)，加上镜像</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SASS_BINARY_SITE=https://npm.taobao.org/mirrors/node-sass/ npm install node-sass</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm build</span><br></pre></td></tr></table></figure>
+
+<p>我们还需要修改webpack中的一个参数让导出的静态调用地址适配 django中 的设置</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">STATIC_URL = <span class="string">&#x27;/static/&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>打开 vue 项目中的webpack.config.js文件</p>
+<p>修改为</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">assetsRoot: path.resolve(__dirname, <span class="string">&#x27;../dist/static&#x27;</span>),</span><br><span class="line"><span class="attr">assetsSubDirectory</span>: <span class="string">&#x27;&#x27;</span>,</span><br><span class="line"><span class="attr">assetsPublicPath</span>: <span class="string">&#x27;/static/&#x27;</span>,</span><br></pre></td></tr></table></figure>
+
+<p>这样webpack导出的内容中的static的东西，都会以/static/的url前缀去调用，和django中一样了</p>
+<p>访问 django 的站点 <a target="_blank" rel="noopener" href="http://127.0.0.1:8000/qk_deploy/">http://127.0.0.1:8000/qk_deploy/</a></p>
+<p>和 vue 的测试站点 <a target="_blank" rel="noopener" href="http://127.0.0.1:8010/">http://127.0.0.1:8010/</a></p>
+<p>现在都可以正确访问我们的内容了</p>
+<p>但是为了不每次访问的时候都打包，所以一般我们用 vue 的测试站点来进行测试</p>
+<hr>
+<h2 id="对接API：登陆"><a href="#对接API：登陆" class="headerlink" title="对接API：登陆"></a>对接API：登陆</h2><p>我们可以看到 vue-admin 里面使用的是 axios 作为 Ajax 库</p>
+<p>作为示范，作者使用 mock 来制作了假数据</p>
+<p>我们屏蔽掉 mock 开始接入我们写好的 django 登陆 api</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 修改 main.js 屏蔽mock</span></span><br><span class="line"><span class="comment">// import Mock from &#x27;./mock&#x27;</span></span><br><span class="line"><span class="comment">// Mock.bootstrap();</span></span><br></pre></td></tr></table></figure>
+
+<p>修改 api.js,设置为我们的接口地址</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// let base = &#x27;&#x27;;</span></span><br><span class="line"><span class="keyword">let</span> base = <span class="string">&#x27;http://127.0.0.1:8000/qk_deploy/api&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>访问 <a target="_blank" rel="noopener" href="http://127.0.0.1:8080/#/login">http://127.0.0.1:8080/#/login</a></p>
+<p>测试登陆</p>
+<p>我们已经可以请求登陆啦~~</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2017/05/10/Django%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%EF%BC%88%E4%B8%89%EF%BC%89%E7%BB%93%E5%90%88Vue/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1181,117 +1335,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2017/04/21/%E5%9C%A8Mac%E4%B8%8A%E5%AE%89%E8%A3%85wordpress/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/link-300x300.gif">
-      <meta itemprop="name" content="Mapz">
-      <meta itemprop="description" content="FIND THE CHILD">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Mapz's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2017/04/21/%E5%9C%A8Mac%E4%B8%8A%E5%AE%89%E8%A3%85wordpress/" class="post-title-link" itemprop="url">在Mac上安装wordpress</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2017-04-21 18:08:25" itemprop="dateCreated datePublished" datetime="2017-04-21T18:08:25+08:00">2017-04-21</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-22 10:15:32" itemprop="dateModified" datetime="2021-04-22T10:15:32+08:00">2021-04-22</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="总览"><a href="#总览" class="headerlink" title="总览"></a>总览</h2><hr>
-<p>WordPress是一款使用广泛的博客系统，为了学习和验证其是否符合我们的需求，我将会在我的Macbook上安装之</p>
-<p>WordPress需求：</p>
-<ol>
-<li>PHP 5.2.4或更高版本</li>
-<li>MySQL 5.0或更高版本</li>
-</ol>
-<h2 id="安装PHP"><a href="#安装PHP" class="headerlink" title="安装PHP"></a>安装PHP</h2><hr>
-<p>其实Mac上是内置了PHP的，但是版本可能不满足大家的需要</p>
-<p>如果说出现问题，我们可以使用一个神奇的命令来安装你需要的php版本，而不是走一般的安装方式</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://php-osx.liip.ch/install.sh | bash -s 5.6</span><br></pre></td></tr></table></figure>
-
-<p>后面的参数替换为你需要的版本号即可</p>
-<h2 id="安装MySQL"><a href="#安装MySQL" class="headerlink" title="安装MySQL"></a>安装MySQL</h2><hr>
-<p><a target="_blank" rel="noopener" href="https://dev.mysql.com/downloads/">官网下载区</a></p>
-<p><a target="_blank" rel="noopener" href="https://dev.mysql.com/downloads/mysql/">MySQL Community Server</a></p>
-<p>选择你的版本来下载安装即可<br>安装时会生成临时密码</p>
-<blockquote>
-<p>  2017-04-24T03:36:10.495551Z 1 [Note] A temporary password is generated for root@localhost: f)a=u!Jl2s-U<br>If you lose this password, please consult the section How to Reset the Root Password in the MySQL reference manual.</p>
-</blockquote>
-<p>请记住这个临时密码</p>
-<p>为了方便操作mysql我们再下载一个mysql workbench 作为管理工具</p>
-<h2 id="安装wordpress"><a href="#安装wordpress" class="headerlink" title="安装wordpress"></a>安装wordpress</h2><hr>
-<p>在<a target="_blank" rel="noopener" href="https://cn.wordpress.org/">wordpress中文网站</a>下载</p>
-<p>然后移步<a target="_blank" rel="noopener" href="https://codex.wordpress.org/zh-cn:%E5%AE%89%E8%A3%85WordPress">安装文档</a></p>
-<p>下载后解压至某目录，然后编辑apache2的httpd.conf配置此目录到apache服务器下</p>
-<p>例如</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Alias /wordpress &quot;/Volumes/store/wordpress/wordpress&quot;</span><br><span class="line"><span class="tag">&lt;<span class="name">Directory</span> &quot;/<span class="attr">Volumes</span>/<span class="attr">store</span>/<span class="attr">wordpress</span>/<span class="attr">wordpress</span>&quot;&gt;</span></span><br><span class="line">    Options Indexes MultiViews</span><br><span class="line">    AllowOverride None</span><br><span class="line">    Order allow,deny</span><br><span class="line">    Allow from all</span><br><span class="line"><span class="tag">&lt;/<span class="name">Directory</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>浏览器打开 <strong><a target="_blank" rel="noopener" href="http://localhost/wordpress">http://localhost/wordpress</a></strong> 可以看到wordpress欢迎界面</p>
-<h2 id="配置wordpress"><a href="#配置wordpress" class="headerlink" title="配置wordpress"></a>配置wordpress</h2><hr>
-<p>按照欢迎页面的提示，我们准备好以下信息：</p>
-<ol>
-<li>数据库名</li>
-<li>数据库用户名</li>
-<li>数据库密码</li>
-<li>数据库主机</li>
-<li>数据表前缀（table prefix，特别是当您要在一个数据库中安装多个WordPress时）</li>
-</ol>
-<h3 id="启动mysql"><a href="#启动mysql" class="headerlink" title="启动mysql"></a>启动mysql</h3><p>在__系统偏好设置__中找到__mySql__然后点击__Start MySql Server__</p>
-<p>我们打开mysql workbench创建一个localhost的连接</p>
-<p>第一次登录会让我们修改密码，然后老密码写入上面那个临时密码，登入服务器</p>
-<p>使用 <strong>new schema</strong> 创建新库</p>
-<p>在 <strong>Users and Privileges</strong> 创建新用户 , 并加入权限</p>
-<h3 id="使用wordpress欢迎页面配置"><a href="#使用wordpress欢迎页面配置" class="headerlink" title="使用wordpress欢迎页面配置"></a>使用wordpress欢迎页面配置</h3><p>点击欢迎页面下一步，把刚创建的数据库和用户填入后提交</p>
-<p>如果报错，请按提示进行</p>
-<p>最后输入站点信息，DONE！</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1363,7 +1406,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-count">33</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
