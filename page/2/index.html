@@ -160,6 +160,84 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2019/01/17/Unity%E5%AD%A6%E4%B9%A0%EF%BC%9A%E5%83%8F%E7%B4%A0FC%E8%BF%98%E5%8E%9F%E6%B8%B8%E6%88%8FSuperSimon%EF%BC%88%E4%B8%80%EF%BC%89%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="FIND THE CHILD">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/01/17/Unity%E5%AD%A6%E4%B9%A0%EF%BC%9A%E5%83%8F%E7%B4%A0FC%E8%BF%98%E5%8E%9F%E6%B8%B8%E6%88%8FSuperSimon%EF%BC%88%E4%B8%80%EF%BC%89%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C/" class="post-title-link" itemprop="url">Unity学习：像素FC还原游戏SuperSimon（一）准备工作</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-01-17 16:44:09" itemprop="dateCreated datePublished" datetime="2019-01-17T16:44:09+08:00">2019-01-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-22 10:15:32" itemprop="dateModified" datetime="2021-04-22T10:15:32+08:00">2021-04-22</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>现在开始正式制作我们的FC重制游戏 SuperSimon</p>
+<h2 id="创建环境"><a href="#创建环境" class="headerlink" title="创建环境"></a>创建环境</h2><ol>
+<li>Unity 2018.3</li>
+<li>使用 Package Manager 下载 2D Pixel Perfect 插件（需要设置 Package Manager 的高级设置，打开显示预览包</li>
+<li>因为本次使用新的输入包，使用 Package Manager 下载 Input System</li>
+<li>使用 <a href="https://mapz.github.io/2019/01/17/Unity%E5%AD%A6%E4%B9%A0%EF%BC%9AFC%E4%B8%AD%E6%8A%A0%E5%87%BA%E6%9D%A5%E7%9A%84%E5%AD%97%E4%BD%93%E5%81%9A%E6%88%90BitmapFont/">这里</a> 的文章中的方式，从恶魔城3的SpriteSheet中创建好字体</li>
+</ol>
+<img src="/2019/01/17/Unity%E5%AD%A6%E4%B9%A0%EF%BC%9A%E5%83%8F%E7%B4%A0FC%E8%BF%98%E5%8E%9F%E6%B8%B8%E6%88%8FSuperSimon%EF%BC%88%E4%B8%80%EF%BC%89%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C/CV3Font.png" class="" title="Dump的字体图片">
+
+<h2 id="场景中的内容"><a href="#场景中的内容" class="headerlink" title="场景中的内容"></a>场景中的内容</h2><ol>
+<li>摄像机设置正交，背景色 solid color,大小128</li>
+<li>摄像机GO上添加一个 Pixel Perfect Camera，设置pixel perUnit 1,分辨率256 x 240,下面钩子全打上</li>
+<li>创建UICanvas，用摄像机 Render，Pixel perfect 勾上，Canvas Scaler 分辨率设置好，模式选择随屏幕大小缩放。 pixel per unit 1。Match mode expand。</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2019/01/17/Unity%E5%AD%A6%E4%B9%A0%EF%BC%9AFC%E4%B8%AD%E6%8A%A0%E5%87%BA%E6%9D%A5%E7%9A%84%E5%AD%97%E4%BD%93%E5%81%9A%E6%88%90BitmapFont/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1052,88 +1130,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2018/01/17/%E5%AF%BC%E5%87%BA%E5%AD%97%E4%BD%93%E6%96%87%E4%BB%B6%E6%96%87%E6%9C%AC%E4%B8%BAPNG/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/link-300x300.gif">
-      <meta itemprop="name" content="Mapz">
-      <meta itemprop="description" content="FIND THE CHILD">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Mapz's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/01/17/%E5%AF%BC%E5%87%BA%E5%AD%97%E4%BD%93%E6%96%87%E4%BB%B6%E6%96%87%E6%9C%AC%E4%B8%BAPNG/" class="post-title-link" itemprop="url">导出字体文件文本为PNG</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2018-01-17 16:19:04" itemprop="dateCreated datePublished" datetime="2018-01-17T16:19:04+08:00">2018-01-17</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-22 10:15:32" itemprop="dateModified" datetime="2021-04-22T10:15:32+08:00">2021-04-22</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>有时候我们需要从字体文件中直接提取文字并导出成PNG格式</p>
-<p>经过Google后找到可以用 ImageMagick 来搞</p>
-<p>以下方式都在 Mac 下测试通过，Windows也可以，但安装方式稍有不同</p>
-<hr>
-<h2 id="下载-MacPorts"><a href="#下载-MacPorts" class="headerlink" title="下载 MacPorts"></a>下载 MacPorts</h2><p>应该是和 homebrew 类似的一个安装工具</p>
-<p>安好后经可以使用命令行来获取 ImageMagick</p>
-<p><a target="_blank" rel="noopener" href="https://www.macports.org/install.php">点我去下载</a></p>
-<p>注意看自己的 macOS 版本</p>
-<h2 id="安装-ImageMagick"><a href="#安装-ImageMagick" class="headerlink" title="安装 ImageMagick"></a>安装 ImageMagick</h2><p>安好 MacPorts 后</p>
-<p>命令行获取即可</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo port install ImageMagick</span><br></pre></td></tr></table></figure>
-
-<p>也可以用源码直接安装，参考 <a target="_blank" rel="noopener" href="http://www.imagemagick.org/script/download.php">这里</a></p>
-<h2 id="基本用法"><a href="#基本用法" class="headerlink" title="基本用法"></a>基本用法</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">convert -background none -fill black -font 方正像素12.TTF -pointsize 300 label:<span class="string">&quot;主&quot;</span> 主.png</span><br></pre></td></tr></table></figure>
-
-<hr>
-<p>详情参考</p>
-<p><a target="_blank" rel="noopener" href="http://www.imagemagick.org/script/download.php">这里</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1205,14 +1201,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">33</span>
+          <span class="site-state-item-count">34</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">34</span>
+        <span class="site-state-item-count">35</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1248,7 +1244,7 @@
 <div class="copyright">
   
   &copy; 
-  <span itemprop="copyrightYear">2021</span>
+  <span itemprop="copyrightYear">2022</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
