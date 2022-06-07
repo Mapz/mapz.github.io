@@ -235,81 +235,6 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2022/06/07/UE4%EF%BC%9AReplicationGraph%E7%BD%91%E6%A0%BC%E5%90%8C%E6%AD%A5%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/UE5%EF%BC%9AGauntlet%E8%84%9A%E6%9C%AC%E9%A1%B9%E7%9B%AE%E5%8D%87%E7%BA%A7%E5%88%B0UE5/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/link-300x300.gif">
-      <meta itemprop="name" content="Mapz">
-      <meta itemprop="description" content="FIND THE CHILD">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Mapz's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/06/07/UE4%EF%BC%9AReplicationGraph%E7%BD%91%E6%A0%BC%E5%90%8C%E6%AD%A5%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/UE5%EF%BC%9AGauntlet%E8%84%9A%E6%9C%AC%E9%A1%B9%E7%9B%AE%E5%8D%87%E7%BA%A7%E5%88%B0UE5/" class="post-title-link" itemprop="url">UE5：Gauntlet脚本项目升级到UE5</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2022-06-07 17:18:48 / 修改时间：17:51:19" itemprop="dateCreated datePublished" datetime="2022-06-07T17:18:48+08:00">2022-06-07</time>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h2><p>UE4 更新到 UE5 后， UAT 的工具链依赖从 .NetFramework 更新到了 .NetCore</p>
-<p>所以在 UE4 工程里面使用的 Gauntlet 脚本的 csproject 项目文件也需要更新到 .NetCore 的项目文件</p>
-<p>否则在编译的时候会报错</p>
-<h2 id="迁移工具"><a href="#迁移工具" class="headerlink" title="迁移工具"></a>迁移工具</h2><p>使用  <a href="%5Bhttps://github.com/dotnet/try-convert%5D(https://github.com/dotnet/try-convert)">try-convert</a> 工具，可以尝试将 .NetFramework 项目文件转换到 .NetCore 风格的 .csproject</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dotnet tool install -g try-convert</span><br></pre></td></tr></table></figure>
-
-<p>然后在包含 .csproject 的目录下执行</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">try-convert</span><br></pre></td></tr></table></figure>
-
-<p>执行之后可能会让你选择 .NetCore 的版本</p>
-<p>按下数字键回车即可</p>
-<p>转换完成后，老文件会备份</p>
-<h2 id="除错"><a href="#除错" class="headerlink" title="除错"></a>除错</h2><p>自动转换的项目文件 TargetFramework 字段和 UE5 不匹配</p>
-<p>手动修改为</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">TargetFramework</span>&gt;</span>netcoreapp3.1 <span class="tag">&lt;/<span class="name">TargetFramework</span>&gt;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>即可</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2022/06/02/UE5%EF%BC%9A%E8%A7%A3%E5%86%B3ReplicationGraph%E5%AF%BC%E8%87%B4%E7%9A%84%E6%A8%A1%E6%8B%9F%E7%AB%AF%E7%A7%BB%E5%8A%A8%E4%B8%8D%E8%BF%9E%E7%BB%AD%E9%97%AE%E9%A2%98/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1252,6 +1177,117 @@
   
   
 
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2021/05/19/UE4%E5%AD%A6%E4%B9%A0%EF%BC%9AFPredictionKey/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="FIND THE CHILD">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/05/19/UE4%E5%AD%A6%E4%B9%A0%EF%BC%9AFPredictionKey/" class="post-title-link" itemprop="url">UE4学习：FPredictionKey</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-19 14:38:44" itemprop="dateCreated datePublished" datetime="2021-05-19T14:38:44+08:00">2021-05-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-28 11:45:42" itemprop="dateModified" datetime="2021-06-28T11:45:42+08:00">2021-06-28</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="FPredictionKey-的基本信息"><a href="#FPredictionKey-的基本信息" class="headerlink" title="FPredictionKey 的基本信息"></a>FPredictionKey 的基本信息</h2><p>FPredictionKey 是 UE4 在 Gameplay Ability System 插件中提供的一个结构体</p>
+<p>编写目的是为了在 GAS 系统中实现客户端预测从而不用等待服务器返回提前就提前做一些操作</p>
+<p>达到提高游戏流畅性的目的</p>
+<p>服务器返回通过或者拒绝后，客户端可以相应的 Confirm 或者在 Reject 后回滚此次操作所做的修改</p>
+<p>除了在 GAS 本身中</p>
+<p>你也可以在其他需要客户端预测的地方使用</p>
+<p>例如动画的预测</p>
+<p>但是需要依赖 GAS 中的 UAbilitySystemComponent</p>
+<ul>
+<li>一个 Predication Key 可以看做是一个行为在服务器和客户端的唯一标识</li>
+<li>Predication Key 的 ID 是全局唯一的，参考：</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FPredictionKey::GenerateNewPredictionKey</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// GKey 作为静态局部变量，其值为全局唯一，每次都 ++ </span></span><br><span class="line">    <span class="keyword">static</span> KeyType GKey = <span class="number">1</span>;</span><br><span class="line">    Current = GKey++;</span><br><span class="line">    <span class="keyword">if</span> (GKey &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        GKey = <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    bIsStale = <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>在服务器上创建的 PK 则只作为一个行为的标识，不作为客户端预测用</p>
+</li>
+<li><p>PK 可以通过 void FPredictionKey::GenerateDependentPredictionKey() 创建依赖上一个 PK 的 PK ，但是不能在服务器执行，因为没有意义（无需预测就无需确认和回滚）</p>
+</li>
+<li><p>PK 可以通过 bIsStale 设置为是否可以在一次确认或拒绝后继续使用</p>
+</li>
+<li><p>PK 可以通过 NewRejectedDelegate 和 NewCaughtUpDelegate 来创建确认或者拒绝的回调，即是服务器同意或者拒绝客户端预测的时候所调用的回调</p>
+</li>
+<li><p>PK 的网络序列化是自定义的</p>
+<ul>
+<li>第一位是 PK 是否在当前 Connection 可用，在序列化的时候设置，如果是服务器创建的，则都可用，否则只有 PK 的连接信息和当前连接一致的时候可用<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ValidKeyForConnection = (PredictiveConnection == <span class="literal">nullptr</span> || (Map == PredictiveConnection) || bIsServerInitiated) &amp;&amp; (Current &gt; <span class="number">0</span>);</span><br></pre></td></tr></table></figure></li>
+<li>第二位是是否有依赖的 PK （仅当当前 Connection 可用的时候可用）</li>
+<li>第三位是是否为服务器创建</li>
+<li>如果是可用连接，则写入当前的 PK ID</li>
+<li>如果有依赖的 PK 则写入依赖 PK ID</li>
+<li>如果是服务器创建的 PK 则设置当前 PK 的 Connection 为当前 Connection</li>
+</ul>
+</li>
+</ul>
+<h2 id="从-Activate-Ability-来看-PredicationKey-的使用"><a href="#从-Activate-Ability-来看-PredicationKey-的使用" class="headerlink" title="从 Activate Ability 来看 PredicationKey 的使用"></a>从 Activate Ability 来看 PredicationKey 的使用</h2><p>我们从 UAbilitySystemCompoment::TryActivateAbility 看起，这里仅讨论一种情况，就是客户端发起激活，服务器检查并确认的方式，略过其他方式的流程</p>
+<ol>
+<li>先判断技能是否可以被释放（是否已经被 Give To Actor）</li>
+<li>判断技能释放的 Actor 是否合法</li>
+<li>模拟端不可以释放技能，return</li>
+<li>检查技能是否是客户端远程释放的，并检查是否可以远程释放，如果可以释放则 创建新的 PK 并调用 CallServerTryActivateAbility 准备执行服务器 RPC ServerTryActivateAbility</li>
+<li>CallServerTryActivateAbility 中检查是否存在合批的 RPC 数据，如果合批的 RPC 数据未开始，则更新 PK 并开始，否则直接调用 服务器 RPC ServerTryActivateAbility ，并传入创建的 PK</li>
+<li>Server 调用 InternalServerTryActivateAbility<br> a. Activate 失败的时候，调用客户端 RPC ，通知此 PK 调用失败，客户端调用此 PK 的拒绝委托，从而达到回滚等目的，并且执行 EndAbility<br> b. Activate 成功的时候，调用客户端 RPC ClientActivateAbilitySucceed 通知客户端激活 Ability 成功<br> c. 客户端和服务器在成功的时候，都会调用 CallActivateAbility 来启动 Activate Ability</li>
+</ol>
+<p>这个里面，一个 PredicationKey  通过 RPC 在客户端和服务器之间传递并储存，并且通过 RPC 通知执行成功或者失败，在成功和失败的时候，执行通过 PK 对应起来的成功和失败的委托</p>
+<p>Activate Ability 并没有直接用到回滚相关的内容，因为这里没有在客户端 Try Activate Ability 后做其他操作，而是等待服务器返回 Confirm 或者 Reject</p>
+<p>我们在释放技能后，也可以会做过一些附加操作，这些操作可以在 Reject 委托中绑定自己的回滚操作</p>
+<p>写其他一些功能的时候，也可以直接在客户端发送 RPC 后，直接开始处理自己的操作，等待服务器 Reject 后，用挂在 Reject 的委托上，用于回滚客户端操作，例如停止播放动画</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
 
   
   <nav class="pagination">
@@ -1323,7 +1359,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-count">35</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
