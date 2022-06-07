@@ -160,6 +160,91 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2021/05/17/UE4%EF%BC%9A%E6%B8%B8%E6%88%8F%E5%85%B3%E9%97%AD%E6%B5%81%E7%A8%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="FIND THE CHILD">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/05/17/UE4%EF%BC%9A%E6%B8%B8%E6%88%8F%E5%85%B3%E9%97%AD%E6%B5%81%E7%A8%8B/" class="post-title-link" itemprop="url">UE4：游戏关闭流程</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-17 16:00:58" itemprop="dateCreated datePublished" datetime="2021-05-17T16:00:58+08:00">2021-05-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-25 11:15:51" itemprop="dateModified" datetime="2021-05-25T11:15:51+08:00">2021-05-25</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>有时候我们需要在 UE4 关闭游戏的时候，处理一些事情，那么可以重写 UGameInstance::ShutDown()</p>
+<p>但是有时候在游戏关闭的时候，这个函数并未调用，于是我有必要探究一番他的调用链</p>
+<p>这里仅讨论 Engine 而不讨论 EditorEngine</p>
+<p>调用栈</p>
+<ul>
+<li>UGameInstance::ShutDown()</li>
+<li>UGameEngine::PreExit()</li>
+<li>FEngineLoop::Exit()</li>
+<li>调用 EngineExit 或者平台调用退出</li>
+<li>EngineExit 被放在了 GuardedMain 函数中定义的一个结构体中</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">   <span class="comment">// make sure GEngineLoop::Exit() is always called.</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">EngineLoopCleanupGuard</span> </span></span><br><span class="line"><span class="class">&#123;</span> </span><br><span class="line">	~<span class="built_in">EngineLoopCleanupGuard</span>()</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">EngineExit</span>();</span><br><span class="line">	&#125;</span><br><span class="line">&#125; CleanupGuard;</span><br></pre></td></tr></table></figure>
+
+<p>也就是说游戏 Main 函数结束执行的时候，一定会执行 ShutDown</p>
+<p>那么为什么我测试的时候日志中没有出现 ShutDown 相关内容呢</p>
+<p>检查发现我们调用关闭游戏的时候用的是</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">FPlatformMisc::<span class="built_in">RequestExit</span>(<span class="literal">true</span>);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FWindowsPlatformMisc::RequestExit</span><span class="params">( <span class="keyword">bool</span> Force )</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">UE_LOG</span>(LogWindows, Log,  <span class="built_in">TEXT</span>(<span class="string">&quot;FPlatformMisc::RequestExit(%i)&quot;</span>), Force );</span><br><span class="line"></span><br><span class="line">	<span class="built_in">RequestEngineExit</span>(<span class="built_in">TEXT</span>(<span class="string">&quot;Win RequestExit&quot;</span>));</span><br><span class="line">	FCoreDelegates::ApplicationWillTerminateDelegate.<span class="built_in">Broadcast</span>();</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span>( Force )</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">// Force immediate exit. In case of an error set the exit code to 3.</span></span><br><span class="line">		<span class="comment">// Dangerous because config code isn&#x27;t flushed, global destructors aren&#x27;t called, etc.</span></span><br><span class="line">		<span class="comment">// Suppress abort message and MS reports.</span></span><br><span class="line">		<span class="comment">//_set_abort_behavior( 0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT );</span></span><br><span class="line">		<span class="comment">//abort();</span></span><br><span class="line">	</span><br><span class="line">		<span class="comment">// Make sure the log is flushed.</span></span><br><span class="line">		<span class="keyword">if</span>( GLog )</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="comment">// This may be called from other thread, so set this thread as the master.</span></span><br><span class="line">			GLog-&gt;<span class="built_in">SetCurrentThreadAsMasterThread</span>();</span><br><span class="line">			GLog-&gt;<span class="built_in">TearDown</span>();</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="built_in">TerminateProcess</span>(<span class="built_in">GetCurrentProcess</span>(), GIsCriticalError ? <span class="number">3</span> : <span class="number">0</span>); </span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">// Tell the platform specific code we want to exit cleanly from the main loop.</span></span><br><span class="line">		<span class="built_in">PostQuitMessage</span>( <span class="number">0</span> );</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可见传入 true 为参数的时候，直接把进程杀了，导致未执行 UGameInstance::ShutDown()</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2019/01/17/Unity%E5%AD%A6%E4%B9%A0%EF%BC%9A%E5%83%8F%E7%B4%A0FC%E8%BF%98%E5%8E%9F%E6%B8%B8%E6%88%8FSuperSimon%EF%BC%88%E4%B8%80%EF%BC%89%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1052,84 +1137,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2018/01/31/%E4%BD%BF%E7%94%A8Node%E6%90%AD%E5%BB%BA%E9%9D%99%E6%80%81%E6%96%87%E4%BB%B6%E6%9C%8D%E5%8A%A1%E5%99%A8/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/link-300x300.gif">
-      <meta itemprop="name" content="Mapz">
-      <meta itemprop="description" content="FIND THE CHILD">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Mapz's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/01/31/%E4%BD%BF%E7%94%A8Node%E6%90%AD%E5%BB%BA%E9%9D%99%E6%80%81%E6%96%87%E4%BB%B6%E6%9C%8D%E5%8A%A1%E5%99%A8/" class="post-title-link" itemprop="url">使用Node搭建静态文件服务器</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2018-01-31 12:22:55" itemprop="dateCreated datePublished" datetime="2018-01-31T12:22:55+08:00">2018-01-31</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-22 10:15:32" itemprop="dateModified" datetime="2021-04-22T10:15:32+08:00">2021-04-22</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>Mac 更新系统后原来机器上的 apache 配置丢失，我又不想去重新配置 apache 的虚拟目录和虚拟服务器</p>
-<p>对付下测试环境的文件资源服务器，用 Node 还是挺方便的，那么步骤如下</p>
-<hr>
-<p><strong>需求 : Node 环境已经装好</strong></p>
-<p>作为一个资深API调试员，使用开源库</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/cloudhead/node-static">https://github.com/cloudhead/node-static</a></p>
-<p>使用命令行安装之</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install -g node-static</span><br></pre></td></tr></table></figure>
-
-<p>然后编写 Node 脚本</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> port = <span class="number">8080</span>;</span><br><span class="line"><span class="keyword">var</span> doc_root = <span class="string">&quot;/server_root&quot;</span> <span class="comment">//文件服根目录</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> <span class="keyword">static</span> = <span class="built_in">require</span>(<span class="string">&#x27;node-static&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> fileServer = <span class="keyword">new</span> <span class="keyword">static</span>.Server(doc_root);</span><br><span class="line"></span><br><span class="line"><span class="built_in">require</span>(<span class="string">&#x27;http&#x27;</span>).createServer(<span class="function"><span class="keyword">function</span>(<span class="params">request, response</span>) </span>&#123;</span><br><span class="line">    request.addListener(<span class="string">&#x27;end&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        fileServer.serve(request, response);</span><br><span class="line">    &#125;).resume();</span><br><span class="line">&#125;).listen(<span class="number">8080</span>);</span><br></pre></td></tr></table></figure>
-
-
-<p>启动 Node 脚本</p>
-<h1 id="完成"><a href="#完成" class="headerlink" title="完成"></a>完成</h1>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1201,7 +1208,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">34</span>
+          <span class="site-state-item-count">35</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
