@@ -21,15 +21,15 @@
     var CONFIG = {"hostname":"mapz.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="FIND THE CHILD">
+  <meta name="description" content="原因UE4 更新到 UE5 后， UAT 的工具链依赖从 .NetFramework 更新到了 .NetCore 所以在 UE4 工程里面使用的 Gauntlet 脚本的 csproject 项目文件也需要更新到 .NetCore 的项目文件 否则在编译的时候会报错 迁移工具使用  try-convert 工具，可以尝试将 .NetFramework 项目文件转换到 .NetCore 风格的 .c">
 <meta property="og:type" content="article">
 <meta property="og:title" content="UE5：Gauntlet脚本项目升级到UE5">
 <meta property="og:url" content="http://mapz.github.io/2022/06/07/UE5%EF%BC%9AGauntlet%E8%84%9A%E6%9C%AC%E9%A1%B9%E7%9B%AE%E5%8D%87%E7%BA%A7%E5%88%B0UE5/index.html">
 <meta property="og:site_name" content="Mapz&#39;s Blog">
-<meta property="og:description" content="FIND THE CHILD">
+<meta property="og:description" content="原因UE4 更新到 UE5 后， UAT 的工具链依赖从 .NetFramework 更新到了 .NetCore 所以在 UE4 工程里面使用的 Gauntlet 脚本的 csproject 项目文件也需要更新到 .NetCore 的项目文件 否则在编译的时候会报错 迁移工具使用  try-convert 工具，可以尝试将 .NetFramework 项目文件转换到 .NetCore 风格的 .c">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-06-07T09:18:48.000Z">
-<meta property="article:modified_time" content="2022-06-07T09:20:22.170Z">
+<meta property="article:modified_time" content="2022-06-07T09:51:19.627Z">
 <meta property="article:author" content="Mapz">
 <meta property="article:tag" content="Network">
 <meta property="article:tag" content="ReplicationGraph">
@@ -189,7 +189,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2022-06-07 17:18:48 / 修改时间：17:20:22" itemprop="dateCreated datePublished" datetime="2022-06-07T17:18:48+08:00">2022-06-07</time>
+              <time title="创建时间：2022-06-07 17:18:48 / 修改时间：17:51:19" itemprop="dateCreated datePublished" datetime="2022-06-07T17:18:48+08:00">2022-06-07</time>
             </span>
 
           
@@ -210,7 +210,24 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        
+        <h2 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h2><p>UE4 更新到 UE5 后， UAT 的工具链依赖从 .NetFramework 更新到了 .NetCore</p>
+<p>所以在 UE4 工程里面使用的 Gauntlet 脚本的 csproject 项目文件也需要更新到 .NetCore 的项目文件</p>
+<p>否则在编译的时候会报错</p>
+<h2 id="迁移工具"><a href="#迁移工具" class="headerlink" title="迁移工具"></a>迁移工具</h2><p>使用  <a href="%5Bhttps://github.com/dotnet/try-convert%5D(https://github.com/dotnet/try-convert)">try-convert</a> 工具，可以尝试将 .NetFramework 项目文件转换到 .NetCore 风格的 .csproject</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dotnet tool install -g try-convert</span><br></pre></td></tr></table></figure>
+
+<p>然后在包含 .csproject 的目录下执行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">try-convert</span><br></pre></td></tr></table></figure>
+
+<p>执行之后可能会让你选择 .NetCore 的版本</p>
+<p>按下数字键回车即可</p>
+<p>转换完成后，老文件会备份</p>
+<h2 id="除错"><a href="#除错" class="headerlink" title="除错"></a>除错</h2><p>自动转换的项目文件 TargetFramework 字段和 UE5 不匹配</p>
+<p>手动修改为</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">TargetFramework</span>&gt;</span>netcoreapp3.1 <span class="tag">&lt;/<span class="name">TargetFramework</span>&gt;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>即可</p>
+
     </div>
 
     
@@ -292,6 +309,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E5%9B%A0"><span class="nav-number">1.</span> <span class="nav-text">原因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%81%E7%A7%BB%E5%B7%A5%E5%85%B7"><span class="nav-number">2.</span> <span class="nav-text">迁移工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%99%A4%E9%94%99"><span class="nav-number">3.</span> <span class="nav-text">除错</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
