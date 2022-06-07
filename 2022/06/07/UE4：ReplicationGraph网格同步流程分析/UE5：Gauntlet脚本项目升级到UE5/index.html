@@ -21,18 +21,22 @@
     var CONFIG = {"hostname":"mapz.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="FIND THE CHILD">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Mapz&#39;s Blog">
-<meta property="og:url" content="http://mapz.github.io/archives/2017/04/index.html">
+  <meta name="description" content="原因UE4 更新到 UE5 后， UAT 的工具链依赖从 .NetFramework 更新到了 .NetCore 所以在 UE4 工程里面使用的 Gauntlet 脚本的 csproject 项目文件也需要更新到 .NetCore 的项目文件 否则在编译的时候会报错 迁移工具使用  try-convert 工具，可以尝试将 .NetFramework 项目文件转换到 .NetCore 风格的 .c">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UE5：Gauntlet脚本项目升级到UE5">
+<meta property="og:url" content="http://mapz.github.io/2022/06/07/UE4%EF%BC%9AReplicationGraph%E7%BD%91%E6%A0%BC%E5%90%8C%E6%AD%A5%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/UE5%EF%BC%9AGauntlet%E8%84%9A%E6%9C%AC%E9%A1%B9%E7%9B%AE%E5%8D%87%E7%BA%A7%E5%88%B0UE5/index.html">
 <meta property="og:site_name" content="Mapz&#39;s Blog">
-<meta property="og:description" content="FIND THE CHILD">
+<meta property="og:description" content="原因UE4 更新到 UE5 后， UAT 的工具链依赖从 .NetFramework 更新到了 .NetCore 所以在 UE4 工程里面使用的 Gauntlet 脚本的 csproject 项目文件也需要更新到 .NetCore 的项目文件 否则在编译的时候会报错 迁移工具使用  try-convert 工具，可以尝试将 .NetFramework 项目文件转换到 .NetCore 风格的 .c">
 <meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-06-07T09:18:48.000Z">
+<meta property="article:modified_time" content="2022-06-07T09:51:19.627Z">
 <meta property="article:author" content="Mapz">
-<meta property="article:tag" content="游戏开发,UE4">
+<meta property="article:tag" content="Network">
+<meta property="article:tag" content="ReplicationGraph">
+<meta property="article:tag" content="UE5">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://mapz.github.io/archives/2017/04/">
+<link rel="canonical" href="http://mapz.github.io/2022/06/07/UE4%EF%BC%9AReplicationGraph%E7%BD%91%E6%A0%BC%E5%90%8C%E6%AD%A5%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/UE5%EF%BC%9AGauntlet%E8%84%9A%E6%9C%AC%E9%A1%B9%E7%9B%AE%E5%8D%87%E7%BA%A7%E5%88%B0UE5/">
 
 
 <script id="page-configurations">
@@ -40,12 +44,12 @@
   CONFIG.page = {
     sidebar: "",
     isHome : false,
-    isPost : false,
+    isPost : true,
     lang   : 'zh-CN'
   };
 </script>
 
-  <title>归档 | Mapz's Blog</title>
+  <title>UE5：Gauntlet脚本项目升级到UE5 | Mapz's Blog</title>
   
 
 
@@ -154,151 +158,108 @@
         <div class="content-wrap">
           
 
-          <div class="content archive">
+          <div class="content post posts-expand">
             
 
+    
   
   
-  
-  <div class="post-block">
-    <div class="posts-collapse">
-      <div class="collection-title">
-        
-        <span class="collection-header">还行! 目前共计 36 篇日志。 继续努力。</span>
-      </div>
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2022/06/07/UE4%EF%BC%9AReplicationGraph%E7%BD%91%E6%A0%BC%E5%90%8C%E6%AD%A5%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/UE5%EF%BC%9AGauntlet%E8%84%9A%E6%9C%AC%E9%A1%B9%E7%9B%AE%E5%8D%87%E7%BA%A7%E5%88%B0UE5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="FIND THE CHILD">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          UE5：Gauntlet脚本项目升级到UE5
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-06-07 17:18:48 / 修改时间：17:51:19" itemprop="dateCreated datePublished" datetime="2022-06-07T17:18:48+08:00">2022-06-07</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
 
       
-    <div class="collection-year">
-      <span class="collection-header">2017</span>
-    </div>
+        <h2 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h2><p>UE4 更新到 UE5 后， UAT 的工具链依赖从 .NetFramework 更新到了 .NetCore</p>
+<p>所以在 UE4 工程里面使用的 Gauntlet 脚本的 csproject 项目文件也需要更新到 .NetCore 的项目文件</p>
+<p>否则在编译的时候会报错</p>
+<h2 id="迁移工具"><a href="#迁移工具" class="headerlink" title="迁移工具"></a>迁移工具</h2><p>使用  <a href="%5Bhttps://github.com/dotnet/try-convert%5D(https://github.com/dotnet/try-convert)">try-convert</a> 工具，可以尝试将 .NetFramework 项目文件转换到 .NetCore 风格的 .csproject</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dotnet tool install -g try-convert</span><br></pre></td></tr></table></figure>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+<p>然后在包含 .csproject 的目录下执行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">try-convert</span><br></pre></td></tr></table></figure>
 
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2017-04-28T17:59:17+08:00"
-              content="2017-04-28">
-          04-28
-        </time>
-      </div>
+<p>执行之后可能会让你选择 .NetCore 的版本</p>
+<p>按下数字键回车即可</p>
+<p>转换完成后，老文件会备份</p>
+<h2 id="除错"><a href="#除错" class="headerlink" title="除错"></a>除错</h2><p>自动转换的项目文件 TargetFramework 字段和 UE5 不匹配</p>
+<p>手动修改为</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">TargetFramework</span>&gt;</span>netcoreapp3.1 <span class="tag">&lt;/<span class="name">TargetFramework</span>&gt;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-      <div class="post-title">
-          <a class="post-title-link" href="/2017/04/28/%E7%94%A8Git%E5%81%9A%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6%E6%97%B6%E5%BF%BD%E7%95%A5JetBrain%E7%B3%BB%E5%88%97IDE%E7%9A%84%E5%B7%A5%E7%A8%8B%E4%BF%A1%E6%81%AF/" itemprop="url">
-            <span itemprop="name">用Git做版本控制时忽略JetBrain系列IDE的工程信息</span>
-          </a>
-      </div>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2017-04-24T17:53:37+08:00"
-              content="2017-04-24">
-          04-24
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2017/04/24/Mac-%E5%90%AF%E7%94%A8ftp/" itemprop="url">
-            <span itemprop="name">Mac 启用ftp</span>
-          </a>
-      </div>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2017-04-24T16:59:17+08:00"
-              content="2017-04-24">
-          04-24
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2017/04/24/%E4%B8%BAWordPress%E5%A2%9E%E5%8A%A0markDown%E7%BC%96%E8%BE%91%E5%8A%9F%E8%83%BD/" itemprop="url">
-            <span itemprop="name">为WordPress增加markDown支持</span>
-          </a>
-      </div>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2017-04-21T18:08:25+08:00"
-              content="2017-04-21">
-          04-21
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2017/04/21/%E5%9C%A8Mac%E4%B8%8A%E5%AE%89%E8%A3%85wordpress/" itemprop="url">
-            <span itemprop="name">在Mac上安装wordpress</span>
-          </a>
-      </div>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2017-04-21T15:35:28+08:00"
-              content="2017-04-21">
-          04-21
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2017/04/21/Hexo-NexT-%E4%B8%BB%E9%A2%98%E5%A2%9E%E5%8A%A0%E9%98%85%E8%AF%BB%E8%AE%A1%E6%95%B0/" itemprop="url">
-            <span itemprop="name">Hexo NexT 主题增加阅读计数</span>
-          </a>
-      </div>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2017-04-21T15:00:31+08:00"
-              content="2017-04-21">
-          04-21
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2017/04/21/Hexo%E6%96%B0%E5%BB%BA%E6%96%87%E4%BB%B6%E8%87%AA%E5%8A%A8%E6%89%93%E5%BC%80%E7%BC%96%E8%BE%91%E5%99%A8/" itemprop="url">
-            <span itemprop="name">Hexo新建文件自动打开编辑器</span>
-          </a>
-      </div>
-
-    </header>
-  </article>
-
+<p>即可</p>
 
     </div>
-  </div>
-  
-  
-  
 
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Network/" rel="tag"># Network</a>
+              <a href="/tags/ReplicationGraph/" rel="tag"># ReplicationGraph</a>
+              <a href="/tags/UE5/" rel="tag"># UE5</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/06/02/UE5%EF%BC%9A%E8%A7%A3%E5%86%B3ReplicationGraph%E5%AF%BC%E8%87%B4%E7%9A%84%E6%A8%A1%E6%8B%9F%E7%AB%AF%E7%A7%BB%E5%8A%A8%E4%B8%8D%E8%BF%9E%E7%BB%AD%E9%97%AE%E9%A2%98/" rel="prev" title="UE5：解决ReplicationGraph导致的模拟端移动不连续问题">
+      <i class="fa fa-chevron-left"></i> UE5：解决ReplicationGraph导致的模拟端移动不连续问题
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/06/07/UE5%EF%BC%9AGauntlet%E8%84%9A%E6%9C%AC%E9%A1%B9%E7%9B%AE%E5%8D%87%E7%BA%A7%E5%88%B0UE5/" rel="next" title="UE5：Gauntlet脚本项目升级到UE5">
+      UE5：Gauntlet脚本项目升级到UE5 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
   
 
 
@@ -351,6 +312,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E5%9B%A0"><span class="nav-number">1.</span> <span class="nav-text">原因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%81%E7%A7%BB%E5%B7%A5%E5%85%B7"><span class="nav-number">2.</span> <span class="nav-text">迁移工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%99%A4%E9%94%99"><span class="nav-number">3.</span> <span class="nav-text">除错</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
