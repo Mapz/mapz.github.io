@@ -21,18 +21,21 @@
     var CONFIG = {"hostname":"mapz.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="FIND THE CHILD">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Mapz&#39;s Blog">
-<meta property="og:url" content="http://mapz.github.io/tags/UnrealTournament/index.html">
+  <meta name="description" content="学习 UAT 的时候，自己运行 RunUAT ，并且单步调试跟着走一遍，是一种比较快捷的方法 还可以发现很多以前不知道的参数和设置 那么如何调试单步 UAT 呢 首先在 UAT 脚本加上参数 -WaitForDebugger 再运行的时候，命令行就会显示 1Waiting for debugger to be attached...  这时，打开 IDE 和工程，并且 Debug -&gt; At">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UE5：调试UAT">
+<meta property="og:url" content="http://mapz.github.io/2022/06/09/UE5%EF%BC%9A%E8%B0%83%E8%AF%95UAT/index.html">
 <meta property="og:site_name" content="Mapz&#39;s Blog">
-<meta property="og:description" content="FIND THE CHILD">
+<meta property="og:description" content="学习 UAT 的时候，自己运行 RunUAT ，并且单步调试跟着走一遍，是一种比较快捷的方法 还可以发现很多以前不知道的参数和设置 那么如何调试单步 UAT 呢 首先在 UAT 脚本加上参数 -WaitForDebugger 再运行的时候，命令行就会显示 1Waiting for debugger to be attached...  这时，打开 IDE 和工程，并且 Debug -&gt; At">
 <meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-06-09T08:42:26.000Z">
+<meta property="article:modified_time" content="2022-06-09T08:48:17.182Z">
 <meta property="article:author" content="Mapz">
-<meta property="article:tag" content="游戏开发,UE4">
+<meta property="article:tag" content="UE5">
+<meta property="article:tag" content="UAT">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://mapz.github.io/tags/UnrealTournament/">
+<link rel="canonical" href="http://mapz.github.io/2022/06/09/UE5%EF%BC%9A%E8%B0%83%E8%AF%95UAT/">
 
 
 <script id="page-configurations">
@@ -40,12 +43,12 @@
   CONFIG.page = {
     sidebar: "",
     isHome : false,
-    isPost : false,
+    isPost : true,
     lang   : 'zh-CN'
   };
 </script>
 
-  <title>标签: UnrealTournament | Mapz's Blog</title>
+  <title>UE5：调试UAT | Mapz's Blog</title>
   
 
 
@@ -154,51 +157,95 @@
         <div class="content-wrap">
           
 
-          <div class="content tag">
+          <div class="content post posts-expand">
             
 
+    
   
   
-  
-  <div class="post-block">
-    <div class="posts-collapse">
-      <div class="collection-title">
-        <h2 class="collection-header">UnrealTournament
-          <small>标签</small>
-        </h2>
-      </div>
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2022/06/09/UE5%EF%BC%9A%E8%B0%83%E8%AF%95UAT/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="FIND THE CHILD">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          UE5：调试UAT
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-06-09 16:42:26 / 修改时间：16:48:17" itemprop="dateCreated datePublished" datetime="2022-06-09T16:42:26+08:00">2022-06-09</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
 
       
-    <div class="collection-year">
-      <span class="collection-header">2021</span>
+        <p>学习 UAT 的时候，自己运行 RunUAT ，并且单步调试跟着走一遍，是一种比较快捷的方法</p>
+<p>还可以发现很多以前不知道的参数和设置</p>
+<p>那么如何调试单步 UAT 呢</p>
+<p>首先在 UAT 脚本加上参数 -WaitForDebugger</p>
+<p>再运行的时候，命令行就会显示</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Waiting <span class="keyword">for</span> debugger to be attached...</span><br></pre></td></tr></table></figure>
+
+<p>这时，打开 IDE 和工程，并且 Debug -&gt; Attach 到名称为 AutomationTool 的进程，就可以了</p>
+
     </div>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+    
+    
+    
 
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2021-06-16T11:20:12+08:00"
-              content="2021-06-16">
-          06-16
-        </time>
-      </div>
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/UE5/" rel="tag"># UE5</a>
+              <a href="/tags/UAT/" rel="tag"># UAT</a>
+          </div>
 
-      <div class="post-title">
-          <a class="post-title-link" href="/2021/06/16/UE4%EF%BC%9A%E8%99%9A%E5%B9%BB%E7%AB%9E%E6%8A%80%E5%9C%BA%E7%9A%84%E5%BB%B6%E8%BF%9F%E8%A1%A5%E5%81%BF%E6%9C%BA%E5%88%B6/" itemprop="url">
-            <span itemprop="name">UE4：虚幻竞技场的延迟补偿机制</span>
-          </a>
-      </div>
+        
 
-    </header>
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/06/07/UE5%EF%BC%9AGauntlet%E8%84%9A%E6%9C%AC%E9%A1%B9%E7%9B%AE%E5%8D%87%E7%BA%A7%E5%88%B0UE5/" rel="prev" title="UE5：Gauntlet脚本项目升级到UE5">
+      <i class="fa fa-chevron-left"></i> UE5：Gauntlet脚本项目升级到UE5
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
   </article>
-
-    </div>
-  </div>
   
   
-  
-
   
 
 
