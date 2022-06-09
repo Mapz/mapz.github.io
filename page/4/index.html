@@ -160,6 +160,93 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2017/05/01/%E5%9C%A8Mac%E4%B8%8A%E7%BB%84%E5%90%88%E4%BD%BF%E7%94%A8Scrapy%E5%92%8CphantomJs/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="FIND THE CHILD">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/05/01/%E5%9C%A8Mac%E4%B8%8A%E7%BB%84%E5%90%88%E4%BD%BF%E7%94%A8Scrapy%E5%92%8CphantomJs/" class="post-title-link" itemprop="url">在Mac上组合使用Scrapy和phantomJs</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-05-01 22:45:01" itemprop="dateCreated datePublished" datetime="2017-05-01T22:45:01+08:00">2017-05-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-22 10:15:32" itemprop="dateModified" datetime="2021-04-22T10:15:32+08:00">2021-04-22</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>我们做爬虫的的时候，经常会遇到页面中的部分是由js生成并渲染的情况，这时爬虫爬到的页面还并非呈现在用户面前的页面，要得到需要的内容，可以用大招…还是用浏览器核心来渲染一遍</p>
+<p>我准备尝试用PhantomJs–基于Webkit的服务端JS API（说大白话点，就是个隐形的浏览器，并且这货还提供了文件处理的IO操作）用来帮我们处理爬虫爬到的页面的渲染工作。</p>
+<hr>
+<h2 id="安装PhantomJS"><a href="#安装PhantomJS" class="headerlink" title="安装PhantomJS"></a>安装PhantomJS</h2><p><a target="_blank" rel="noopener" href="https://npm.taobao.org/dist/phantomjs">下载地址</a><br>这个是已经编译好的</p>
+<p>不要用npm装，不然会不能正常运行</p>
+<p>下载后解压后把目录下的bin路径加入PATH中就可以了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">phantomjs --version</span><br></pre></td></tr></table></figure>
+
+<p>如果不报错，则已经安装好了</p>
+<hr>
+<h2 id="番外：想要安装HomeBrew"><a href="#番外：想要安装HomeBrew" class="headerlink" title="番外：想要安装HomeBrew"></a>番外：想要安装HomeBrew</h2><p>那就这么安吧</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ruby -e <span class="string">&quot;<span class="subst">$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)</span>&quot;</span> &lt; /dev/null 2&gt; /dev/null</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="Scrapy安装"><a href="#Scrapy安装" class="headerlink" title="Scrapy安装"></a>Scrapy安装</h2><p><strong>略</strong> （假设你已经懂Scrapy怎么玩）</p>
+<hr>
+<h2 id="安装selenium"><a href="#安装selenium" class="headerlink" title="安装selenium"></a>安装selenium</h2><p>selenium支持在Python中使用多种浏览器来模拟行为，同样PhantomJS也不在话下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo pip install selenium</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><p>Scrapy中间件增加一个</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> selenium <span class="keyword">import</span> webdriver</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">from</span> scrapy.http <span class="keyword">import</span> HtmlResponse</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">JSProcessMiddleware</span>(<span class="params"><span class="built_in">object</span></span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">process_request</span>(<span class="params">self, request, spider</span>):</span></span><br><span class="line">        driver = webdriver.PhantomJS(executable_path = <span class="string">&#x27;你的phantomjs安装路径&#x27;</span>)</span><br><span class="line">        driver.get(request.url)</span><br><span class="line">        time.sleep(<span class="number">1</span>)</span><br><span class="line">        js = <span class="string">&quot;var q=document.documentElement.scrollTop=10000&quot;</span></span><br><span class="line">        driver.execute_script(js)  <span class="comment"># 可执行js，模仿用户操作。此处为将页面拉至最底端。</span></span><br><span class="line">        time.sleep(<span class="number">3</span>)</span><br><span class="line">        body = driver.page_source</span><br><span class="line">        <span class="keyword">return</span> HtmlResponse(driver.current_url, body=body, encoding=<span class="string">&#x27;utf-8&#x27;</span>, request=request)</span><br></pre></td></tr></table></figure>
+
+<p>如果不想在所有爬虫中使用，可以在reqeust中加meta参数来控制</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2017/04/28/%E7%94%A8Git%E5%81%9A%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6%E6%97%B6%E5%BF%BD%E7%95%A5JetBrain%E7%B3%BB%E5%88%97IDE%E7%9A%84%E5%B7%A5%E7%A8%8B%E4%BF%A1%E6%81%AF/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -684,14 +771,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-count">37</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-count">38</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
