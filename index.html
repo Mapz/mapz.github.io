@@ -160,6 +160,79 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2022/08/05/UE5%EF%BC%9AGauntlet%E6%B5%8B%E8%AF%95%E5%90%91UAT%E4%BB%A5%E5%8F%8A%E6%B8%B8%E6%88%8F%E4%B8%AD%E4%BC%A0%E5%85%A5%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%8F%82%E6%95%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="FIND THE CHILD">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/08/05/UE5%EF%BC%9AGauntlet%E6%B5%8B%E8%AF%95%E5%90%91UAT%E4%BB%A5%E5%8F%8A%E6%B8%B8%E6%88%8F%E4%B8%AD%E4%BC%A0%E5%85%A5%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%8F%82%E6%95%B0/" class="post-title-link" itemprop="url">UE5：Gauntlet测试向UAT以及游戏中传入命令行参数</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-08-05 10:37:19 / 修改时间：10:54:48" itemprop="dateCreated datePublished" datetime="2022-08-05T10:37:19+08:00">2022-08-05</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>在 Gauntlet 测试中我们经常需要往 UAT 或是游戏中传入一些命令行参数，来自定义一些内容，那么如何传参呢</p>
+<h2 id="向-UAT-传参"><a href="#向-UAT-传参" class="headerlink" title="向 UAT 传参"></a>向 UAT 传参</h2><p>已知 Gauntlet 命令行启动选择 Gauntlet 脚本的使用的是</p>
+<p>-test=xxxx.xxxx.xxxx</p>
+<p>其中 xxxx.xxxx.xxxx 为 Gauntlet 的测试配置脚本</p>
+<p>如果要向里面传参，则在后面加上括号，括号里参数用逗号隔开即可</p>
+<p>例如</p>
+<p>-test=xxxx.xxxx.xxxx(Arg1=Value1,Arg2)</p>
+<p>这样参数就会传递到 UAT 中</p>
+<p>那么如何使用呢</p>
+<p>在 Gauntlet 脚本工程中，新建一个 Config 类继承 EpicGame.EpicGameTestConfig</p>
+<p>例如</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">TestConfig</span> : <span class="title">EpicGame.EpicGameTestConfig</span></span><br><span class="line">&#123;</span><br><span class="line">	[<span class="meta">AutoParam</span>]</span><br><span class="line">        <span class="keyword">public</span> <span class="built_in">string</span> Arg1;</span><br><span class="line"></span><br><span class="line">	[<span class="meta">AutoParam</span>]</span><br><span class="line">        <span class="keyword">public</span> <span class="built_in">bool</span> Arg2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后更新自己的 Gauntlet 配置脚本，并让其使用自定义的 TestConfig</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">MyTest</span> : <span class="title">UnrealTestNode</span>&lt;<span class="title">TestConfig</span>&gt;</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="title">MyTest</span>(<span class="params">UnrealTestContext inContext</span>) : <span class="title">base</span>(<span class="params">inContext</span>)</span></span><br><span class="line">       &#123;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">override</span> TestConfig <span class="title">GetConfiguration</span>(<span class="params"></span>)</span></span><br><span class="line">       &#123;</span><br><span class="line">       	TestConfigconfig = <span class="keyword">base</span>.GetConfiguration();</span><br><span class="line">	<span class="comment">// 中间略</span></span><br><span class="line">	<span class="keyword">return</span> config;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2022/06/09/UE5%EF%BC%9A%E8%B0%83%E8%AF%95GauntletController/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -185,7 +258,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2022-06-09 16:59:45 / 修改时间：17:04:59" itemprop="dateCreated datePublished" datetime="2022-06-09T16:59:45+08:00">2022-06-09</time>
+              <time title="创建时间：2022-06-09 16:59:45 / 修改时间：17:05:59" itemprop="dateCreated datePublished" datetime="2022-06-09T16:59:45+08:00">2022-06-09</time>
             </span>
 
           
@@ -201,7 +274,7 @@
       
           <p>编写 GauntletController 的时候，如何调试呢</p>
 <p>最简单的方式是游戏添加启动参数</p>
-<p>-guantlet=xxxController1,xxxController2</p>
+<p>-gauntlet=xxxController1,xxxController2</p>
 <p>然后启动的时候，在加载 </p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">FGauntletModuleImpl</span><br></pre></td></tr></table></figure>
 
@@ -1055,184 +1128,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2021/05/25/UE4%EF%BC%9AUGameplayAbility%E7%B1%BB%E5%9E%8B%E7%AE%80%E6%9E%90/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/link-300x300.gif">
-      <meta itemprop="name" content="Mapz">
-      <meta itemprop="description" content="FIND THE CHILD">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Mapz's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/05/25/UE4%EF%BC%9AUGameplayAbility%E7%B1%BB%E5%9E%8B%E7%AE%80%E6%9E%90/" class="post-title-link" itemprop="url">UE4：UGameplayAbility 类型简析</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2021-05-25 11:17:08 / 修改时间：17:17:55" itemprop="dateCreated datePublished" datetime="2021-05-25T11:17:08+08:00">2021-05-25</time>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>作为 GAS 系统中的核心元素之一 GameplayAbility 代表一个可大可小的 “能力”</p>
-<p>这个能力能干啥，基本全靠你自己定义的边界，大到一个复杂的技能，小到一个动作，都可以作为一个“能力”</p>
-<p>可以说 GA 的目的是基于一系列的行为控制来生成 GameplayEffect 改变 GameplayAttribue， 创建 GameplayCue 来处理显示和声音效果</p>
-<p>这次我们基于 UE 版本 4.26 来简析一下 UGameplayAbility 类</p>
-<h2 id="基本信息"><a href="#基本信息" class="headerlink" title="基本信息"></a>基本信息</h2><p>类型继承 UObject，并实现 IGameplayTaskOwnerInterface 接口</p>
-<p>实现 IGameplayTaskOwnerInterface 的目的是为了可以在其中执行异步的 UGameplayTask</p>
-<p>而 GA 使用的 GameplayTasksComponent 是 GA 的当前释放者的 AbilitySystemComponent （UAbilitySystemComponent 也是继承自 UGameplayTasksComponent 的）</p>
-<h2 id="重要的函数"><a href="#重要的函数" class="headerlink" title="重要的函数"></a>重要的函数</h2><p>如源码中的注释所写的，GA 里面有几个重要的函数</p>
-<h3 id="CanActivateAbility"><a href="#CanActivateAbility" class="headerlink" title="CanActivateAbility"></a>CanActivateAbility</h3><h4 id="函数定义"><a href="#函数定义" class="headerlink" title="函数定义"></a>函数定义</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">bool</span> <span class="title">CanActivateAbility</span><span class="params">(<span class="keyword">const</span> FGameplayAbilitySpecHandle Handle, <span class="keyword">const</span> FGameplayAbilityActorInfo* ActorInfo, <span class="keyword">const</span> FGameplayTagContainer* SourceTags = <span class="literal">nullptr</span>, <span class="keyword">const</span> FGameplayTagContainer* TargetTags = <span class="literal">nullptr</span>, OUT FGameplayTagContainer* OptionalRelevantTags = <span class="literal">nullptr</span>)</span> <span class="keyword">const</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>函数功能是检查是否可以激活此 Ability</p>
-<p>GAS 中在 UAbilitySystemComponent::TryActivateAbility 中调用</p>
-<ul>
-<li>Handle 参数：AbilitySpcHandle，这个代表一个 Ability 的实例和数据载体的 Handle</li>
-<li>ActorInfo 参数：当前技能的释放者信息，类型 FGameplayAbilityActorInfo 包括技能所有者，技能 Avatar Actor （代表物理上释放技能的 Actor，可以没有）和 PC ，骨架 Mesh ，是否本地 Actor 等信息</li>
-<li>SourceTags：表示释放者拥有的 Tags</li>
-<li>TargetTags：表示目标拥有的 Tags</li>
-<li>OptionalRelevantTags：用来存放一些额外的信息，本体里面用来放技能释放失败的原因 Tags</li>
-</ul>
-<h4 id="函数默认流程"><a href="#函数默认流程" class="headerlink" title="函数默认流程"></a>函数默认流程</h4><p>函数是 virtual 的，你可以自己重写</p>
-<p>默认流程如下</p>
-<ol>
-<li>判断是否符合执行策略（只能在服务器执行，只能在客户端发起之类的）</li>
-<li>判断 ActorInfo 中是否含有 AbilitySystemComponent ，没有则不可以释放</li>
-<li>判断用户是否禁止释放技能（AbilitySystemComponent.UserAbilityActivationInhibited，例如菜单状态下不能释放之类的)</li>
-<li>判断技能冷却是否完成<blockquote>
-<p>冷却是由 TSubclassOf<class UGameplayEffect> CooldownGameplayEffectClass 来控制的，在技能成功被 commit 的时候，会触发生成这个 GE，判断是否冷却了就是判断是否有这个 GE</p>
-</blockquote>
-</li>
-<li>判断技能消费是否够<blockquote>
-<p>同样的消费是由 TSubclassOf<class UGameplayEffect> CostGameplayEffectClass 来控制的，这个 GE 是懒加载的，这里会调用 AbilitySystemComponent-&gt;CanApplyAttributeModifiers 来检查是否有资源释放技能</p>
-</blockquote>
-</li>
-<li>检查当前 Tags 是否满足释放条件，包括需要的 Tag，Block 的 Tag 等</li>
-<li>获得技能实例的技能信息（FGameplayAbilitySpec）</li>
-<li>如果绑定了输入，检查是否为不允许输入的技能（AbilitySystemComponent-&gt;IsAbilityInputBlocked）</li>
-<li>检查蓝图覆盖的 K2_CanActivateAbility 是否可以释放</li>
-</ol>
-<h3 id="CallActivateAbility"><a href="#CallActivateAbility" class="headerlink" title="CallActivateAbility"></a>CallActivateAbility</h3><h4 id="函数定义-1"><a href="#函数定义-1" class="headerlink" title="函数定义"></a>函数定义</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">CallActivateAbility</span><span class="params">(<span class="keyword">const</span> FGameplayAbilitySpecHandle Handle, <span class="keyword">const</span> FGameplayAbilityActorInfo* ActorInfo, <span class="keyword">const</span> FGameplayAbilityActivationInfo ActivationInfo, FOnGameplayAbilityEnded::FDelegate* OnGameplayAbilityEndedDelegate = <span class="literal">nullptr</span>, <span class="keyword">const</span> FGameplayEventData* TriggerEventData = <span class="literal">nullptr</span>)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>函数用来激活 Ability</p>
-<p>参数除了上面的以外还有</p>
-<ul>
-<li>ActivationInfo：FGameplayAbilityActivationInfo 类型，存储一些技能的激活信息，包括 PK 和 ActivationMode （激活的模式， Authority 或者 Client 等）</li>
-<li>OnGameplayAbilityEndedDelegate： Ability Ended 回调</li>
-<li>TriggerEventData：FGameplayEventData 类型，包括技能发起者，目标，目标数据，增幅，Tag容器等，还可以传入两个 Custom 的 UObject 用来传递数据</li>
-</ul>
-<h4 id="函数主要流程"><a href="#函数主要流程" class="headerlink" title="函数主要流程"></a>函数主要流程</h4><ol>
-<li>执行 PreActivate（Virtual 可覆盖）<br> a. 刷新对齐 ServerMovement<br> b. 如果是实例化的 Activity，设置 bIsActive 为激活状态，设置为 bIsBlockingOtherAbilities 为 True<br> c. 设置 Activity 的当前 ActorInfo 和 ActivationInfo<br> d. 加入需要激活的 GameplayTags<br> e. 加入 AbilityEnded 回调<br> f. 发送 AbilityActivatedCallbacks 事件<br> g. 更新 Ability 的 Blocking 和 Cancel Tags</li>
-<li>执行 ActivateAbility（Virtual 可覆盖）<br> a. 如果有蓝图实现，则使用蓝图实现 K2_ActivateAbility 激活任务<br> b. 如果有蓝图的 TriggerEvent 实现，则执行 K2_ActivateAbilityFromEvent(*TriggerEventData) 激活任务，灭有 TriggerData 则 End Ability<br> c. 如果没有蓝图实现，则直接 Commit Ability</li>
-</ol>
-<h3 id="CommitAbility"><a href="#CommitAbility" class="headerlink" title="CommitAbility"></a>CommitAbility</h3><h4 id="函数定义-2"><a href="#函数定义-2" class="headerlink" title="函数定义"></a>函数定义</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">bool</span> <span class="title">CommitAbility</span><span class="params">(<span class="keyword">const</span> FGameplayAbilitySpecHandle Handle, <span class="keyword">const</span> FGameplayAbilityActorInfo* ActorInfo, <span class="keyword">const</span> FGameplayAbilityActivationInfo ActivationInfo, OUT FGameplayTagContainer* OptionalRelevantTags = <span class="literal">nullptr</span>)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>函数是确认 Ability</p>
-<h4 id="默认流程"><a href="#默认流程" class="headerlink" title="默认流程"></a>默认流程</h4><ol>
-<li>调用 CommitCheck 检查是否可以 Commit （和 CanActivateAbility 差不多，也可以做额外的检查）</li>
-<li>设置冷却，执行消耗资源 （ApplyCooldown 和 ApplyCost）</li>
-<li>执行蓝图 K2_CommitExecute</li>
-<li>发送 AbilityCommittedCallbacks 广播</li>
-</ol>
-<h3 id="CancelAbility"><a href="#CancelAbility" class="headerlink" title="CancelAbility"></a>CancelAbility</h3><h4 id="函数定义-3"><a href="#函数定义-3" class="headerlink" title="函数定义"></a>函数定义</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">CancelAbility</span><span class="params">(<span class="keyword">const</span> FGameplayAbilitySpecHandle Handle, <span class="keyword">const</span> FGameplayAbilityActorInfo* ActorInfo, <span class="keyword">const</span> FGameplayAbilityActivationInfo ActivationInfo, <span class="keyword">bool</span> bReplicateCancelAbility)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>函数用来取消 Ability </p>
-<h4 id="默认流程-1"><a href="#默认流程-1" class="headerlink" title="默认流程"></a>默认流程</h4><ol>
-<li>检查 Ability 是否可以被 Cancel （如果是非实例化的，则可以被 Cancel，如果是实例化的，检查是否可以被 Cancel 的设置）</li>
-<li>检查当前的 Ability 是否正在 ApplyGameplayEffectSpecToTarget （ScopeLockCount），如果正在被操作，加入 WaitingToExecute 中，并会在执行完成后，执行本次 Cancel 操作</li>
-<li>如果需要，执行 ReplicateEndOrCancelAbility 执行客户端或者服务器的 CancelAbility 或者 EndAbility 的 RPC</li>
-<li>广播 OnGameplayAbilityCancelled 事件</li>
-<li>执行 EndAbility</li>
-</ol>
-<h3 id="EndAbility"><a href="#EndAbility" class="headerlink" title="EndAbility"></a>EndAbility</h3><h4 id="函数定义-4"><a href="#函数定义-4" class="headerlink" title="函数定义"></a>函数定义</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">EndAbility</span><span class="params">(<span class="keyword">const</span> FGameplayAbilitySpecHandle Handle, <span class="keyword">const</span> FGameplayAbilityActorInfo* ActorInfo, <span class="keyword">const</span> FGameplayAbilityActivationInfo ActivationInfo, <span class="keyword">bool</span> bReplicateEndAbility, <span class="keyword">bool</span> bWasCancelled)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>函数用来结束 Ability</p>
-<h4 id="默认流程-2"><a href="#默认流程-2" class="headerlink" title="默认流程"></a>默认流程</h4><ol>
-<li>检查 Ability 是否可以被 End<br> a. 不是 Active 的实例化 Acitivity 不可以被 End<br> b. 检查 Handle 的 ActivitySpec 是否 Active</li>
-<li>查当前的 Ability 是否正在 ApplyGameplayEffectSpecToTarget （ScopeLockCount），如果正在被操作，加入 WaitingToExecute 中，并会在执行完成后，执行本次 EndAbility 操作</li>
-<li>执行蓝图 K2_OnEndAbility</li>
-<li>清除这个 Ability 在 World 中的所有 timer 和 latent actions</li>
-<li>广播 OnGameplayAbilityEnded 事件，并移除回调</li>
-<li>广播 OnGameplayAbilityEndedWithData 事件，并移除回调</li>
-<li>对于实例化 Ability 设置 bIsActive 为非激活</li>
-<li>结束所有挂在 Ability 上的 GameplayTask，并 Reset 列表来移除内存占用</li>
-<li>如果需要执行 ReplicateEndOrCancelAbility</li>
-<li>移除 ActivationTags</li>
-<li>移除技能添加的 GameplayCue</li>
-<li>移除 AbilityComponent 上的 Blocking 和 Cancel Tags</li>
-<li>移除 PK 缓存</li>
-<li>移除 AbilityComponent 上的 AnimatingAbility</li>
-<li>播出 AbilityComponent 上的  AbilityEndedCallbacks ， OnAbilityEnded 事件</li>
-<li>需要同步的 Ability ，移除 Spec 的 ReplicatedInstance（服务器）</li>
-<li>不需要同步的 Ability ，移除 Spec 的 NonReplicatedInstances</li>
-<li>服务器上如果没有活动的 Spec 则，且设置为在 Activation 后就从 Component 中移除 Ability 则 ClearAbility，否则 MarkAbilitySpecDirty</li>
-</ol>
-<p>这里的 ClearAbility，和 GiveAbility 对应，是从 AbilityComponent 中移除这个 Ability 的 Handle 而 MarkAbilitySpecDirty 是如字面意思表示 AbilitySpec 已经被修改过了</p>
-<h2 id="配置项"><a href="#配置项" class="headerlink" title="配置项"></a>配置项</h2><ul>
-<li>ReplicationPolicy：同步策略</li>
-<li>InstancingPolicy：实例化策略，可以设置为非实例化，每个 Actor 实例化，或者每次执行实例化，非实例化的 Ability 只是用其 CDO 来做逻辑</li>
-<li>bServerRespectsRemoteAbilityCancellation ： 是否可以从客户端来 Cancel 服务器上的 Ability</li>
-<li>bRetriggerInstancedAbility：是否在激活一个实例化的 Ability 的时候， 先 End 再重新激活</li>
-<li>NetExecutionPolicy：网络同步策略，包括本地预测，服务器 only 等</li>
-<li>NetSecurityPolicy：网络安全政策，设置 Ability 的执行权限</li>
-<li>CostGameplayEffectClass：消费的 GE</li>
-<li>AbilityTriggers：可以激活 Ability 的 Tags</li>
-<li>CooldownGameplayEffectClass：冷却的 GE</li>
-<li>CancelAbilitiesWithTag：执行的时候，会 Cancel 含有这些 Tag 的其他 Ability</li>
-<li>BlockAbilitiesWithTag：执行的时候，会 Block 含有这些 Tag 的其他 Ability</li>
-<li>ActivationOwnedTags：激活的时候附加到 Owner 的 Tags</li>
-<li>ActivationRequiredTags：激活的时候需要的 Tags</li>
-<li>ActivationBlockedTags：激活的时候，如果有这些 Tags 会阻止激活</li>
-<li>SourceRequiredTags：Source Actor 有这些 Tags 的时候才能激活</li>
-<li>SourceBlockedTags：Source Actor 有这些 Tags 的时候不能激活</li>
-<li>TargetRequiredTags：Target Actor 有这些 Tags 的时候才能激活</li>
-<li>TargetBlockedTags：Target Actor 有这些 Tags 的时候不能激活</li>
-<li>bReplicateInputDirectly: 是否直接把输入事件传到服务器</li>
-<li>AbilityTags：拥有的 Tags，会同其他的 Ability 的 CancelAbilitiesWithTag 和 CancelAbilitiesWithTag 协同作用</li>
-</ul>
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><ol>
-<li>非实例化的 Ability ，总是可以被 Cancel，也总是会 Block 其他的 Ability，而不需要设置</li>
-<li>对于每个实例会不同的 Ability，需要设置为实例化，否则不要设置为实例化，以节省资源，Ability 所需的实例数据事实上存在 AbilitySpec 中</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1304,7 +1199,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">37</span>
+          <span class="site-state-item-count">38</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
