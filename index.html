@@ -183,10 +183,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2022-12-28 10:24:00 / 修改时间：10:27:41" itemprop="dateCreated datePublished" datetime="2022-12-28T10:24:00+08:00">2022-12-28</time>
+              <time title="创建时间：2022-12-28 10:24:00" itemprop="dateCreated datePublished" datetime="2022-12-28T10:24:00+08:00">2022-12-28</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-12-30 16:45:07" itemprop="dateModified" datetime="2022-12-30T16:45:07+08:00">2022-12-30</time>
+              </span>
 
           
 
@@ -208,6 +214,14 @@
 <li>修改其中的类名和 xxx 一致</li>
 <li>打出来的 exe 名称就是 xxx.exe</li>
 </ol>
+<h2 id="导致的问题"><a href="#导致的问题" class="headerlink" title="导致的问题"></a>导致的问题</h2><p>Gauntlet 测试的时候，如果按 Path 传入打好的可执行文件，命名和 uproject 不同可能导致无法找到 Role 相应的 exe</p>
+<p>例如 项目名称为 AAA 的时候，寻找 Role 为 Server 的包，会寻找名称为 AAAServer.exe 的可执行文件</p>
+<p>如果随意修改打出的 exe 名称为 BBB ，则会找不到 Role 为 Server 的包</p>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>修改打出的 exe 名称，还是需要和 uproject 名称结合使用，因为 UAT 里面一些功能项目名和 exe 有部分耦合（万恶的 Gauntlet）</p>
+<p>例如 AAA.uproject 最好把 Server Target 命名为 AAAServer</p>
+<p>Client Target 命名为 AAAClient</p>
+<p>Game Target 命名为 AAA 或 AAAGame</p>
+<p>Editor Target 命名为 AAAEditor</p>
 
       
     </div>
