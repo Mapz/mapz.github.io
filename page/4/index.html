@@ -160,6 +160,313 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2017/05/10/Django%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%EF%BC%88%E4%BA%8C%EF%BC%89View%E5%B1%82/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="FIND THE CHILD">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/05/10/Django%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%EF%BC%88%E4%BA%8C%EF%BC%89View%E5%B1%82/" class="post-title-link" itemprop="url">Django项目开发（二）View层</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-05-10 10:55:48" itemprop="dateCreated datePublished" datetime="2017-05-10T10:55:48+08:00">2017-05-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-22 10:15:32" itemprop="dateModified" datetime="2021-04-22T10:15:32+08:00">2021-04-22</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>原文地址：<a href="https://mapz.github.io/2017/05/10/Django%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%EF%BC%88%E4%BA%8C%EF%BC%89View%E5%B1%82/">Mapz的blog</a></p>
+<p>前文目录：</p>
+<ol>
+<li><a href="https://mapz.github.io/2017/05/08/Django%E9%A1%B9%E7%9B%AE%E7%9A%84%E6%90%AD%E5%BB%BA/">Django项目的搭建</a></li>
+<li><a href="https://mapz.github.io/2017/05/08/Django%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%EF%BC%88%E4%B8%80%EF%BC%89/">Django项目开发（一）</a></li>
+</ol>
+<p>前面我们已经创建好了我们的数据库表，也可以管理我们的数据内容了，下面就应该是如何来展示我们的网站内容</p>
+<h2 id="基本方式"><a href="#基本方式" class="headerlink" title="基本方式"></a>基本方式</h2><p>前面大家看例子的时候已经看到了，我们在 views.py 中，写一个函数，返回一个HttpRespnse对象，参数为字符串hello world，并在 urls.py 里面配置好他的路由，就可以通过浏览器来访问我们的页面了，没错，这就是一个最简单的view，返回一个HttpRespnse对象，只包含一段字符串到浏览器。</p>
+<hr>
+<h2 id="Url路由"><a href="#Url路由" class="headerlink" title="Url路由"></a>Url路由</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">urlpatterns = [</span><br><span class="line">    url(<span class="string">r&#x27;^$&#x27;</span>, views.index, name=<span class="string">&#x27;index&#x27;</span>),</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>每增加一个路由，我们都在urlpatterns里面增加一个url()函数生成的对象</p>
+<p>我们可以看看这个函数原型</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">url</span>(<span class="params">regex, view, kwargs=<span class="literal">None</span>, name=<span class="literal">None</span>, prefix=<span class="string">&#x27;&#x27;</span></span>)</span></span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>第一个参数为浏览器访问的url路由正则表达式</li>
+<li>第二个参数是处理这个请求的view</li>
+<li>第三个参数是显式的传入参数</li>
+<li>第四个参数是这个url的名称，常用于渲染模版的时候，避免改需求后模版上url写死了要到处修改用（写模版的时候不要写死跳转的url，而是用name来渲染是一个良好的习惯），另外，后面我们会知道，一个视图view经常对应很多pattern，用name也可在使用的时候加以区分</li>
+<li>prefix 在view上加上前缀，一般不会用到这个</li>
+</ol>
+<p>正则表达式中用小括号括起来的内容，会作为参数传入到view中的处理函数中</p>
+<p>为了测试路由中各种用法，我们创建一个文件专门放我们的测试view</p>
+<h3 id="隐式的传参"><a href="#隐式的传参" class="headerlink" title="隐式的传参"></a>隐式的传参</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># test_views.py</span></span><br><span class="line"><span class="comment"># -*-coding:utf-8 -*-</span></span><br><span class="line"><span class="keyword">from</span> django.http <span class="keyword">import</span> HttpResponse</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add</span>(<span class="params">request,p1,p2</span>):</span></span><br><span class="line">    p1 = <span class="built_in">float</span>(p1)</span><br><span class="line">    p2 = <span class="built_in">float</span>(p2)</span><br><span class="line">    <span class="keyword">return</span> HttpResponse(<span class="string">&quot;%f + %f = %f&quot;</span> % (p1,p2,p1+p2))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># urls.py</span></span><br><span class="line"><span class="keyword">from</span> . <span class="keyword">import</span> views,test_views</span><br><span class="line">testPatterns = [</span><br><span class="line">    url(<span class="string">r&#x27;^add(\d+)and(\d+)/$&#x27;</span>, test_views.add, name=<span class="string">&#x27;add&#x27;</span>),</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">urlpatterns.extend(testPatterns)</span><br></pre></td></tr></table></figure>
+
+<p>我们看url中有两个参数</p>
+<p>当我们访问 <a target="_blank" rel="noopener" href="http://127.0.0.1:8000/qk_deploy/add1and2/">http://127.0.0.1:8000/qk_deploy/add1and2/</a> 的时候，他们被顺序的传入test_view.add函数的p1和p2</p>
+<p>需要注意的是，通过正则穿进去的参数，都是字符串形式的，要转型需要我们在代码中处理</p>
+<p>最后我们在浏览器中得到了返回</p>
+<blockquote>
+<p>1.000000 + 2.000000 = 3.000000</p>
+</blockquote>
+<h3 id="显式的传参"><a href="#显式的传参" class="headerlink" title="显式的传参"></a>显式的传参</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># test_views.py</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">southparkB</span>(<span class="params">request,stan_power,cartman_power</span>):</span></span><br><span class="line">    stan_power = <span class="built_in">float</span>(stan_power)</span><br><span class="line">    cartman_power = <span class="built_in">float</span>(cartman_power)</span><br><span class="line">    <span class="keyword">return</span> HttpResponse(<span class="string">&#x27;Stan win&#x27;</span> <span class="keyword">if</span> stan_power &gt; cartman_power <span class="keyword">else</span> <span class="string">&#x27;Cartman win&#x27;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># urls.py</span></span><br><span class="line">testPatterns = [</span><br><span class="line">    ...</span><br><span class="line">    url(<span class="string">r&#x27;^southpark-b/stan(?P&lt;stan_power&gt;\d+)/cartman(?P&lt;cartman_power&gt;\d+)/$&#x27;</span>, test_views.southparkB,name=<span class="string">&#x27;southparkB&#x27;</span>)</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">urlpatterns.extend(testPatterns)</span><br></pre></td></tr></table></figure>
+
+<p>用括号括起来的部分依然是参数，但是我们用__?P&lt;参数名&gt;__来传递参数<br>然后在 test_view.southparkB 中，用相同的参数名来取出</p>
+<p>访问</p>
+<p><a target="_blank" rel="noopener" href="http://127.0.0.1:8000/qk_deploy/southpark-b/stan19/cartman10/">http://127.0.0.1:8000/qk_deploy/southpark-b/stan19/cartman10/</a></p>
+<p>获得结果</p>
+<blockquote>
+<p>Stan win</p>
+</blockquote>
+<hr>
+<h2 id="结合数据层使用"><a href="#结合数据层使用" class="headerlink" title="结合数据层使用"></a>结合数据层使用</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># test_views.py</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">project_list</span>(<span class="params">request</span>):</span></span><br><span class="line">    p_list = Project.objects.order_by(<span class="string">&#x27;project_name&#x27;</span>)</span><br><span class="line">    output = <span class="string">&#x27;, &#x27;</span>.join([q.project_name <span class="keyword">for</span> q <span class="keyword">in</span> p_list])</span><br><span class="line">    <span class="keyword">return</span> HttpResponse(output)</span><br><span class="line"></span><br><span class="line"><span class="comment">#urls.py</span></span><br><span class="line">testPatterns = [</span><br><span class="line">    ...</span><br><span class="line">    url(<span class="string">r&#x27;^projectlist/$&#x27;</span>,test_views.project_list,name=<span class="string">&#x27;project_list&#x27;</span>),</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>访问 <a target="_blank" rel="noopener" href="http://127.0.0.1:8000/qk_deploy/projectlist/">http://127.0.0.1:8000/qk_deploy/projectlist/</a></p>
+<p>可以看到打印出了我们已经创建的项目列表</p>
+<hr>
+<h2 id="加入模版系统"><a href="#加入模版系统" class="headerlink" title="加入模版系统"></a>加入模版系统</h2><p>我们现在已经可以输出我们需要的内容到页面了，但是还不够美观，我们想要输出的是一个页面，而不是简单的字符串。</p>
+<p>这时候我们就要用到 Django 的服务端渲染-模版技术</p>
+<h3 id="题外话：如果你想使用前后端分离"><a href="#题外话：如果你想使用前后端分离" class="headerlink" title="题外话：如果你想使用前后端分离"></a><strong>题外话：如果你想使用前后端分离</strong></h3><p>现在前后端分离的开发方式比较热门，笔者也研究过 vue.js 前端框架</p>
+<p>要实现前后端分离，我们的后端渲染就算是用不上啦，至于业务逻辑，也需要放到前端来处理，view也不用处理业务逻辑了</p>
+<p>我们只需要把API接口做好就可以了</p>
+<p>我们只需要保留Django的controller部分，也就是urlconf这一块</p>
+<p>这样一来做到了前后端分离</p>
+<p>二来呢，django可以是很灵活的，同一个网站你可以部分页面采用 vue 部分采用 react，部分用django模版来渲染也行呀~</p>
+<p>我们的项目将会基于vue.js 2来进行开发，搭建将在后面的文章中详细解说</p>
+<p>在这之前，我们还是先简单讲讲 Django 自身的模版系统</p>
+<h3 id="创建模版"><a href="#创建模版" class="headerlink" title="创建模版"></a><strong>创建模版</strong></h3><p>我们在app目录下创建templates目录</p>
+<p>模版的具体设置在settings中</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">TEMPLATES = [</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&#x27;BACKEND&#x27;</span>: <span class="string">&#x27;django.template.backends.django.DjangoTemplates&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;DIRS&#x27;</span>: [],</span><br><span class="line">        <span class="string">&#x27;APP_DIRS&#x27;</span>: <span class="literal">True</span>,</span><br><span class="line">        <span class="string">&#x27;OPTIONS&#x27;</span>: &#123;</span><br><span class="line">            <span class="string">&#x27;context_processors&#x27;</span>: [</span><br><span class="line">                <span class="string">&#x27;django.template.context_processors.debug&#x27;</span>,</span><br><span class="line">                <span class="string">&#x27;django.template.context_processors.request&#x27;</span>,</span><br><span class="line">                <span class="string">&#x27;django.contrib.auth.context_processors.auth&#x27;</span>,</span><br><span class="line">                <span class="string">&#x27;django.contrib.messages.context_processors.messages&#x27;</span>,</span><br><span class="line">            ],</span><br><span class="line">        &#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>当 APP_DIRS 为 True 的时候，Django会所有已经安装了的APP目录下的templates中寻找模版</p>
+<p>我们继续在templates目录下创建目录qk_deploy目录，并在里面创建project_list.html </p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#123;% if p_list %&#125;</span><br><span class="line">    <span class="tag">&lt;<span class="name">ul</span>&gt;</span></span><br><span class="line">    &#123;% for p in p_list %&#125;</span><br><span class="line">        <span class="tag">&lt;<span class="name">li</span>&gt;</span>&#123;&#123; p.project_name &#125;&#125;<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">    &#123;% endfor %&#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span><br><span class="line">&#123;% else %&#125;</span><br><span class="line">    <span class="tag">&lt;<span class="name">p</span>&gt;</span>还没有创建项目<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">&#123;% endif %&#125;</span><br></pre></td></tr></table></figure>
+
+<p>修改我们的view</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># test_views.py</span></span><br><span class="line"><span class="keyword">from</span> django.template <span class="keyword">import</span> loader</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">project_list</span>(<span class="params">request</span>):</span></span><br><span class="line">    p_list = Project.objects.order_by(<span class="string">&#x27;project_name&#x27;</span>)</span><br><span class="line">    template = loader.get_template(<span class="string">&#x27;qk_deploy/project_list.html&#x27;</span>)</span><br><span class="line">    context = &#123;</span><br><span class="line">        <span class="string">&#x27;p_list&#x27;</span>:p_list,</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> HttpResponse(template.render(context,request))</span><br></pre></td></tr></table></figure>
+
+<p>重新访问 <a target="_blank" rel="noopener" href="http://127.0.0.1:8000/qk_deploy/projectlist/">http://127.0.0.1:8000/qk_deploy/projectlist/</a></p>
+<p>我们会发现我们的列表已经按模版的形式重新渲染了</p>
+<ul>
+<li>项目1</li>
+<li>项目2</li>
+<li>等等</li>
+</ul>
+<p>render还可以简写为</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> django.shortcuts <span class="keyword">import</span> render</span><br><span class="line">...</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">project_list</span>(<span class="params">request</span>):</span></span><br><span class="line">    p_list = Project.objects.order_by(<span class="string">&#x27;project_name&#x27;</span>)</span><br><span class="line">    context = &#123;</span><br><span class="line">        <span class="string">&#x27;p_list&#x27;</span>:p_list,</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> HttpResponse(render(request,<span class="string">&#x27;qk_deploy/project_list.html&#x27;</span>,context))</span><br></pre></td></tr></table></figure>
+
+<h3 id="其他模版相关内容"><a href="#其他模版相关内容" class="headerlink" title="其他模版相关内容"></a>其他模版相关内容</h3><p>我们这里就不赘述其他的 django 模版相关的内容了</p>
+<p>有兴趣可以参考 <a target="_blank" rel="noopener" href="https://docs.djangoproject.com/en/1.11/intro/tutorial03/">官方教程</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2017/05/08/Django%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%EF%BC%88%E4%B8%80%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="FIND THE CHILD">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/05/08/Django%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%EF%BC%88%E4%B8%80%EF%BC%89/" class="post-title-link" itemprop="url">Django项目开发（一）</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-05-08 17:19:10" itemprop="dateCreated datePublished" datetime="2017-05-08T17:19:10+08:00">2017-05-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-22 10:15:32" itemprop="dateModified" datetime="2021-04-22T10:15:32+08:00">2021-04-22</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>原文地址：<a href="https://mapz.github.io/2017/05/08/Django%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%EF%BC%88%E4%B8%80%EF%BC%89/">Mapz的blog</a></p>
+<p><strong>这是系列第二篇，第一篇请移步</strong></p>
+<p><a href="https://mapz.github.io/2017/05/08/Django%E9%A1%B9%E7%9B%AE%E7%9A%84%E6%90%AD%E5%BB%BA/">Django项目的搭建</a></p>
+<p>上一次我们介绍了如何搭建django项目，本次我们继续学习django项目的开发</p>
+<hr>
+<h2 id="数据库的接入"><a href="#数据库的接入" class="headerlink" title="数据库的接入"></a>数据库的接入</h2><p>我们这里使用mySql数据库</p>
+<p>先在虚拟环境中装 pymysql <strong>（MySQLdb在Python3中已经不能用）</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install pymysql</span><br></pre></td></tr></table></figure>
+
+<p>打开settings.py</p>
+<p>修改</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">DATABASES = &#123;</span><br><span class="line">    <span class="string">&#x27;default&#x27;</span>: &#123;</span><br><span class="line">        <span class="comment"># &#x27;ENGINE&#x27;: &#x27;django.db.backends.sqlite3&#x27;,</span></span><br><span class="line">        <span class="string">&#x27;ENGINE&#x27;</span>: <span class="string">&#x27;django.db.backends.mysql&#x27;</span>, <span class="comment">#数据库引擎</span></span><br><span class="line">        <span class="comment"># &#x27;NAME&#x27;: os.path.join(BASE_DIR, &#x27;db.sqlite3&#x27;),</span></span><br><span class="line">        <span class="string">&#x27;NAME&#x27;</span>: <span class="string">&#x27;proj_mgr_kits&#x27;</span>, <span class="comment">#你的数据库名称</span></span><br><span class="line">        <span class="string">&#x27;USER&#x27;</span>:<span class="string">&#x27;***&#x27;</span>, <span class="comment">#数据库用户</span></span><br><span class="line">        <span class="string">&#x27;PASSWORD&#x27;</span>:<span class="string">&#x27;***&#x27;</span>, <span class="comment">#数据库密码</span></span><br><span class="line">        <span class="string">&#x27;HOST&#x27;</span>:<span class="string">&#x27;***&#x27;</span>, <span class="comment">#数据库主机</span></span><br><span class="line">        <span class="string">&#x27;PORT&#x27;</span>:<span class="string">&#x27;3306&#x27;</span>, <span class="comment">#数据库端口</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>详细修改方式参见 <a target="_blank" rel="noopener" href="https://docs.djangoproject.com/en/1.11/ref/settings/">官网文档</a></p>
+<p>另外针对 pymysql 还需要配置站点的_<em>init</em>_.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pymysql</span><br><span class="line">pymysql.install_as_MySQLdb()</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="其他配置"><a href="#其他配置" class="headerlink" title="其他配置"></a>其他配置</h2><p>设置时区和语言</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">LANGUAGE_CODE = <span class="string">&#x27;zh-Hans&#x27;</span></span><br><span class="line"></span><br><span class="line">TIME_ZONE = <span class="string">&#x27;PRC&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="Django结构简介"><a href="#Django结构简介" class="headerlink" title="Django结构简介"></a>Django结构简介</h2><p>django是一个MVC框架，数据上，使用模型model做ORM映射数据库</p>
+<p>view层使用django的模版来做渲染</p>
+<p>控制层用灵活的url路由来实现，后面我们陆续来介绍这些内容</p>
+<hr>
+<h2 id="创建数据库表"><a href="#创建数据库表" class="headerlink" title="创建数据库表"></a>创建数据库表</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python manage.py migrate</span><br></pre></td></tr></table></figure>
+
+<p>这个命令会创建所有已安装的APP所需的数据表</p>
+<p>所有已经安装的APP被配置在 <strong>settings.py</strong> 的<br><strong>INSTALLED_APPS</strong> 属性下</p>
+<hr>
+<h2 id="创建model"><a href="#创建model" class="headerlink" title="创建model"></a>创建model</h2><p>Model 是 Django做对象映射的模型，你创建的 Model 类会被diango映射到数据库中</p>
+<p>我们创建一个自己的model</p>
+<p>修改 models.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> django.db <span class="keyword">import</span> models</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Project</span>(<span class="params">models.Model</span>):</span></span><br><span class="line">    project_name = models.CharField(max_length=<span class="number">50</span>)</span><br></pre></td></tr></table></figure>
+
+<p>Model 支持的数据类型和创建参数参见 <a target="_blank" rel="noopener" href="https://docs.djangoproject.com/en/1.11/ref/models/fields/#django.db.models.Field">官方文档</a></p>
+<p>常用的参数比如choices,可以让参数在一个枚举中选择</p>
+<p>例如</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DeployProfile</span>(<span class="params">models.Model</span>):</span></span><br><span class="line">    deploy_type_choice = (</span><br><span class="line">        (<span class="string">&#x27;Server&#x27;</span>,<span class="string">&#x27;服务器&#x27;</span>), <span class="comment">#第一个参数为数据库保存值，第二个为显示在界面的值</span></span><br><span class="line">        (<span class="string">&#x27;CLient&#x27;</span>,<span class="string">&#x27;客户端&#x27;</span>)</span><br><span class="line">    )</span><br><span class="line">    deploy_type = models.CharField(max_length=<span class="number">20</span>, choices=deploy_type_choice, verbose_name=<span class="string">&#x27;部署类型&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>其他的类型就不再赘述</p>
+<hr>
+<h2 id="把我们自己的app加入到项目app中"><a href="#把我们自己的app加入到项目app中" class="headerlink" title="把我们自己的app加入到项目app中"></a>把我们自己的app加入到项目app中</h2><p>编辑settings.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">INSTALLED_APPS = [</span><br><span class="line">    <span class="string">&#x27;xxxxx&#x27;</span></span><br><span class="line">    <span class="string">&#x27;qk_deploy.apps.QkDeployConfig&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;xxxxx&#x27;</span></span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>重新创建表</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python manage.py makemigrations qk_deploy</span><br></pre></td></tr></table></figure>
+
+<p><strong>makemigrations</strong> 命令告诉系统，我的模型已经发生了变化，需要制作一个迁移</p>
+<p>迁移做好之后，我们再用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python manage.py migrate</span><br></pre></td></tr></table></figure>
+
+<p>重新制作数据表</p>
+<hr>
+<h2 id="创建管理员"><a href="#创建管理员" class="headerlink" title="创建管理员"></a>创建管理员</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python manage.py createsuperuser</span><br></pre></td></tr></table></figure>
+
+<p>然后按提示输入，来创建一个管理员</p>
+<p>启动服务器后</p>
+<p>进入页面</p>
+<p><a target="_blank" rel="noopener" href="http://127.0.0.1:8000/admin/">http://127.0.0.1:8000/admin/</a></p>
+<p>就可以用你的管理员来登陆管理界面了</p>
+<hr>
+<h2 id="把我们的app加入到管理界面中来"><a href="#把我们的app加入到管理界面中来" class="headerlink" title="把我们的app加入到管理界面中来"></a>把我们的app加入到管理界面中来</h2><p>修改app目录下的admin.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> django.contrib <span class="keyword">import</span> admin</span><br><span class="line"></span><br><span class="line"><span class="comment"># Register your models here.</span></span><br><span class="line"><span class="keyword">from</span> .models <span class="keyword">import</span> Project</span><br><span class="line">admin.site.register(Project)</span><br></pre></td></tr></table></figure>
+
+<p>就可以了</p>
+<p>register参数也接收一个可迭代容器</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">admin.site.register([Project,p1,p2,p3])</span><br></pre></td></tr></table></figure>
+
+<p>然后我们进入管理页面，发现上面的model已经可以管理了</p>
+<p>但是如果我们想有一个自定义的名称，而不是类的名字，怎么办呢？</p>
+<p>答案是在model中加上 meta </p>
+<p>编辑Project model</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Project</span>(<span class="params">models.Model</span>):</span></span><br><span class="line">    project_name = models.CharField(max_length=<span class="number">50</span>)</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Meta</span>:</span></span><br><span class="line">        verbose_name = <span class="string">&#x27;项目&#x27;</span></span><br><span class="line">        verbose_name_plural = verbose_name</span><br></pre></td></tr></table></figure>
+
+<p>其中 verbose_name 是显示的名称，而 plural是复数形式，我们中文没有复数形式，所以就直接一样就ok了</p>
+<p>双薪管理页面，我们发现管理中显示的内容已经是我们写的’项目’了</p>
+<p>至于模型的字段要显示我们想要的名字呢，也是一样的，修改model</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Project</span>(<span class="params">models.Model</span>):</span></span><br><span class="line">    project_name = models.CharField(max_length=<span class="number">50</span>, verbose_name=<span class="string">&#x27;项目名称&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Meta</span>:</span></span><br><span class="line">        verbose_name = <span class="string">&#x27;项目&#x27;</span></span><br><span class="line">        verbose_name_plural = verbose_name</span><br></pre></td></tr></table></figure>
+
+<p>好奇的同学又要问了，APP名字在管理界面怎么改呀</p>
+<p>我们修改apps.py</p>
+<p>在QkDeployConfig类下面增加一个属性</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">QkDeployConfig</span>(<span class="params">AppConfig</span>):</span></span><br><span class="line">    name = <span class="string">&#x27;qk_deploy&#x27;</span></span><br><span class="line">    verbose_name = <span class="string">&#x27;部署管理器&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>刷新管理界面再看看~~</p>
+<p>我们用管理工具创建新项目后，新项目在列表里面显示为 project object,这显然不是我们想要的，怎么办咧</p>
+<p>为model加上字符串返回函数就可以了</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Project</span>(<span class="params">models.Model</span>):</span></span><br><span class="line">    project_name = models.CharField(max_length=<span class="number">50</span>, verbose_name=<span class="string">&#x27;项目名称&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__str__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">return</span> self.project_name</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Meta</span>:</span></span><br><span class="line">        verbose_name = <span class="string">&#x27;项目&#x27;</span></span><br><span class="line">        verbose_name_plural = verbose_name</span><br></pre></td></tr></table></figure>
+
+<p>刷新管理界面，显示的项目已经是我们设定的项目名称了</p>
+<hr>
+<h2 id="文本编码问题"><a href="#文本编码问题" class="headerlink" title="文本编码问题"></a>文本编码问题</h2><p>如果遇到中文无法录入管理系统的问题，请检查数据库编码是否和程序中一致哦</p>
+<p>不一致的话，请先修改数据库编码，然后删除数据表，重新migrate</p>
+<hr>
+<p>到此，我们的数据库管理功能已经完成，也就是MVC中的M</p>
+<p>下次我们继续说MVC中的V ，也就是 view 展示层</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2017/05/08/Django%E9%A1%B9%E7%9B%AE%E7%9A%84%E6%90%AD%E5%BB%BA/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -896,78 +1203,10 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2017/04/21/Hexo%E6%96%B0%E5%BB%BA%E6%96%87%E4%BB%B6%E8%87%AA%E5%8A%A8%E6%89%93%E5%BC%80%E7%BC%96%E8%BE%91%E5%99%A8/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/link-300x300.gif">
-      <meta itemprop="name" content="Mapz">
-      <meta itemprop="description" content="FIND THE CHILD">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Mapz's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2017/04/21/Hexo%E6%96%B0%E5%BB%BA%E6%96%87%E4%BB%B6%E8%87%AA%E5%8A%A8%E6%89%93%E5%BC%80%E7%BC%96%E8%BE%91%E5%99%A8/" class="post-title-link" itemprop="url">Hexo新建文件自动打开编辑器</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2017-04-21 15:00:31" itemprop="dateCreated datePublished" datetime="2017-04-21T15:00:31+08:00">2017-04-21</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-22 10:15:32" itemprop="dateModified" datetime="2021-04-22T10:15:32+08:00">2021-04-22</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>我们在hexo中新建一篇文章使用的命令是：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo new  <span class="string">&quot;新文章&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>在执行这个命令的时候，其实是触发了 <strong>hexo.on</strong> 这个回调的，那么怎样在新建时打开编辑器就很简单了</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> spawn = <span class="built_in">require</span>(<span class="string">&#x27;child_process&#x27;</span>).spawn;</span><br><span class="line">hexo.on(<span class="string">&#x27;new&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">data</span>)</span>&#123;</span><br><span class="line">    spawn(<span class="string">&#x27;start  &quot;markdown编辑器绝对路径.exe&quot; &#x27;</span> + data.path);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/3/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span>
+    <a class="extend prev" rel="prev" href="/page/3/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/5/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1035,14 +1274,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">39</span>
+          <span class="site-state-item-count">41</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-count">40</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1078,7 +1317,7 @@
 <div class="copyright">
   
   &copy; 
-  <span itemprop="copyrightYear">2022</span>
+  <span itemprop="copyrightYear">2023</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
