@@ -160,6 +160,65 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2023/02/01/UE5%EF%BC%9A%E5%B0%8F%E7%82%B9%E7%82%B9%E9%9A%8F%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="FIND THE CHILD">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/02/01/UE5%EF%BC%9A%E5%B0%8F%E7%82%B9%E7%82%B9%E9%9A%8F%E8%AE%B0/" class="post-title-link" itemprop="url">UE5：小点点随记</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2023-02-01 12:11:09 / 修改时间：12:18:54" itemprop="dateCreated datePublished" datetime="2023-02-01T12:11:09+08:00">2023-02-01</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="这篇文章主要记录一些平时想到和看到的-UE-Tips"><a href="#这篇文章主要记录一些平时想到和看到的-UE-Tips" class="headerlink" title="这篇文章主要记录一些平时想到和看到的 UE Tips"></a>这篇文章主要记录一些平时想到和看到的 UE Tips</h1><h3 id="RPC-实现调用-XXX-Implementation-和-XXX-Validate-的方式"><a href="#RPC-实现调用-XXX-Implementation-和-XXX-Validate-的方式" class="headerlink" title="RPC 实现调用 XXX_Implementation 和 XXX_Validate 的方式"></a>RPC 实现调用 XXX_Implementation 和 XXX_Validate 的方式</h3><p>其实是 UHT 里面自动生成的 execXXX 函数中调用 Validate 和 Implementation 的逻辑，所以 XXX_Implementation 不是 UFUNCTION 也很正常，因为真正的 UFUNCTION 是根据 RPC 宏自动生成的 execXXX，所以如果要魔改逻辑，只能改 UHT 源码了</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2023/01/19/UE5-1%E7%9C%8B%E6%BA%90%E7%A0%81%EF%BC%9A%E6%96%B0%E5%A2%9E%E9%83%A8%E5%88%86%EF%BC%8C%E8%BE%B9%E7%9C%8B%E8%BE%B9%E6%9B%B4/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -844,110 +903,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2021/12/07/UE4%EF%BC%9AReplicationGraph4-27%E5%8F%98%E5%8C%96%E5%86%85%E5%AE%B9/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/link-300x300.gif">
-      <meta itemprop="name" content="Mapz">
-      <meta itemprop="description" content="FIND THE CHILD">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Mapz's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/12/07/UE4%EF%BC%9AReplicationGraph4-27%E5%8F%98%E5%8C%96%E5%86%85%E5%AE%B9/" class="post-title-link" itemprop="url">UE4：ReplicationGraph4.27变化内容</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2021-12-07 15:50:21 / 修改时间：15:51:36" itemprop="dateCreated datePublished" datetime="2021-12-07T15:50:21+08:00">2021-12-07</time>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="Replication-Graph-4-27-变化内容"><a href="#Replication-Graph-4-27-变化内容" class="headerlink" title="Replication Graph 4.27 变化内容"></a>Replication Graph 4.27 变化内容</h1><h2 id="UReplicationGraph-PostServerReplicateStats"><a href="#UReplicationGraph-PostServerReplicateStats" class="headerlink" title="UReplicationGraph::PostServerReplicateStats"></a>UReplicationGraph::PostServerReplicateStats</h2><p>在本帧执行同步后会执行此函数</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">PostServerReplicateStats</span><span class="params">(<span class="keyword">const</span> FFrameReplicationStats&amp; Stats)</span> </span>&#123;&#125;;</span><br></pre></td></tr></table></figure>
-
-<p>其中参数</p>
-<p>FFrameReplicationStats 定义</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** Collects basic stats on the replicated actors */</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">FFrameReplicationStats</span></span></span><br><span class="line"><span class="class">	&#123;</span></span><br><span class="line">		<span class="comment">// Total number of actors replicated.</span></span><br><span class="line">		int32 NumReplicatedActors = <span class="number">0</span>;</span><br><span class="line">  </span><br><span class="line">        <span class="comment">// Number of actors who did not send any data when ReplicateActor was called on them.</span></span><br><span class="line">		int32 NumReplicatedCleanActors = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">		<span class="comment">// Number of actors replicated using the fast path.</span></span><br><span class="line">		int32 NumReplicatedFastPathActors = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">		<span class="comment">// Total connections replicated to during the tick including children (splitscreen) and replay connections.</span></span><br><span class="line">		int32 NumConnections = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">		<span class="function"><span class="keyword">void</span> <span class="title">Reset</span><span class="params">()</span></span></span><br><span class="line"><span class="function">		</span>&#123;</span><br><span class="line">			*<span class="keyword">this</span> = <span class="built_in">FFrameReplicationStats</span>();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;;</span><br></pre></td></tr></table></figure>
-
-<p>主要记录了当次同步的一些信息，可利用这些信息重写函数后来做一些操作</p>
-<h1 id="FActorRepListRefView-重构"><a href="#FActorRepListRefView-重构" class="headerlink" title="FActorRepListRefView 重构"></a>FActorRepListRefView 重构</h1><p>不再是一个包含 FActorRepList 的类型，而是由一个 TArray</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TArray&lt;FActorRepListType&gt; RepList;</span><br></pre></td></tr></table></figure>
-
-<p>来直接储存 Actor 指针信息，其中 FActorRepListType 为 AActor*</p>
-<p>增加了迭代器函数，可以直接使用 for 循环来遍同步列表了</p>
-<p>FActorRepListRawView 不再使用，换成了 FActorRepListConstView 来存一个临时的列表引用</p>
-<h2 id="FActorRepListStatCollector"><a href="#FActorRepListStatCollector" class="headerlink" title="FActorRepListStatCollector"></a>FActorRepListStatCollector</h2><p>当前用于收集展示 RepList 的状态信息</p>
-<p>执行控制台命令</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Net.RepGraph.Lists.Stats</span><br></pre></td></tr></table></figure>
-
-<p>后，逻辑和 4.26 不同，因为结点的同步列表数结构发生变化了，Debug 信息的收集也不太一样了</p>
-<p>会执行</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">UReplicationGraph::CollectRepListStats</span><span class="params">(FActorRepListStatCollector&amp; StatCollector)</span> <span class="keyword">const</span></span></span><br></pre></td></tr></table></figure>
-
-<p>其中会对所有的 Node 执行</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">UReplicationGraphNode::DoCollectActorRepListStats</span><span class="params">(FActorRepListStatCollector&amp; StatsCollector)</span> <span class="keyword">const</span></span></span><br></pre></td></tr></table></figure>
-
-<p>现在 Node 节点提供了一个可重写的函数</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Implement this to visit any FActorRepListRefView and FStreamingLevelActorListCollection your node implemented.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">OnCollectActorRepListStats</span><span class="params">(struct FActorRepListStatCollector&amp; StatsCollector)</span> <span class="keyword">const</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
-
-<p>可以自定义操作</p>
-<p>FActorRepListStatCollector</p>
-<p>自己的结点如果需要获得准确的 Debug 信息，应当重写函数，并调用</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FActorRepListStatCollector::VisitRepList</span><span class="params">(<span class="keyword">const</span> UReplicationGraphNode* NodeToVisit, <span class="keyword">const</span> FActorRepListRefView&amp; RepList)</span></span></span><br></pre></td></tr></table></figure>
-
-<p>和</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FActorRepListStatCollector::VisitStreamingLevelCollection</span><span class="params">(<span class="keyword">const</span> UReplicationGraphNode* NodeToVisit, <span class="keyword">const</span> FStreamingLevelActorListCollection&amp; StreamingLevelList)</span></span></span><br></pre></td></tr></table></figure>
-
-<p>等来加入节点中的同步列表信息，信息记录的内容有</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">FRepListStats</span></span></span><br><span class="line"><span class="class">	&#123;</span></span><br><span class="line">		uint32 NumLists = <span class="number">0</span>;</span><br><span class="line">		uint32 NumActors = <span class="number">0</span>;</span><br><span class="line">		uint32 MaxListSize = <span class="number">0</span>;</span><br><span class="line">		uint32 NumSlack = <span class="number">0</span>;</span><br><span class="line">		uint64 NumBytes = <span class="number">0</span>;</span><br><span class="line">	&#125;;</span><br></pre></td></tr></table></figure>
-
-<p>会按照节点类型，Streaming Level 类型 来分类存储展示</p>
-<h1 id="新增结点-TearDown-函数"><a href="#新增结点-TearDown-函数" class="headerlink" title="新增结点 TearDown 函数"></a>新增结点 TearDown 函数</h1><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** Mark the node and all its children PendingKill */</span></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">TearDown</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>因为上面的重构，需要手动调用自行管理的同步列表的 TearDown ，来清空 List</p>
-<p>同时也可以自定义需要的逻辑在里面</p>
-<p>例如</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">UReplicationGraphNode_ActorList::TearDown</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	Super::<span class="built_in">TearDown</span>();</span><br><span class="line"></span><br><span class="line">	ReplicationActorList.<span class="built_in">TearDown</span>();</span><br><span class="line">	StreamingLevelCollection.<span class="built_in">TearDown</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1019,7 +974,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">42</span>
+          <span class="site-state-item-count">43</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

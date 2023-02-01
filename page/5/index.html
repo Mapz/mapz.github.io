@@ -160,6 +160,117 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2017/04/21/%E5%9C%A8Mac%E4%B8%8A%E5%AE%89%E8%A3%85wordpress/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="FIND THE CHILD">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/04/21/%E5%9C%A8Mac%E4%B8%8A%E5%AE%89%E8%A3%85wordpress/" class="post-title-link" itemprop="url">在Mac上安装wordpress</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-04-21 18:08:25" itemprop="dateCreated datePublished" datetime="2017-04-21T18:08:25+08:00">2017-04-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-22 10:15:32" itemprop="dateModified" datetime="2021-04-22T10:15:32+08:00">2021-04-22</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总览"><a href="#总览" class="headerlink" title="总览"></a>总览</h2><hr>
+<p>WordPress是一款使用广泛的博客系统，为了学习和验证其是否符合我们的需求，我将会在我的Macbook上安装之</p>
+<p>WordPress需求：</p>
+<ol>
+<li>PHP 5.2.4或更高版本</li>
+<li>MySQL 5.0或更高版本</li>
+</ol>
+<h2 id="安装PHP"><a href="#安装PHP" class="headerlink" title="安装PHP"></a>安装PHP</h2><hr>
+<p>其实Mac上是内置了PHP的，但是版本可能不满足大家的需要</p>
+<p>如果说出现问题，我们可以使用一个神奇的命令来安装你需要的php版本，而不是走一般的安装方式</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://php-osx.liip.ch/install.sh | bash -s 5.6</span><br></pre></td></tr></table></figure>
+
+<p>后面的参数替换为你需要的版本号即可</p>
+<h2 id="安装MySQL"><a href="#安装MySQL" class="headerlink" title="安装MySQL"></a>安装MySQL</h2><hr>
+<p><a target="_blank" rel="noopener" href="https://dev.mysql.com/downloads/">官网下载区</a></p>
+<p><a target="_blank" rel="noopener" href="https://dev.mysql.com/downloads/mysql/">MySQL Community Server</a></p>
+<p>选择你的版本来下载安装即可<br>安装时会生成临时密码</p>
+<blockquote>
+<p>  2017-04-24T03:36:10.495551Z 1 [Note] A temporary password is generated for root@localhost: f)a=u!Jl2s-U<br>If you lose this password, please consult the section How to Reset the Root Password in the MySQL reference manual.</p>
+</blockquote>
+<p>请记住这个临时密码</p>
+<p>为了方便操作mysql我们再下载一个mysql workbench 作为管理工具</p>
+<h2 id="安装wordpress"><a href="#安装wordpress" class="headerlink" title="安装wordpress"></a>安装wordpress</h2><hr>
+<p>在<a target="_blank" rel="noopener" href="https://cn.wordpress.org/">wordpress中文网站</a>下载</p>
+<p>然后移步<a target="_blank" rel="noopener" href="https://codex.wordpress.org/zh-cn:%E5%AE%89%E8%A3%85WordPress">安装文档</a></p>
+<p>下载后解压至某目录，然后编辑apache2的httpd.conf配置此目录到apache服务器下</p>
+<p>例如</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Alias /wordpress &quot;/Volumes/store/wordpress/wordpress&quot;</span><br><span class="line"><span class="tag">&lt;<span class="name">Directory</span> &quot;/<span class="attr">Volumes</span>/<span class="attr">store</span>/<span class="attr">wordpress</span>/<span class="attr">wordpress</span>&quot;&gt;</span></span><br><span class="line">    Options Indexes MultiViews</span><br><span class="line">    AllowOverride None</span><br><span class="line">    Order allow,deny</span><br><span class="line">    Allow from all</span><br><span class="line"><span class="tag">&lt;/<span class="name">Directory</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>浏览器打开 <strong><a target="_blank" rel="noopener" href="http://localhost/wordpress">http://localhost/wordpress</a></strong> 可以看到wordpress欢迎界面</p>
+<h2 id="配置wordpress"><a href="#配置wordpress" class="headerlink" title="配置wordpress"></a>配置wordpress</h2><hr>
+<p>按照欢迎页面的提示，我们准备好以下信息：</p>
+<ol>
+<li>数据库名</li>
+<li>数据库用户名</li>
+<li>数据库密码</li>
+<li>数据库主机</li>
+<li>数据表前缀（table prefix，特别是当您要在一个数据库中安装多个WordPress时）</li>
+</ol>
+<h3 id="启动mysql"><a href="#启动mysql" class="headerlink" title="启动mysql"></a>启动mysql</h3><p>在__系统偏好设置__中找到__mySql__然后点击__Start MySql Server__</p>
+<p>我们打开mysql workbench创建一个localhost的连接</p>
+<p>第一次登录会让我们修改密码，然后老密码写入上面那个临时密码，登入服务器</p>
+<p>使用 <strong>new schema</strong> 创建新库</p>
+<p>在 <strong>Users and Privileges</strong> 创建新用户 , 并加入权限</p>
+<h3 id="使用wordpress欢迎页面配置"><a href="#使用wordpress欢迎页面配置" class="headerlink" title="使用wordpress欢迎页面配置"></a>使用wordpress欢迎页面配置</h3><p>点击欢迎页面下一步，把刚创建的数据库和用户填入后提交</p>
+<p>如果报错，请按提示进行</p>
+<p>最后输入站点信息，DONE！</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2017/04/21/Hexo-NexT-%E4%B8%BB%E9%A2%98%E5%A2%9E%E5%8A%A0%E9%98%85%E8%AF%BB%E8%AE%A1%E6%95%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -361,7 +472,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">42</span>
+          <span class="site-state-item-count">43</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

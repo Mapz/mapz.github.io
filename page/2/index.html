@@ -160,6 +160,110 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2021/12/07/UE4%EF%BC%9AReplicationGraph4-27%E5%8F%98%E5%8C%96%E5%86%85%E5%AE%B9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="FIND THE CHILD">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/12/07/UE4%EF%BC%9AReplicationGraph4-27%E5%8F%98%E5%8C%96%E5%86%85%E5%AE%B9/" class="post-title-link" itemprop="url">UE4：ReplicationGraph4.27变化内容</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-12-07 15:50:21 / 修改时间：15:51:36" itemprop="dateCreated datePublished" datetime="2021-12-07T15:50:21+08:00">2021-12-07</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="Replication-Graph-4-27-变化内容"><a href="#Replication-Graph-4-27-变化内容" class="headerlink" title="Replication Graph 4.27 变化内容"></a>Replication Graph 4.27 变化内容</h1><h2 id="UReplicationGraph-PostServerReplicateStats"><a href="#UReplicationGraph-PostServerReplicateStats" class="headerlink" title="UReplicationGraph::PostServerReplicateStats"></a>UReplicationGraph::PostServerReplicateStats</h2><p>在本帧执行同步后会执行此函数</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">PostServerReplicateStats</span><span class="params">(<span class="keyword">const</span> FFrameReplicationStats&amp; Stats)</span> </span>&#123;&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>其中参数</p>
+<p>FFrameReplicationStats 定义</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** Collects basic stats on the replicated actors */</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">FFrameReplicationStats</span></span></span><br><span class="line"><span class="class">	&#123;</span></span><br><span class="line">		<span class="comment">// Total number of actors replicated.</span></span><br><span class="line">		int32 NumReplicatedActors = <span class="number">0</span>;</span><br><span class="line">  </span><br><span class="line">        <span class="comment">// Number of actors who did not send any data when ReplicateActor was called on them.</span></span><br><span class="line">		int32 NumReplicatedCleanActors = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">		<span class="comment">// Number of actors replicated using the fast path.</span></span><br><span class="line">		int32 NumReplicatedFastPathActors = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">		<span class="comment">// Total connections replicated to during the tick including children (splitscreen) and replay connections.</span></span><br><span class="line">		int32 NumConnections = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">		<span class="function"><span class="keyword">void</span> <span class="title">Reset</span><span class="params">()</span></span></span><br><span class="line"><span class="function">		</span>&#123;</span><br><span class="line">			*<span class="keyword">this</span> = <span class="built_in">FFrameReplicationStats</span>();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>主要记录了当次同步的一些信息，可利用这些信息重写函数后来做一些操作</p>
+<h1 id="FActorRepListRefView-重构"><a href="#FActorRepListRefView-重构" class="headerlink" title="FActorRepListRefView 重构"></a>FActorRepListRefView 重构</h1><p>不再是一个包含 FActorRepList 的类型，而是由一个 TArray</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TArray&lt;FActorRepListType&gt; RepList;</span><br></pre></td></tr></table></figure>
+
+<p>来直接储存 Actor 指针信息，其中 FActorRepListType 为 AActor*</p>
+<p>增加了迭代器函数，可以直接使用 for 循环来遍同步列表了</p>
+<p>FActorRepListRawView 不再使用，换成了 FActorRepListConstView 来存一个临时的列表引用</p>
+<h2 id="FActorRepListStatCollector"><a href="#FActorRepListStatCollector" class="headerlink" title="FActorRepListStatCollector"></a>FActorRepListStatCollector</h2><p>当前用于收集展示 RepList 的状态信息</p>
+<p>执行控制台命令</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Net.RepGraph.Lists.Stats</span><br></pre></td></tr></table></figure>
+
+<p>后，逻辑和 4.26 不同，因为结点的同步列表数结构发生变化了，Debug 信息的收集也不太一样了</p>
+<p>会执行</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">UReplicationGraph::CollectRepListStats</span><span class="params">(FActorRepListStatCollector&amp; StatCollector)</span> <span class="keyword">const</span></span></span><br></pre></td></tr></table></figure>
+
+<p>其中会对所有的 Node 执行</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">UReplicationGraphNode::DoCollectActorRepListStats</span><span class="params">(FActorRepListStatCollector&amp; StatsCollector)</span> <span class="keyword">const</span></span></span><br></pre></td></tr></table></figure>
+
+<p>现在 Node 节点提供了一个可重写的函数</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Implement this to visit any FActorRepListRefView and FStreamingLevelActorListCollection your node implemented.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">OnCollectActorRepListStats</span><span class="params">(struct FActorRepListStatCollector&amp; StatsCollector)</span> <span class="keyword">const</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以自定义操作</p>
+<p>FActorRepListStatCollector</p>
+<p>自己的结点如果需要获得准确的 Debug 信息，应当重写函数，并调用</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FActorRepListStatCollector::VisitRepList</span><span class="params">(<span class="keyword">const</span> UReplicationGraphNode* NodeToVisit, <span class="keyword">const</span> FActorRepListRefView&amp; RepList)</span></span></span><br></pre></td></tr></table></figure>
+
+<p>和</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FActorRepListStatCollector::VisitStreamingLevelCollection</span><span class="params">(<span class="keyword">const</span> UReplicationGraphNode* NodeToVisit, <span class="keyword">const</span> FStreamingLevelActorListCollection&amp; StreamingLevelList)</span></span></span><br></pre></td></tr></table></figure>
+
+<p>等来加入节点中的同步列表信息，信息记录的内容有</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">FRepListStats</span></span></span><br><span class="line"><span class="class">	&#123;</span></span><br><span class="line">		uint32 NumLists = <span class="number">0</span>;</span><br><span class="line">		uint32 NumActors = <span class="number">0</span>;</span><br><span class="line">		uint32 MaxListSize = <span class="number">0</span>;</span><br><span class="line">		uint32 NumSlack = <span class="number">0</span>;</span><br><span class="line">		uint64 NumBytes = <span class="number">0</span>;</span><br><span class="line">	&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>会按照节点类型，Streaming Level 类型 来分类存储展示</p>
+<h1 id="新增结点-TearDown-函数"><a href="#新增结点-TearDown-函数" class="headerlink" title="新增结点 TearDown 函数"></a>新增结点 TearDown 函数</h1><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** Mark the node and all its children PendingKill */</span></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">TearDown</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>因为上面的重构，需要手动调用自行管理的同步列表的 TearDown ，来清空 List</p>
+<p>同时也可以自定义需要的逻辑在里面</p>
+<p>例如</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">UReplicationGraphNode_ActorList::TearDown</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	Super::<span class="built_in">TearDown</span>();</span><br><span class="line"></span><br><span class="line">	ReplicationActorList.<span class="built_in">TearDown</span>();</span><br><span class="line">	StreamingLevelCollection.<span class="built_in">TearDown</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2021/11/24/UE4%EF%BC%9AReplicationGraph%E7%BD%91%E6%A0%BC%E5%90%8C%E6%AD%A5%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1191,99 +1295,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2019/01/17/Unity%E5%AD%A6%E4%B9%A0%EF%BC%9AFC%E4%B8%AD%E6%8A%A0%E5%87%BA%E6%9D%A5%E7%9A%84%E5%AD%97%E4%BD%93%E5%81%9A%E6%88%90BitmapFont/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/link-300x300.gif">
-      <meta itemprop="name" content="Mapz">
-      <meta itemprop="description" content="FIND THE CHILD">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Mapz's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/01/17/Unity%E5%AD%A6%E4%B9%A0%EF%BC%9AFC%E4%B8%AD%E6%8A%A0%E5%87%BA%E6%9D%A5%E7%9A%84%E5%AD%97%E4%BD%93%E5%81%9A%E6%88%90BitmapFont/" class="post-title-link" itemprop="url">Unity学习：FC中抠出来的字体做成BitmapFont</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2019-01-17 16:12:22" itemprop="dateCreated datePublished" datetime="2019-01-17T16:12:22+08:00">2019-01-17</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-22 10:15:32" itemprop="dateModified" datetime="2021-04-22T10:15:32+08:00">2021-04-22</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>做像素游戏的时候，你通常会自定义字体，或者绘制像素字体。</p>
-<p>字体画好，或者像我们一样直接从 FC 游戏里面抠出图集来之后，怎么样来做成BitmapFont呢？</p>
-<p>网上的内容通常教你怎么从安装好的ttf来导出，现在我们手上只有 PNG 怎么办呢？</p>
-<h2 id="用到的工具"><a href="#用到的工具" class="headerlink" title="用到的工具"></a>用到的工具</h2><ul>
-<li>BMFont</li>
-<li>Unity</li>
-</ul>
-<h2 id="假设"><a href="#假设" class="headerlink" title="假设"></a>假设</h2><ol>
-<li>我们的字符图集中文字大小都是 8 X 8,并且无间隔（也可以是其他大小，总之Unity可以自动按格子大小来切就行）</li>
-</ol>
-<h2 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h2><ol>
-<li>我们从FC Dump 下来的字体图集，一般都是8x8的字符集，为了能够使用BMFont来导出Bitmap Font，我们需要先把这个图集打成单个的字符。</li>
-<li>打开 Unity，导入字符集图片，导入设置为 压缩-&gt;无，并把可读写打开，Sprite类型为多个</li>
-<li>打开 Sprite Editor ，切片方式 By Cell Size 大小 8 x 8，切好图集</li>
-<li>使用如下脚本导出为单个的图片</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">using UnityEditor;</span><br><span class="line">using UnityEngine;</span><br><span class="line">static class BitmapFontTool &#123;</span><br><span class="line">    [MenuItem (&quot;BitmapFontTool/导出切好的Sprite&quot;)]</span><br><span class="line">    static void SaveSprite () &#123;</span><br><span class="line">        //每一张贴图类型Advanced下 Read/Write Enabled打上勾才能进行文件读取</span><br><span class="line">        //导入类型不能是压缩过的</span><br><span class="line">        string bitMapfontPath = @&quot;Assets/BitmapFontTool/&quot;;</span><br><span class="line">        foreach (Object obj in Selection.objects) &#123;</span><br><span class="line"></span><br><span class="line">            string selectionPath = AssetDatabase.GetAssetPath (obj);</span><br><span class="line">            string selectionExt = System.IO.Path.GetExtension (selectionPath);</span><br><span class="line">            string fileName = System.IO.Path.GetFileNameWithoutExtension (selectionPath);</span><br><span class="line">            string loadPath = selectionPath.Substring (0, selectionPath.Length - selectionExt.Length);</span><br><span class="line">            if (selectionExt.Length == 0) continue;</span><br><span class="line"></span><br><span class="line">            //加载此文件下的所有资源</span><br><span class="line">            Object[] spriteList = AssetDatabase.LoadAllAssetsAtPath (selectionPath); </span><br><span class="line"></span><br><span class="line">            if (spriteList.Length &gt; 0) &#123;</span><br><span class="line">                //创建导出文件夹</span><br><span class="line">                string outPath = bitMapfontPath + &quot;/SpriteExportOutput/&quot; + fileName;</span><br><span class="line">                System.IO.Directory.CreateDirectory (outPath);</span><br><span class="line"></span><br><span class="line">                foreach (var sprite in spriteList) &#123;</span><br><span class="line">                    try &#123;</span><br><span class="line">                        var sprite_ = (Sprite) sprite;</span><br><span class="line">                        Texture2D tex = new Texture2D ((int) sprite_.rect.width, (int) sprite_.rect.height, sprite_.texture.format, false);</span><br><span class="line">                        tex.SetPixels (sprite_.texture.GetPixels ((int) sprite_.rect.xMin, (int) sprite_.rect.yMin, (int) sprite_.rect.width, (int) sprite_.rect.height));</span><br><span class="line">                        tex.Apply ();</span><br><span class="line">                        //写出成png文件</span><br><span class="line">                        System.IO.File.WriteAllBytes (outPath + &quot;/&quot; + sprite_.name + &quot;.png&quot;, tex.EncodeToPNG ());</span><br><span class="line">                        Debug.Log (&quot;SaveSprite to&quot; + outPath);</span><br><span class="line">                    &#125; catch (System.Exception e) &#123;</span><br><span class="line">                        Debug.Log (e);</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                &#125;</span><br><span class="line">                Debug.Log (&quot;保存图片完毕!&quot; + outPath);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        // &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ol start="5">
-<li>网上搜索 BMFont 教程，按教程使用导出的图片，创建 fnt 字体</li>
-<li>把输出的文件导入 Unity ,下载 BitmapFontImporter 插件</li>
-<li>Assets -&gt; Bitmap Font -&gt; build 创建 Unity 自定义字体</li>
-<li>使用字体</li>
-</ol>
-<h2 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h2><ol>
-<li>BMFont 导入大量图片文件的时候非常的难用，不适合批量使用</li>
-<li>既然已经有图集了，何不在图集上自己创建fnt文件呢？</li>
-</ol>
-<h2 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h2><p>在Unity下，自己写个工具来制作fnt也并不难<br>挖个坑留着以后来尝试</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1355,7 +1366,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">42</span>
+          <span class="site-state-item-count">43</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
