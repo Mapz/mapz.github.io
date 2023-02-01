@@ -191,7 +191,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-01-30 15:11:39" itemprop="dateModified" datetime="2023-01-30T15:11:39+08:00">2023-01-30</time>
+                <time title="修改时间：2023-01-31 19:48:23" itemprop="dateModified" datetime="2023-01-31T19:48:23+08:00">2023-01-31</time>
               </span>
 
           
@@ -208,13 +208,18 @@
           <h2 id="网络部分"><a href="#网络部分" class="headerlink" title="网络部分"></a>网络部分</h2><ul>
 <li><p>控制命令新增 NMT_Ping，衍生出 NetPing.h 相关内容</p>
 </li>
-<li><p>Iris 同步系统</p>
+<li><p>Iris 同步系统（实验性）</p>
 </li>
 <li><p>SubObject 新同步特性</p>
 <ul>
 <li>ActorComponent 新增函数 ReadyForReplication</li>
 <li>FReplicatedComponentsInfo 类型</li>
 <li>现在 Actor 会自己管理一个 ReplicatedComponent 的列表</li>
+</ul>
+</li>
+<li><p>流量加密</p>
+<ul>
+<li>NetDriver 中增加了两个可以覆盖的函数，DoesSupportEncryption IsEncryptionRequired，需要强制开启加密就不需要搞魔法了</li>
 </ul>
 </li>
 <li><p>Replication Graph</p>
@@ -228,6 +233,7 @@
 </ul>
 <h2 id="系统部分"><a href="#系统部分" class="headerlink" title="系统部分"></a>系统部分</h2><ul>
 <li>UClass 新增 TryFindTypeSlow 函数</li>
+<li>TCppStructOps 把 Traits 的判断放在了编译期</li>
 </ul>
 
       
