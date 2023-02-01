@@ -185,7 +185,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2023-02-01 12:11:09 / 修改时间：12:18:54" itemprop="dateCreated datePublished" datetime="2023-02-01T12:11:09+08:00">2023-02-01</time>
+              <time title="创建时间：2023-02-01 12:11:09 / 修改时间：15:34:17" itemprop="dateCreated datePublished" datetime="2023-02-01T12:11:09+08:00">2023-02-01</time>
             </span>
 
           
@@ -200,6 +200,12 @@
 
       
           <h1 id="这篇文章主要记录一些平时想到和看到的-UE-Tips"><a href="#这篇文章主要记录一些平时想到和看到的-UE-Tips" class="headerlink" title="这篇文章主要记录一些平时想到和看到的 UE Tips"></a>这篇文章主要记录一些平时想到和看到的 UE Tips</h1><h3 id="RPC-实现调用-XXX-Implementation-和-XXX-Validate-的方式"><a href="#RPC-实现调用-XXX-Implementation-和-XXX-Validate-的方式" class="headerlink" title="RPC 实现调用 XXX_Implementation 和 XXX_Validate 的方式"></a>RPC 实现调用 XXX_Implementation 和 XXX_Validate 的方式</h3><p>其实是 UHT 里面自动生成的 execXXX 函数中调用 Validate 和 Implementation 的逻辑，所以 XXX_Implementation 不是 UFUNCTION 也很正常，因为真正的 UFUNCTION 是根据 RPC 宏自动生成的 execXXX，所以如果要魔改逻辑，只能改 UHT 源码了</p>
+<h3 id="CallInEditor"><a href="#CallInEditor" class="headerlink" title="CallInEditor"></a>CallInEditor</h3><p>一个 UFUNCTION 宏中，如果加上宏参数</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CallInEditor</span><br></pre></td></tr></table></figure>
+
+<p>那么会在编辑器的 Property 面板中生成一个同名按钮，点击后可以执行这个函数</p>
+<p>同样的，如果是蓝图类，在 CustomEvent 节点的属性面板中也有一个 CallInEditor 的勾选框</p>
+<p>效果是一样的</p>
 
       
     </div>
