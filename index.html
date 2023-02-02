@@ -160,6 +160,194 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2023/02/02/UE5%EF%BC%9A%E7%99%BB%E5%BD%95%E6%8F%A1%E6%89%8B%E6%8E%A7%E5%88%B6%E6%B6%88%E6%81%AF%E7%AE%80%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="FIND THE CHILD">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/02/02/UE5%EF%BC%9A%E7%99%BB%E5%BD%95%E6%8F%A1%E6%89%8B%E6%8E%A7%E5%88%B6%E6%B6%88%E6%81%AF%E7%AE%80%E6%9E%90/" class="post-title-link" itemprop="url">UE5：登录握手控制消息简析</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2023-02-02 16:54:16 / 修改时间：18:26:46" itemprop="dateCreated datePublished" datetime="2023-02-02T16:54:16+08:00">2023-02-02</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="常见控制消息与参数列表"><a href="#常见控制消息与参数列表" class="headerlink" title="常见控制消息与参数列表"></a>常见控制消息与参数列表</h2><h3 id="Hello"><a href="#Hello" class="headerlink" title="Hello"></a>Hello</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DEFINE_CONTROL_CHANNEL_MESSAGE(Hello, 0, uint8, uint32, FString); // initial client connection message</span><br></pre></td></tr></table></figure>
+
+<p>客户端发起登录初始化</p>
+<p>参数：大小端    本地客户端的网络版本    网络加密Token</p>
+<h3 id="Upgrade"><a href="#Upgrade" class="headerlink" title="Upgrade"></a>Upgrade</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DEFINE_CONTROL_CHANNEL_MESSAGE(Upgrade, 2, uint32); // server tells client their version is incompatible</span><br></pre></td></tr></table></figure>
+
+<p>告诉客户端版本不匹配</p>
+<p>参数：服务器版本号</p>
+<h3 id="Challenge"><a href="#Challenge" class="headerlink" title="Challenge"></a>Challenge</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DEFINE_CONTROL_CHANNEL_MESSAGE(Challenge, 3, FString); // server sends client challenge string to verify integrity</span><br></pre></td></tr></table></figure>
+
+<p>服务器让客户端开始登录</p>
+<p>参数：当前时间</p>
+<h3 id="Login"><a href="#Login" class="headerlink" title="Login"></a>Login</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DEFINE_CONTROL_CHANNEL_MESSAGE(Login, 5, FString, FString, FUniqueNetIdRepl, FString); // client requests to be admitted to the game</span><br></pre></td></tr></table></figure>
+
+<p>客户端发起登录</p>
+<p>参数：默认客户端反馈”0”     客户端登录Url字符串    PlayerID    平台名称</p>
+<h3 id="Welcome"><a href="#Welcome" class="headerlink" title="Welcome"></a>Welcome</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DEFINE_CONTROL_CHANNEL_MESSAGE(Welcome, 1, FString, FString, FString); // server tells client they&#x27;re ok&#x27;ed to load the server&#x27;s level</span><br></pre></td></tr></table></figure>
+
+<p>服务器欢迎客户端登陆</p>
+<p>参数：地图名称    GameMode名称    重定向URL</p>
+<h3 id="NetSpeed"><a href="#NetSpeed" class="headerlink" title="NetSpeed"></a>NetSpeed</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DEFINE_CONTROL_CHANNEL_MESSAGE(Netspeed, 4, int32); // client sends requested transfer rate</span><br></pre></td></tr></table></figure>
+
+<p>客户端请求设置网速</p>
+<p>参数：网速</p>
+<h3 id="Failure"><a href="#Failure" class="headerlink" title="Failure"></a>Failure</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DEFINE_CONTROL_CHANNEL_MESSAGE(Failure, 6, FString); // indicates connection failure</span><br></pre></td></tr></table></figure>
+
+<p>失败，各种意义上的，一般会断开连接</p>
+<p>参数：失败原因</p>
+<h3 id="Join"><a href="#Join" class="headerlink" title="Join"></a>Join</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DEFINE_CONTROL_CHANNEL_MESSAGE(Join, 9); // final join request (spawns PlayerController)</span><br></pre></td></tr></table></figure>
+
+<p>客户端正式加入游戏中</p>
+<p>参数：无</p>
+<h3 id="JoinSplit"><a href="#JoinSplit" class="headerlink" title="JoinSplit"></a>JoinSplit</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DEFINE_CONTROL_CHANNEL_MESSAGE(JoinSplit, 10, FString, FUniqueNetIdRepl); // child player (splitscreen) join request</span><br></pre></td></tr></table></figure>
+
+<p>向服务器发送分屏玩家加入请求</p>
+<p>参数：URL    玩家UniqueNetId</p>
+<h3 id="EncryptionAck"><a href="#EncryptionAck" class="headerlink" title="EncryptionAck"></a>EncryptionAck</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DEFINE_CONTROL_CHANNEL_MESSAGE(EncryptionAck, 21);</span><br></pre></td></tr></table></figure>
+
+<p>向客户端发送收到流量加密请求</p>
+<p>参数：无</p>
+<h3 id="GameSpecific"><a href="#GameSpecific" class="headerlink" title="GameSpecific"></a>GameSpecific</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DEFINE_CONTROL_CHANNEL_MESSAGE(GameSpecific, 20, uint8, FString); // custom game-specific message routed to UGameInstance for processing</span><br></pre></td></tr></table></figure>
+
+<p>自由定义的命令，会在 UGameInstance::HandleGameNetControlMessage 中处理</p>
+<p>参数：命令的Byte    命令的字符串</p>
+<h2 id="登录流程控制消息顺序"><a href="#登录流程控制消息顺序" class="headerlink" title="登录流程控制消息顺序"></a>登录流程控制消息顺序</h2><ul>
+<li><p>客户端</p>
+<ul>
+<li>发送 Hello 到服务器</li>
+</ul>
+</li>
+<li><p>服务器收到 Hello</p>
+<ul>
+<li>判断两边的网络版本是否匹配，不匹配则发送 Upgrade 到客户端</li>
+<li>版本匹配则查看是否有加密 Token<ul>
+<li>如果没有，则发送 Challenge 到客户端（5.0 以及以前）</li>
+<li>如果没有，则判断是否强制开启加密（5.1 以及以后）<ul>
+<li>如果强制开启加密，则发送 Failure 到客户端，原因是缺少 Encrypt Token</li>
+<li>如果没有开启，则发送 Challenge 到客户端</li>
+</ul>
+</li>
+<li></li>
+<li>如果有，则调用 UGameInstance::ReceivedNetworkEncryptionToken 解析 Token<ul>
+<li>如果解析成功<ul>
+<li>开启加密，向客户端发送 EncryptionAck 到客户端</li>
+<li>发送 Challenge 到客户端</li>
+</ul>
+</li>
+<li>解析失败<ul>
+<li>发送 Failure 到客户端</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>客户端收到 EncryptionAck</p>
+<ul>
+<li>客户端执行 UGameInstance::ReceivedNetworkEncryptionAck ，客户端开启加密</li>
+</ul>
+</li>
+<li><p>客户端收到 Challenge</p>
+<ul>
+<li>组装一些参数（玩家昵称 ，还有 GetGameLoginOptions）到 URL，并和平台名和 PlayerID 等一起发送消息 Login 到服务器</li>
+</ul>
+</li>
+<li><p>服务器收到 Login</p>
+<ul>
+<li>调用 GameMode-&gt;PreLogin，使用 Login 消息传入的 PlayerID<ul>
+<li>PreLogin 没有 Error Message<ul>
+<li>调用 AuthorityGameMode-&gt;GameWelcomePlayer</li>
+<li>向客户端发送 Welcome</li>
+</ul>
+</li>
+<li>PreLogin 有 Error Message，则向客户端发送 Failure</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>客户端收到 Welcome</p>
+<ul>
+<li>发送 NetSpeed 消息到服务器</li>
+</ul>
+</li>
+<li><p>服务器收到 NetSpeed</p>
+<ul>
+<li>设置 Connection 的 NetSpeed</li>
+</ul>
+</li>
+<li><p>客户端收到 Failure</p>
+<ul>
+<li>关闭网络连接</li>
+</ul>
+</li>
+<li><p>客户端加载地图完成</p>
+<ul>
+<li>发送 Join 到服务器</li>
+</ul>
+</li>
+<li><p>服务器收到 Join</p>
+<ul>
+<li>创建 PlayerController<ul>
+<li>创建失败：发送 Failure</li>
+<li>创建成功：标记玩家状态为 Join，开始 ClientTravel</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2023/02/01/UE5%EF%BC%9A%E5%B0%8F%E7%82%B9%E7%82%B9%E9%9A%8F%E8%AE%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -183,10 +371,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2023-02-01 12:11:09 / 修改时间：15:37:36" itemprop="dateCreated datePublished" datetime="2023-02-01T12:11:09+08:00">2023-02-01</time>
+              <time title="创建时间：2023-02-01 12:11:09" itemprop="dateCreated datePublished" datetime="2023-02-01T12:11:09+08:00">2023-02-01</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-02-02 15:28:07" itemprop="dateModified" datetime="2023-02-02T15:28:07+08:00">2023-02-02</time>
+              </span>
 
           
 
@@ -207,6 +401,10 @@
 <p>同样的，如果是蓝图类，在 CustomEvent 节点的属性面板中也有一个 CallInEditor 的勾选框</p>
 <p>效果是一样的</p>
 <p>但是有一个限制，就是函数不能带参数，否则不会生成 Property 面板按钮</p>
+<h3 id="使用-ini-重新设置控制台变量-CVar-的值"><a href="#使用-ini-重新设置控制台变量-CVar-的值" class="headerlink" title="使用 ini 重新设置控制台变量 CVar 的值"></a>使用 ini 重新设置控制台变量 CVar 的值</h3><p>在 DefaultEngine.ini 中，添加</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[SystemSettings]</span><br><span class="line">xxx.yyy = zzz</span><br></pre></td></tr></table></figure>
+
+<p>其中 xxx.yyy 是控制台变量的名称，zzz 为覆盖默认值</p>
 
       
     </div>
@@ -829,87 +1027,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2022/06/02/UE5%EF%BC%9A%E8%A7%A3%E5%86%B3ReplicationGraph%E5%AF%BC%E8%87%B4%E7%9A%84%E6%A8%A1%E6%8B%9F%E7%AB%AF%E7%A7%BB%E5%8A%A8%E4%B8%8D%E8%BF%9E%E7%BB%AD%E9%97%AE%E9%A2%98/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/link-300x300.gif">
-      <meta itemprop="name" content="Mapz">
-      <meta itemprop="description" content="FIND THE CHILD">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Mapz's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/06/02/UE5%EF%BC%9A%E8%A7%A3%E5%86%B3ReplicationGraph%E5%AF%BC%E8%87%B4%E7%9A%84%E6%A8%A1%E6%8B%9F%E7%AB%AF%E7%A7%BB%E5%8A%A8%E4%B8%8D%E8%BF%9E%E7%BB%AD%E9%97%AE%E9%A2%98/" class="post-title-link" itemprop="url">UE5：解决ReplicationGraph导致的模拟端移动不连续问题</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-06-02 18:30:12" itemprop="dateCreated datePublished" datetime="2022-06-02T18:30:12+08:00">2022-06-02</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-06-06 11:48:11" itemprop="dateModified" datetime="2022-06-06T11:48:11+08:00">2022-06-06</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h2><p>在模拟端，UE4 的 Character 类型移动同步是依靠属性同步来实现的</p>
-<p>Character 类型的对象通常会被加入到 RG 的网格同步节点中的动态节点</p>
-<p>而 Replication Graph 默认的网格同步节点</p>
-<p>UReplicationGraphNode_GridSpatialization2D</p>
-<p>的单个网格实现是</p>
-<p>UReplicationGraphNode_GridCell</p>
-<p>其中管理动态对象的节点获取函数为</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">UReplicationGraphNode* <span class="title">UReplicationGraphNode_GridCell::GetDynamicNode</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (DynamicNode == <span class="literal">nullptr</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">if</span> (CreateDynamicNodeOverride)</span><br><span class="line">		&#123;</span><br><span class="line">			DynamicNode = <span class="built_in">CreateDynamicNodeOverride</span>(<span class="keyword">this</span>);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span></span><br><span class="line">		&#123;</span><br><span class="line">			DynamicNode = CreateChildNode&lt;UReplicationGraphNode_ActorListFrequencyBuckets&gt;();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> DynamicNode;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>故而，Character 同步一般用到的是 UReplicationGraphNode_ActorListFrequencyBuckets 节点</p>
-<p>这个节点中，会有分帧同步的策略，所以不太适合 Movment 这种需要每帧同步的内容</p>
-<h2 id="处理方式"><a href="#处理方式" class="headerlink" title="处理方式"></a>处理方式</h2><p>幸运的是，Grid Cell 节点提供了 CreateDynamicNodeOverride 成员，可以让我们自定义动态成员节点</p>
-<p>所以我们可以创建自己的节点来管理动态成员</p>
-<p>比如</p>
-<p>在我们的自定义节点下创建分帧以及 Actor List 两个子节点</p>
-<p>然后根据不同的策略把 Actor 加入不同的子节点中即可</p>
-<p>在这里，我们只需要把 Character 类型的策略设置为不分帧，或者把需要更精确同步运动的单个 Character 设置为不分帧</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -981,7 +1098,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-count">44</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
