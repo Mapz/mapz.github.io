@@ -28,11 +28,13 @@
 <meta property="og:site_name" content="Mapz&#39;s Blog">
 <meta property="og:description" content="这篇文章主要记录一些平时想到和看到的 UE TipsRPC 实现调用 XXX_Implementation 和 XXX_Validate 的方式其实是 UHT 里面自动生成的 execXXX 函数中调用 Validate 和 Implementation 的逻辑，所以 XXX_Implementation 不是 UFUNCTION 也很正常，因为真正的 UFUNCTION 是根据 RPC 宏自动生">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://mapz.github.io/2023/02/01/UE5%EF%BC%9A%E5%B0%8F%E7%82%B9%E7%82%B9%E9%9A%8F%E8%AE%B0/image/UE5%EF%BC%9A%E5%B0%8F%E7%82%B9%E7%82%B9%E9%9A%8F%E8%AE%B0/1676016039786.png">
 <meta property="article:published_time" content="2023-02-01T04:11:09.000Z">
-<meta property="article:modified_time" content="2023-02-02T07:28:07.766Z">
+<meta property="article:modified_time" content="2023-02-10T08:01:53.145Z">
 <meta property="article:author" content="Mapz">
 <meta property="article:tag" content="UE5">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://mapz.github.io/2023/02/01/UE5%EF%BC%9A%E5%B0%8F%E7%82%B9%E7%82%B9%E9%9A%8F%E8%AE%B0/image/UE5%EF%BC%9A%E5%B0%8F%E7%82%B9%E7%82%B9%E9%9A%8F%E8%AE%B0/1676016039786.png">
 
 <link rel="canonical" href="http://mapz.github.io/2023/02/01/UE5%EF%BC%9A%E5%B0%8F%E7%82%B9%E7%82%B9%E9%9A%8F%E8%AE%B0/">
 
@@ -193,7 +195,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-02-02 15:28:07" itemprop="dateModified" datetime="2023-02-02T15:28:07+08:00">2023-02-02</time>
+                <time title="修改时间：2023-02-10 16:01:53" itemprop="dateModified" datetime="2023-02-10T16:01:53+08:00">2023-02-10</time>
               </span>
 
           
@@ -226,6 +228,17 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[SystemSettings]</span><br><span class="line">xxx.yyy = zzz</span><br></pre></td></tr></table></figure>
 
 <p>其中 xxx.yyy 是控制台变量的名称，zzz 为覆盖默认值</p>
+<h3 id="Map-Check"><a href="#Map-Check" class="headerlink" title="Map Check"></a>Map Check</h3><p>Map Check 可以帮助你更好的检查地图中的 Actor 是否存在错误或者不适当的配置</p>
+<p>执行主菜单的-&gt;Build-&gt;MapCheck 即可执行检查当前地图（UE5下)</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * Function that gets called from within Map_Check to allow this actor to check itself</span><br><span class="line"> * for any potential errors and register them with map check dialog.</span><br><span class="line"> */</span><br><span class="line">virtual void CheckForErrors();</span><br></pre></td></tr></table></figure>
+
+<p>在你自己的 Actor 派生类重写 CheckForErrors ，在其中添加检查逻辑即可</p>
+<p>检查逻辑可以通过</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">FMessageLog(&quot;MapCheck&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>来生成编辑器 Console 提示，其还可以 Add 各种 Token 来进行帮助跳转</p>
+<p><img src="image/UE5%EF%BC%9A%E5%B0%8F%E7%82%B9%E7%82%B9%E9%9A%8F%E8%AE%B0/1676016039786.png" alt="1676016039786"></p>
+<p>其中 ActorToken 点击可跳转 Actor，ActionToken 点击可以执行一个自定义的命令，AssetNameToken 点击可跳转相关资源，等等</p>
 
     </div>
 
@@ -309,7 +322,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%BF%99%E7%AF%87%E6%96%87%E7%AB%A0%E4%B8%BB%E8%A6%81%E8%AE%B0%E5%BD%95%E4%B8%80%E4%BA%9B%E5%B9%B3%E6%97%B6%E6%83%B3%E5%88%B0%E5%92%8C%E7%9C%8B%E5%88%B0%E7%9A%84-UE-Tips"><span class="nav-number">1.</span> <span class="nav-text">这篇文章主要记录一些平时想到和看到的 UE Tips</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RPC-%E5%AE%9E%E7%8E%B0%E8%B0%83%E7%94%A8-XXX-Implementation-%E5%92%8C-XXX-Validate-%E7%9A%84%E6%96%B9%E5%BC%8F"><span class="nav-number">1.0.1.</span> <span class="nav-text">RPC 实现调用 XXX_Implementation 和 XXX_Validate 的方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CallInEditor"><span class="nav-number">1.0.2.</span> <span class="nav-text">CallInEditor</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-ini-%E9%87%8D%E6%96%B0%E8%AE%BE%E7%BD%AE%E6%8E%A7%E5%88%B6%E5%8F%B0%E5%8F%98%E9%87%8F-CVar-%E7%9A%84%E5%80%BC"><span class="nav-number">1.0.3.</span> <span class="nav-text">使用 ini 重新设置控制台变量 CVar 的值</span></a></li></ol></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%BF%99%E7%AF%87%E6%96%87%E7%AB%A0%E4%B8%BB%E8%A6%81%E8%AE%B0%E5%BD%95%E4%B8%80%E4%BA%9B%E5%B9%B3%E6%97%B6%E6%83%B3%E5%88%B0%E5%92%8C%E7%9C%8B%E5%88%B0%E7%9A%84-UE-Tips"><span class="nav-number">1.</span> <span class="nav-text">这篇文章主要记录一些平时想到和看到的 UE Tips</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RPC-%E5%AE%9E%E7%8E%B0%E8%B0%83%E7%94%A8-XXX-Implementation-%E5%92%8C-XXX-Validate-%E7%9A%84%E6%96%B9%E5%BC%8F"><span class="nav-number">1.0.1.</span> <span class="nav-text">RPC 实现调用 XXX_Implementation 和 XXX_Validate 的方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CallInEditor"><span class="nav-number">1.0.2.</span> <span class="nav-text">CallInEditor</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-ini-%E9%87%8D%E6%96%B0%E8%AE%BE%E7%BD%AE%E6%8E%A7%E5%88%B6%E5%8F%B0%E5%8F%98%E9%87%8F-CVar-%E7%9A%84%E5%80%BC"><span class="nav-number">1.0.3.</span> <span class="nav-text">使用 ini 重新设置控制台变量 CVar 的值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Map-Check"><span class="nav-number">1.0.4.</span> <span class="nav-text">Map Check</span></a></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
