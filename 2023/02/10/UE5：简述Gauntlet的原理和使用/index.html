@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/link-300x300.gif">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/link-300x300.gif">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/link-300x300.gif">
+  <link rel="mask-icon" href="/images/link-300x300.gif" color="#222">
+  <link rel="manifest" href="/images/manifest.json">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"mapz.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="什么是 GauntletGauntlet 官方文档 简而言之，Gauntlet 提供支持来启动多个实例来进行测试，例如常见的 Dedicated Server 测试，需要一个服务器和多个客户端 但是 Gauntlet 并不关心测试的内容，只提供一个需要开发者实现的 GauntletTestController 来控制测试的流程 所以 Gauntlet 的侧重点在于 组织单个或多个实例 ，而非测试的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UE5：简述Gauntlet的原理和使用">
+<meta property="og:url" content="http://mapz.github.io/2023/02/10/UE5%EF%BC%9A%E7%AE%80%E8%BF%B0Gauntlet%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E4%BD%BF%E7%94%A8/index.html">
+<meta property="og:site_name" content="Mapz&#39;s Blog">
+<meta property="og:description" content="什么是 GauntletGauntlet 官方文档 简而言之，Gauntlet 提供支持来启动多个实例来进行测试，例如常见的 Dedicated Server 测试，需要一个服务器和多个客户端 但是 Gauntlet 并不关心测试的内容，只提供一个需要开发者实现的 GauntletTestController 来控制测试的流程 所以 Gauntlet 的侧重点在于 组织单个或多个实例 ，而非测试的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://mapz.github.io/2023/02/10/UE5%EF%BC%9A%E7%AE%80%E8%BF%B0Gauntlet%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E4%BD%BF%E7%94%A8/Guantlet%E9%A1%B9%E7%9B%AE.png">
+<meta property="og:image" content="http://mapz.github.io/2023/02/10/UE5%EF%BC%9A%E7%AE%80%E8%BF%B0Gauntlet%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E4%BD%BF%E7%94%A8/Gauntlet%E6%8F%92%E4%BB%B6%E9%A1%B9%E7%9B%AE.png">
+<meta property="og:image" content="http://mapz.github.io/2023/02/10/UE5%EF%BC%9A%E7%AE%80%E8%BF%B0Gauntlet%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E4%BD%BF%E7%94%A8/%E5%88%9B%E5%BB%BAAutomation.png">
+<meta property="og:image" content="http://mapz.github.io/2023/02/10/UE5%EF%BC%9A%E7%AE%80%E8%BF%B0Gauntlet%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E4%BD%BF%E7%94%A8/AddReference.png">
+<meta property="og:image" content="http://mapz.github.io/2023/02/10/UE5%EF%BC%9A%E7%AE%80%E8%BF%B0Gauntlet%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E4%BD%BF%E7%94%A8/AddReference2.png">
+<meta property="og:image" content="http://mapz.github.io/2023/02/10/UE5%EF%BC%9A%E7%AE%80%E8%BF%B0Gauntlet%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E4%BD%BF%E7%94%A8/%E6%89%A7%E8%A1%8C%E6%B5%8B%E8%AF%95.png">
+<meta property="og:image" content="http://mapz.github.io/2023/02/10/UE5%EF%BC%9A%E7%AE%80%E8%BF%B0Gauntlet%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E4%BD%BF%E7%94%A8/%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C.png">
+<meta property="og:image" content="http://mapz.github.io/2023/02/10/UE5%EF%BC%9A%E7%AE%80%E8%BF%B0Gauntlet%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E4%BD%BF%E7%94%A8/%E8%B0%83%E8%AF%95Automation.png">
+<meta property="article:published_time" content="2023-02-10T08:46:09.000Z">
+<meta property="article:modified_time" content="2023-02-14T08:32:22.918Z">
+<meta property="article:author" content="Mapz">
+<meta property="article:tag" content="UE5">
+<meta property="article:tag" content="Gauntlet">
+<meta property="article:tag" content="Automation">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://mapz.github.io/2023/02/10/UE5%EF%BC%9A%E7%AE%80%E8%BF%B0Gauntlet%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E4%BD%BF%E7%94%A8/Guantlet%E9%A1%B9%E7%9B%AE.png">
+
+<link rel="canonical" href="http://mapz.github.io/2023/02/10/UE5%EF%BC%9A%E7%AE%80%E8%BF%B0Gauntlet%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E4%BD%BF%E7%94%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>UE5：简述Gauntlet的原理和使用 | Mapz's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?69c67c43ced4b46e7ba1656a83e9c872";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Mapz's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">可以递归的函数指针</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2023/02/10/UE5%EF%BC%9A%E7%AE%80%E8%BF%B0Gauntlet%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E4%BD%BF%E7%94%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="FIND THE CHILD">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          UE5：简述Gauntlet的原理和使用
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-02-10 16:46:09" itemprop="dateCreated datePublished" datetime="2023-02-10T16:46:09+08:00">2023-02-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-02-14 16:32:22" itemprop="dateModified" datetime="2023-02-14T16:32:22+08:00">2023-02-14</time>
+              </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="什么是-Gauntlet"><a href="#什么是-Gauntlet" class="headerlink" title="什么是 Gauntlet"></a>什么是 Gauntlet</h1><p>Gauntlet <a target="_blank" rel="noopener" href="https://docs.unrealengine.com/4.27/en-US/TestingAndOptimization/Automation/Gauntlet/">官方文档</a></p>
+<p>简而言之，Gauntlet 提供支持来启动多个实例来进行测试，例如常见的 Dedicated Server 测试，需要一个服务器和多个客户端</p>
+<p>但是 Gauntlet 并不关心测试的内容，只提供一个需要开发者实现的 GauntletTestController 来控制测试的流程</p>
+<p>所以 Gauntlet 的侧重点在于 <strong>组织单个或多个实例</strong> ，而非测试的 <strong>内容和形式</strong>（包括使用的测试框架，测试的内容等）</p>
+<p>具体的测试可以由开发者自己编写的 GauntletTestController 以 <strong>任意方式</strong> 来测试 <strong>任意内容</strong></p>
+<h1 id="本文的开发环境"><a href="#本文的开发环境" class="headerlink" title="本文的开发环境"></a>本文的开发环境</h1><p>操作系统：windows 11</p>
+<p>引擎：UE 5.0 源码版本</p>
+<p>IDE：Rider for Unreal</p>
+<h1 id="Gauntlet-的原理"><a href="#Gauntlet-的原理" class="headerlink" title="Gauntlet 的原理"></a>Gauntlet 的原理</h1><h2 id="两个部分"><a href="#两个部分" class="headerlink" title="两个部分"></a>两个部分</h2><p>Gauntlet 分为两个部分</p>
+<ul>
+<li>游戏外自动化部分，属于 AutomationTool</li>
+<li>游戏内 Runtime 部分，属于 Gauntlet 插件，通过 Gauntlet Test Controller 驱动游戏内逻辑</li>
+</ul>
+<p>其中游戏外部分，控制游戏实例的参数和启动</p>
+<p>游戏内部分，控制具体的测试逻辑</p>
+<h2 id="什么是-AutomationTool"><a href="#什么是-AutomationTool" class="headerlink" title="什么是 AutomationTool"></a>什么是 AutomationTool</h2><p>AutomationTool <a target="_blank" rel="noopener" href="https://docs.unrealengine.com/4.27/en-US/ProductionPipelines/BuildTools/AutomationTool/">官方文档</a></p>
+<p>AutomationTool 可简称 UAT</p>
+<p>是虚幻引擎中用于自动化流水线的一套工具，主要用于 Build 项目和测试等，这套工具由 C# 编写</p>
+<p>执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;%EnginePath%\Engine\Build\BatchFiles\RunUAT&quot;</span><br></pre></td></tr></table></figure>
+
+<p>即可执行 Automation 命令，命令的基类为</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title">BuildCommand</span> : <span class="title">CommandUtils</span></span><br></pre></td></tr></table></figure>
+
+<p>开发者也可以自己添加 Automation 项目</p>
+<p>在其中添加相关 Automation 中需要的自定义类型，或者继承 BuildCommand 为 UAT 添加自定义命令</p>
+<p>Automation 项目都需要以 XXX.Automation 来命名，且放在 [ProjectDir]\Build 或 [EngineDir]\Source\Programs 目录下</p>
+<p>Build 时需要使用源码版本的引擎，从而在每次 Build 的时候重新生成自定义 Automation 项目的 dll</p>
+<h2 id="Gauntlet-Automation-游戏外自动化部分"><a href="#Gauntlet-Automation-游戏外自动化部分" class="headerlink" title="Gauntlet.Automation 游戏外自动化部分"></a>Gauntlet.Automation 游戏外自动化部分</h2><p>Gauntlet 正是 Automation 中的一个项目，也就是上文所说的游戏外自动化部分</p>
+<img src="/2023/02/10/UE5%EF%BC%9A%E7%AE%80%E8%BF%B0Gauntlet%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E4%BD%BF%E7%94%A8/Guantlet%E9%A1%B9%E7%9B%AE.png" class title="项目目录">
+
+<h3 id="RunUnreal-命令"><a href="#RunUnreal-命令" class="headerlink" title="RunUnreal 命令"></a>RunUnreal 命令</h3><p>Gauntlet 项目提供了 RunUnreal 命令来进行 Gauntlet 测试</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">RunUnreal</span> : <span class="title">BuildCommand</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>命令入口</strong></p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">override</span> ExitCode <span class="title">Execute</span>(<span class="params"></span>)</span></span><br><span class="line">&#123;</span><br><span class="line">	Globals.Params = <span class="keyword">new</span> Gauntlet.Params(<span class="keyword">this</span>.Params);</span><br><span class="line"></span><br><span class="line">	UnrealTestOptions ContextOptions = <span class="keyword">new</span> UnrealTestOptions();</span><br><span class="line">	<span class="comment">// 附加载各种参数到 Context 中</span></span><br><span class="line">	AutoParam.ApplyParamsAndDefaults(ContextOptions, Globals.Params.AllArguments);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (<span class="built_in">string</span>.IsNullOrEmpty(ContextOptions.Project))</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">throw</span> <span class="keyword">new</span> AutomationException(<span class="string">&quot;No project specified. Use -project=ShooterGame etc&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	ContextOptions.Namespaces = <span class="string">&quot;Gauntlet.UnrealTest,UnrealGame,UnrealEditor&quot;</span>;</span><br><span class="line">	ContextOptions.UsesSharedBuildType = <span class="literal">true</span>;</span><br><span class="line">	<span class="comment">// 开始测试</span></span><br><span class="line">	<span class="keyword">return</span> RunTests(ContextOptions);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>测试参数 Context</strong></p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">UnrealTestOptions</span> : <span class="title">TestExecutorOptions</span>,  <span class="title">IAutoParamNotifiable</span></span><br></pre></td></tr></table></figure>
+
+<p>其中就包含了上面所说的启动多个实例需要用到的包括 Platform 类型、Build 类型、包文件地址、多个实例的 Build Target 类型、Role 类型（客户端还是服务器）、加载的地图之类的参数</p>
+<p><strong>RunTest</strong></p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> ExitCode <span class="title">RunTests</span>(<span class="params">UnrealTestOptions ContextOptions</span>)</span></span><br></pre></td></tr></table></figure>
+
+<p>包含测试逻辑， ExitCode 中会返回测试是否通过</p>
+<p>执行函数时，会先根据我们传入的 Context 来查找存在的符合条件的可执行文件，然后打开一个或多个游戏实例来进行测试</p>
+<p><strong>ExecuteTests</strong></p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="built_in">bool</span> <span class="title">ExecuteTests</span>(<span class="params">UnrealTestOptions Options, IEnumerable&lt;ITestNode&gt; TestList</span>)</span></span><br></pre></td></tr></table></figure>
+
+<p>具体测试逻辑入口，准备好实例的 Context 信息后，会传入测试列表，执行这个函数开始测试</p>
+<h3 id="测试的具体CSharp类型"><a href="#测试的具体CSharp类型" class="headerlink" title="测试的具体CSharp类型"></a>测试的具体CSharp类型</h3><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title">BaseTest</span> : <span class="title">ITestNode</span></span><br></pre></td></tr></table></figure>
+
+<p>这个就是测试的基类，包含了测试所需的基本逻辑链条，在实际使用中，需要使用其子类</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title">UnrealTestNode</span>&lt;<span class="title">TConfigClass</span>&gt; : <span class="title">BaseTest</span>, <span class="title">IDisposable</span></span><br><span class="line">		<span class="keyword">where</span> <span class="title">TConfigClass</span> : <span class="title">UnrealTestConfiguration</span>, <span class="title">new</span>()</span><br></pre></td></tr></table></figure>
+
+<p>来派生出开发者自己的测试类型，并在其中指定 Gauntlet Controller 和游戏实例配置等信息</p>
+<p>这个类型中，还包括一些测试结果相关的功能，例如输入测试报告等</p>
+<p>在实际使用的章节我们会继续提到这个类型</p>
+<p>我们现在只需要知道，测试的列表，是通过 UAT 的命令行传入的</p>
+<p><strong>启动实例</strong></p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="built_in">bool</span> <span class="title">PrepareUnrealApp</span>(<span class="params"></span>)</span></span><br></pre></td></tr></table></figure>
+
+<p>在测试 Node 开始测试的时候，这个函数会被执行，来启动游戏实例</p>
+<p>在这个函数中，我们会发现上文所说的 <strong>两个部分</strong> 连接起来的秘密</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// add controllers</span></span><br><span class="line">SessionRole.CommandLineParams.Add(<span class="string">&quot;gauntlet&quot;</span>, </span><br><span class="line">   TestRole.Controllers.Count &gt; <span class="number">0</span> ? <span class="built_in">string</span>.Join(<span class="string">&quot;,&quot;</span>, TestRole.Controllers) : <span class="literal">null</span>);   </span><br></pre></td></tr></table></figure>
+
+<p>这里，把 Gauntlet Test Controller 通过命令行的形式，加入到了游戏实例的启动参数中！</p>
+<p>也就是说游戏实例启动后，一定是去获取了 gauntlet=xxx,xxx,xxx 参数，来获得需要执行的 gauntlet test controller 列表</p>
+<p>这个我们在后面再继续聊</p>
+<p>当 Controller 准备好以后，最终执行了</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UnrealApp = <span class="keyword">new</span> UnrealSession(Context.BuildInfo, SessionRoles) &#123; Sandbox = Context.Options.Sandbox &#125;;</span><br></pre></td></tr></table></figure>
+
+<p>来启动实例</p>
+<p>我们可以看到，这个实例是以 UnrealSession 的形式存在的</p>
+<h3 id="UnrealSession"><a href="#UnrealSession" class="headerlink" title="UnrealSession"></a>UnrealSession</h3><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">UnrealSession</span> : <span class="title">IDisposable</span></span><br></pre></td></tr></table></figure>
+
+<p>Unreal Session 用于启动、监控、关闭游戏实例</p>
+<h2 id="Gauntlet-游戏内插件部分"><a href="#Gauntlet-游戏内插件部分" class="headerlink" title="Gauntlet 游戏内插件部分"></a>Gauntlet 游戏内插件部分</h2><img src="/2023/02/10/UE5%EF%BC%9A%E7%AE%80%E8%BF%B0Gauntlet%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E4%BD%BF%E7%94%A8/Gauntlet%E6%8F%92%E4%BB%B6%E9%A1%B9%E7%9B%AE.png" class title="项目目录">
+
+<p>可以看到，插件非常简单，基本就只有一个 Gauntlet Test Controller</p>
+<p>并提供了两个示例 BootTest 和 Error Test</p>
+<h3 id="加载-Gauntlet-命令行的位置"><a href="#加载-Gauntlet-命令行的位置" class="headerlink" title="加载 Gauntlet 命令行的位置"></a>加载 Gauntlet 命令行的位置</h3><p>GauntletModule.cpp</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FGauntletModuleImpl::OnPostEngineInit</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   FCoreUObjectDelegates::PostLoadMapWithWorld.<span class="built_in">AddRaw</span>(<span class="keyword">this</span>, &amp;FGauntletModuleImpl::InnerPostMapChange);</span><br><span class="line">   FCoreUObjectDelegates::PreLoadMap.<span class="built_in">AddRaw</span>(<span class="keyword">this</span>, &amp;FGauntletModuleImpl::InnerPreMapChange);</span><br><span class="line"></span><br><span class="line">   FParse::<span class="built_in">Value</span>(FCommandLine::<span class="built_in">Get</span>(), <span class="built_in">TEXT</span>(<span class="string">&quot;gauntlet.screenshotperiod=&quot;</span>), ScreenshotPeriod);</span><br><span class="line">   FParse::<span class="built_in">Value</span>(FCommandLine::<span class="built_in">Get</span>(), <span class="built_in">TEXT</span>(<span class="string">&quot;gauntlet.heartbeatperiod=&quot;</span>), HeartbeatPeriod);</span><br><span class="line">   <span class="comment">// 加载 Controllers</span></span><br><span class="line">   <span class="built_in">LoadControllers</span>();</span><br><span class="line"></span><br><span class="line">   <span class="keyword">float</span> kTickRate = <span class="number">1.0f</span>;</span><br><span class="line">   FParse::<span class="built_in">Value</span>(FCommandLine::<span class="built_in">Get</span>(), <span class="built_in">TEXT</span>(<span class="string">&quot;gauntlet.tickrate=&quot;</span>), kTickRate);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   TickHandle = FTSTicker::<span class="built_in">GetCoreTicker</span>().<span class="built_in">AddTicker</span>(FTickerDelegate::<span class="built_in">CreateLambda</span>([<span class="keyword">this</span>, kTickRate](<span class="keyword">float</span> TimeDelta)</span><br><span class="line">   &#123;</span><br><span class="line">      <span class="comment">// ticker passes in frame-delta, not tick delta...</span></span><br><span class="line"><span class="built_in">InnerTick</span>(kTickRate);</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">   &#125;),</span><br><span class="line">   kTickRate);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FGauntletModuleImpl::LoadControllers</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   FString ControllerString;</span><br><span class="line"></span><br><span class="line">   FParse::<span class="built_in">Value</span>(FCommandLine::<span class="built_in">Get</span>(), <span class="built_in">TEXT</span>(<span class="string">&quot;gauntlet=&quot;</span>), ControllerString, <span class="literal">false</span>);</span><br><span class="line"></span><br><span class="line">   <span class="keyword">if</span> (ControllerString.<span class="built_in">Len</span>())</span><br><span class="line">   &#123;</span><br><span class="line">      TArray&lt;FString&gt; ControllerNames;</span><br><span class="line"></span><br><span class="line">      ControllerString.<span class="built_in">ParseIntoArrayWS</span>(ControllerNames, <span class="built_in">TEXT</span>(<span class="string">&quot;,&quot;</span>));</span><br><span class="line"></span><br><span class="line">      TSet&lt;FString&gt; ControllersToCreate;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">const</span> FString&amp; Name : ControllerNames)</span><br><span class="line">      &#123;</span><br><span class="line">         UClass* TestClass = <span class="literal">nullptr</span>;</span><br><span class="line"></span><br><span class="line">         <span class="keyword">for</span> (TObjectIterator&lt;UClass&gt; It; It; ++It)</span><br><span class="line">         &#123;</span><br><span class="line">            UClass* Class = *It;</span><br><span class="line"></span><br><span class="line">            FString FullName = Name;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// Search for SomethingTestController and ControllerSomethingTest. The last is legacy</span></span><br><span class="line">FString PartialName1 = Name + <span class="built_in">TEXT</span>(<span class="string">&quot;Controller&quot;</span>);</span><br><span class="line">            FString PartialName2 = <span class="built_in">FString</span>(<span class="built_in">TEXT</span>(<span class="string">&quot;Controller&quot;</span>)) + Name;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (Class-&gt;IsChildOf&lt;UGauntletTestController&gt;())</span><br><span class="line">            &#123;</span><br><span class="line">               FString ClassName = Class-&gt;<span class="built_in">GetName</span>();</span><br><span class="line">               <span class="keyword">if</span> (ClassName == FullName || ClassName.<span class="built_in">EndsWith</span>(PartialName1) || ClassName.<span class="built_in">EndsWith</span>(PartialName2))</span><br><span class="line">               &#123;</span><br><span class="line">                  <span class="comment">// Gauntlet has a couple of test classes, so need to differentiate between &quot;GauntletFooTest&quot; and &quot;GameFooTest&quot;.</span></span><br><span class="line">                  <span class="comment">// that will both be launched via -gauntlet=FooTest</span></span><br><span class="line"><span class="keyword">bool</span> GauntletDefault = ClassName.<span class="built_in">StartsWith</span>(<span class="built_in">TEXT</span>(<span class="string">&quot;Gauntlet&quot;</span>));</span><br><span class="line"></span><br><span class="line">                  TestClass = Class;</span><br><span class="line"></span><br><span class="line">                  <span class="comment">// If not gauntlet stop searching</span></span><br><span class="line"><span class="keyword">if</span> (!GauntletDefault)</span><br><span class="line">                  &#123;</span><br><span class="line">                     <span class="keyword">break</span>;</span><br><span class="line">                  &#125;</span><br><span class="line">               &#125;</span><br><span class="line">            &#125;</span><br><span class="line">         &#125;  </span><br><span class="line"></span><br><span class="line">         <span class="built_in">checkf</span>(TestClass, <span class="built_in">TEXT</span>(<span class="string">&quot;Could not find class for controller %s&quot;</span>), *Name);</span><br><span class="line"></span><br><span class="line">         UGauntletTestController* NewController = NewObject&lt;UGauntletTestController&gt;(<span class="built_in">GetTransientPackage</span>(), TestClass);</span><br><span class="line"></span><br><span class="line">         <span class="built_in">check</span>(NewController);</span><br><span class="line"></span><br><span class="line">         <span class="built_in">UE_LOG</span>(LogGauntlet, Display, <span class="built_in">TEXT</span>(<span class="string">&quot;Added Gauntlet controller %s&quot;</span>), *Name);</span><br><span class="line"></span><br><span class="line">         <span class="comment">// Important - add the controller first! Some controllers may trigger GC&#x27;s which would</span></span><br><span class="line">         <span class="comment">// then result in them being collected...</span></span><br><span class="line">Controllers.<span class="built_in">Add</span>(NewController);</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">for</span> (<span class="keyword">auto</span> Controller : Controllers)</span><br><span class="line">   &#123;</span><br><span class="line">      Controller-&gt;<span class="built_in">OnInit</span>();</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，在 PostEngineInit 后，开始 LoadControllers</p>
+<p>然后读取了命令行，并使用其名称，去获得 C++ 的相应类型</p>
+<p>然后执行其 OnInit</p>
+<h3 id="GauntletTestController-简析"><a href="#GauntletTestController-简析" class="headerlink" title="GauntletTestController 简析"></a>GauntletTestController 简析</h3><p>声明</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">UCLASS</span>()</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">GAUNTLET_API</span> <span class="title">UGauntletTestController</span> :</span> <span class="keyword">public</span> UObject</span><br></pre></td></tr></table></figure>
+
+<p>里面是一些简单的状态控制，几个处理函数都需要自己去实现</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span>    <span class="title">OnInit</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Called prior to a map change</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span>   <span class="title">OnPreMapChange</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Called after a map change. GetCurrentMap() will now return the new map</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span>   <span class="title">OnPostMapChange</span><span class="params">(UWorld* World)</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Called periodically to let the controller check and control state</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span>   <span class="title">OnTick</span><span class="params">(<span class="keyword">float</span> TimeDelta)</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Called when a state change is applied to the module. States are game-driven.</span></span><br><span class="line"><span class="comment"> * GetCurrentState() == OldState until this function returns</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span>   <span class="title">OnStateChange</span><span class="params">(FName OldState, FName NewState)</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>正所谓什么都没写，就有无限可能（狗头。</p>
+<p>前面说的可以测试任何内容就是这个意思，你可以通过写一个自己的 TestController 来添加任何逻辑和接入任何测试框架。</p>
+<p>从上面的 OnInit 那里就可以简单推测出，整个 TestController 是由 GauntletModuleImpl 来驱动的，事实呢也是如此，上面几个函数的调用都是在 GauntletModuleImpl 中。</p>
+<h1 id="从零开始的Gauntlet实战"><a href="#从零开始的Gauntlet实战" class="headerlink" title="从零开始的Gauntlet实战"></a>从零开始的Gauntlet实战</h1><p>现在我们已经了解了 Gauntlet 的基本原理，那么现在我们从零开始使用 Gauntlet 搭建一个简单的测试</p>
+<p>版本是 UE 5.0 源码编译版本</p>
+<h2 id="搭建源码环境"><a href="#搭建源码环境" class="headerlink" title="搭建源码环境"></a>搭建源码环境</h2><p>因为编译 Automation 项目需要源码版本的引擎，所以需要搭建源码环境</p>
+<h2 id="创建一个新的游戏项目"><a href="#创建一个新的游戏项目" class="headerlink" title="创建一个新的游戏项目"></a>创建一个新的游戏项目</h2><p>这里我们选择 First Person 模版，创建一个 C++ 项目，取名 GauntletTutorial</p>
+<p>然后把项目依赖的引擎版本设置为源码，编译启动编辑器</p>
+<p>打开 Plugin 设置，启用 Gauntlet 插件</p>
+<p>因为我们测试的时候需要启动 Server 和 Client 实例，所以我们需要在项目中添加 Server Build Target 以及 Client Build Target</p>
+<p>详见 <a target="_blank" rel="noopener" href="https://docs.unrealengine.com/5.1/en-US/setting-up-dedicated-servers-in-unreal-engine/">官网文档说明</a></p>
+<p>我们这里只需要正确添加 GauntletTutorialServer.Target.cs 和 GauntletTutorialClient.Target.cs 两个文件即可</p>
+<h2 id="制作-Automation-工程"><a href="#制作-Automation-工程" class="headerlink" title="制作 Automation 工程"></a>制作 Automation 工程</h2><h3 id="创建项目"><a href="#创建项目" class="headerlink" title="创建项目"></a>创建项目</h3><p><a target="_blank" rel="noopener" href="https://docs.unrealengine.com/5.1/en-US/create-an-automation-project-in-unreal-engine/">官网文档说明</a></p>
+<p>注：5.0 以前的版本和 5.0 以后的版本使用的 .Net 依赖不同，创建方式略有不同</p>
+<p>我这里 IDE 使用 Rider ，使用 VS 的同学应该也差不太多</p>
+<p>选择 File -&gt; New Solution -&gt; .Net/.Net Core -&gt; Class Library</p>
+<p>填入你喜欢的项目名称，记住之前说过的两个规则</p>
+<ol>
+<li>项目以 XXX.Automation 命名</li>
+<li>项目放在 [ProjectDir]\Build 下</li>
+</ol>
+<p>我们这里在 [ProjectDir]\Build 目录下创建一个 Gauntlet 目录，把我们的项目放进去</p>
+<p>然后 Framework 选择 netcoreapp3.1</p>
+<p>勾上 Put Solution and project in the same directory</p>
+<img src="/2023/02/10/UE5%EF%BC%9A%E7%AE%80%E8%BF%B0Gauntlet%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E4%BD%BF%E7%94%A8/%E5%88%9B%E5%BB%BAAutomation.png" class title="创建Automation">
+
+<p>点击创建生成项目</p>
+<h3 id="编写一个测试"><a href="#编写一个测试" class="headerlink" title="编写一个测试"></a>编写一个测试</h3><p>原理部分讲到，我们的每个测试都是继承自</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title">UnrealTestNode</span>&lt;<span class="title">TConfigClass</span>&gt; : <span class="title">BaseTest</span>, <span class="title">IDisposable</span></span><br><span class="line"><span class="keyword">where</span> <span class="title">TConfigClass</span> : <span class="title">UnrealTestConfiguration</span>, <span class="title">new</span>()</span><br></pre></td></tr></table></figure>
+
+<p>的一个子类</p>
+<p>其中，TConfigClass 是我们测试使用的配置类型，继承自 UnrealTestConfiguration</p>
+<p>我们现在来创建一个自己的测试</p>
+<p>修改默认创建的 Class1 ，改名为 GauntletTutorialTest，并使用 UnrealTestConfig 类型作为配置，类声明如下</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">GauntletTutorialTest</span> : <span class="title">UnrealTestNode</span>&lt;<span class="title">UnrealTestConfig</span>&gt;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到 IDE 提示缺少依赖，我们需要引入 Gauntlet.Automation 项目作为依赖</p>
+<p>项目目录右键点击 Dependence ，打开 Reference</p>
+<img src="/2023/02/10/UE5%EF%BC%9A%E7%AE%80%E8%BF%B0Gauntlet%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E4%BD%BF%E7%94%A8/AddReference.png" class title="AddReference">
+
+<p>点击 Add From</p>
+<p>选择 [EnginePath]\unrealengine\Engine\Binaries\DotNET\AutomationScripts\netcoreapp3.1\Gauntlet.Automation.dll</p>
+<img src="/2023/02/10/UE5%EF%BC%9A%E7%AE%80%E8%BF%B0Gauntlet%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E4%BD%BF%E7%94%A8/AddReference2.png" class title="AddReference2">
+
+<p>然后修改代码，最终如下</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> Gauntlet;</span><br><span class="line"><span class="keyword">using</span> UnrealGame;</span><br><span class="line"><span class="keyword">namespace</span> <span class="title">GauntletTutorial.Automation</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">class</span> <span class="title">GauntletTutorialTest</span> : <span class="title">UnrealTestNode</span>&lt;<span class="title">UnrealTestConfig</span>&gt;</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">GauntletTutorialTest</span>(<span class="params">UnrealTestContext inContext</span>) : <span class="title">base</span>(<span class="params">inContext</span>)</span></span><br><span class="line">        &#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们现在创建出了一个新的测试，但如何设置测试参数呢？答案是重写函数 GetConfiguration()</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/// &lt;summary&gt;</span><br><span class="line">/// Returns information about how to configure our Unreal processes. For the most part the majority</span><br><span class="line">/// of Unreal tests should only need to override this function</span><br><span class="line">/// &lt;/summary&gt;</span><br></pre></td></tr></table></figure>
+
+<p>此函数的说明：大部分情况下，我们只需要重写这个函数就可以了</p>
+<p>现在我们大致写一个测试配置</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">override</span> UnrealTestConfig <span class="title">GetConfiguration</span>(<span class="params"></span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    UnrealTestConfig config = <span class="keyword">base</span>.GetConfiguration();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 添加一个客户端和一个服务器</span></span><br><span class="line">    UnrealTestRole clientRole = config.RequireRole(UnrealTargetRole.Client);</span><br><span class="line">    UnrealTestRole serverRole = config.RequireRole(UnrealTargetRole.Server);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置一个最长测试时间（单位是秒，时间到了后会结束测试）</span></span><br><span class="line">    config.MaxDuration = <span class="number">60</span> * <span class="number">5</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 超时后，测试结果是成功还是失败</span></span><br><span class="line">    config.MaxDurationReachedResult = EMaxDurationReachedResult.Success;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 给每个 Role 设定 GauntletTestController</span></span><br><span class="line">    <span class="comment">// 这里使用官方提供的 ErrorTest 来做一个测试</span></span><br><span class="line">    clientRole.Controllers.Add(<span class="string">&quot;GauntletTestControllerErrorTest&quot;</span>);</span><br><span class="line">    serverRole.Controllers.Add(<span class="string">&quot;GauntletTestControllerErrorTest&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 可以通过 Map 来修改测试地图</span></span><br><span class="line">    <span class="comment">// config.Map = &quot;TestMap&quot;;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 也可以通过 Role 的 Map Override 来修改地图</span></span><br><span class="line">    <span class="comment">// clientRole.MapOverride = &quot;ClientMapOverride&quot;;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> config;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>另外除了这些配置，我们可以看到 UnrealTestConfig 和其父类中还有很多注解为 AutoParam 的变量</p>
+<p>这些变量都可以通过 RunUnreal 的命令行参数来自动获取并赋值</p>
+<p>在测试中，我们指定每个 Role 都执行系统自带的 GauntletTestControllerErrorTest 来测试</p>
+<p>至此一个简单的测试就完成了</p>
+<h2 id="运行编写好的测试"><a href="#运行编写好的测试" class="headerlink" title="运行编写好的测试"></a>运行编写好的测试</h2><p>通过之前的原理部分，我们知道，Gauntlet Automation 是去查找打好的可执行文件来运行的，所以运行前，应该保证你测试中的 Role 实例已经打好包了，例如 Server 就要打好服务器包</p>
+<p>在 [ProjectDir] 下新建一个 Scripts 目录</p>
+<h3 id="打包"><a href="#打包" class="headerlink" title="打包"></a>打包</h3><p>新建一个批处理 Pack.bat 来进行打包</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">@<span class="built_in">echo</span> on</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> ProjectPath=项目目录</span><br><span class="line"><span class="built_in">set</span> EnginePath=源码版引擎目录</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;%EnginePath%\Engine\Build\BatchFiles\RunUAT&quot;</span> BuildCookRun -project=%ProjectPath%\GauntletTutorial.uproject -platform=Win64 -configuration=Development -build -cook -pak -stage -server -client</span><br><span class="line"></span><br><span class="line">pause</span><br></pre></td></tr></table></figure>
+
+<p>执行后，会打出 Client 和 Server 包，因为是源码构建，可能会花比较久的时间</p>
+<h3 id="执行-RunUnreal"><a href="#执行-RunUnreal" class="headerlink" title="执行 RunUnreal"></a>执行 RunUnreal</h3><p>再新建一个批处理 RunGauntlet.bat</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">@<span class="built_in">echo</span> on</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> ProjectPath=项目目录</span><br><span class="line"><span class="built_in">set</span> StagingDir=%ProjectPath%\Saved\StagedBuilds\</span><br><span class="line"><span class="built_in">set</span> EnginePath=源码版引擎目录</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;%EnginePath%\Engine\Build\BatchFiles\RunUAT&quot;</span> RunUnreal -project=%ProjectPath%\GauntletTutorial.uproject -build=%StagingDir% -platform=Win64 -configuration=development -<span class="built_in">test</span>=GauntletTutorial.Automation.GauntletTutorialTest -scriptdir=%ProjectPath%</span><br><span class="line">pause</span><br></pre></td></tr></table></figure>
+
+<p>其中 platform 和 configuration 一定更要和打包配置一致，否则会找不到目标可执行文件</p>
+<p>build 参数选择打出来的包的目录</p>
+<p>test 参数填入 Gauntlet Automation 测试的全名</p>
+<p>运行后，我们可以看到，按照配置启动了一个客户端和一个服务器，如下</p>
+<img src="/2023/02/10/UE5%EF%BC%9A%E7%AE%80%E8%BF%B0Gauntlet%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E4%BD%BF%E7%94%A8/%E6%89%A7%E8%A1%8C%E6%B5%8B%E8%AF%95.png" class title="执行测试">
+
+<p>然后测试结果是失败</p>
+<img src="/2023/02/10/UE5%EF%BC%9A%E7%AE%80%E8%BF%B0Gauntlet%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E4%BD%BF%E7%94%A8/%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C.png" class title="测试结果">
+
+<p>原因是 GauntletTestControllerErrorTest 默认逻辑会在启动后立刻释放一个 check 让测试失败</p>
+<h2 id="传入命令行参数到-Automation-项目和游戏实例中"><a href="#传入命令行参数到-Automation-项目和游戏实例中" class="headerlink" title="传入命令行参数到 Automation 项目和游戏实例中"></a>传入命令行参数到 Automation 项目和游戏实例中</h2><p>查看 UGauntletTestControllerErrorTest 的源码，我们可知这个测试会接受命令行参数，从而调用 check , ensure 等</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">UGauntletTestControllerErrorTest::OnInit</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   ErrorDelay = <span class="number">0</span>;</span><br><span class="line">   ErrorType = <span class="built_in">TEXT</span>(<span class="string">&quot;check&quot;</span>);</span><br><span class="line"></span><br><span class="line">   FParse::<span class="built_in">Value</span>(FCommandLine::<span class="built_in">Get</span>(), <span class="built_in">TEXT</span>(<span class="string">&quot;errortest.delay=&quot;</span>), ErrorDelay);</span><br><span class="line">   FParse::<span class="built_in">Value</span>(FCommandLine::<span class="built_in">Get</span>(), <span class="built_in">TEXT</span>(<span class="string">&quot;errortest.type=&quot;</span>), ErrorType);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">UGauntletTestControllerErrorTest::OnTick</span><span class="params">(<span class="keyword">float</span> TimeDelta)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="keyword">if</span> (<span class="built_in">GetTimeInCurrentState</span>() &gt; ErrorDelay)</span><br><span class="line">   &#123;</span><br><span class="line">      <span class="keyword">if</span> (ErrorType == <span class="built_in">TEXT</span>(<span class="string">&quot;ensure&quot;</span>))</span><br><span class="line">      &#123;</span><br><span class="line">         <span class="built_in">UE_LOG</span>(LogGauntlet, Display, <span class="built_in">TEXT</span>(<span class="string">&quot;Issuing ensure as requested&quot;</span>));</span><br><span class="line">         <span class="built_in">ensureMsgf</span>(<span class="literal">false</span>, <span class="built_in">TEXT</span>(<span class="string">&quot;Ensuring false....&quot;</span>));</span><br><span class="line">         <span class="built_in">EndTest</span>(<span class="number">-1</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">else</span> <span class="keyword">if</span> (ErrorType == <span class="built_in">TEXT</span>(<span class="string">&quot;check&quot;</span>))</span><br><span class="line">      &#123;</span><br><span class="line">         <span class="built_in">UE_LOG</span>(LogGauntlet, Display, <span class="built_in">TEXT</span>(<span class="string">&quot;Issuing failed check as requested&quot;</span>));</span><br><span class="line">         <span class="built_in">checkf</span>(<span class="literal">false</span>, <span class="built_in">TEXT</span>(<span class="string">&quot;Asserting as requested&quot;</span>));</span><br><span class="line">      &#125;   </span><br><span class="line">      <span class="keyword">else</span> <span class="keyword">if</span> (ErrorType == <span class="built_in">TEXT</span>(<span class="string">&quot;fatal&quot;</span>))</span><br><span class="line">      &#123;</span><br><span class="line">         <span class="built_in">UE_LOG</span>(LogGauntlet, Fatal, <span class="built_in">TEXT</span>(<span class="string">&quot;Issuing fatal error as requested&quot;</span>));</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">else</span> <span class="keyword">if</span> (ErrorType == <span class="built_in">TEXT</span>(<span class="string">&quot;gpf&quot;</span>))</span><br><span class="line">      &#123;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> PVS_STUDIO</span></span><br><span class="line">         <span class="built_in">UE_LOG</span>(LogGauntlet, Display, <span class="built_in">TEXT</span>(<span class="string">&quot;Issuing GPF as requested&quot;</span>));</span><br><span class="line">         <span class="keyword">int</span>* Ptr = (<span class="keyword">int</span>*)<span class="number">0</span>;</span><br><span class="line">         <span class="built_in">CA_SUPPRESS</span>(<span class="number">6011</span>);</span><br><span class="line">         *Ptr = <span class="number">42</span>; <span class="comment">// -V522</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">// PVS_STUDIO</span></span></span><br><span class="line">&#125;</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">&#123;</span><br><span class="line">         <span class="built_in">UE_LOG</span>(LogGauntlet, Error, <span class="built_in">TEXT</span>(<span class="string">&quot;No recognized error request. Failing test&quot;</span>));</span><br><span class="line">         <span class="built_in">EndTest</span>(<span class="number">-1</span>);</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么我们怎么样才能从 Gauntlet 传入命令行参数到游戏呢？</p>
+<h3 id="官方例子-Nullrhi-参数"><a href="#官方例子-Nullrhi-参数" class="headerlink" title="官方例子 Nullrhi 参数"></a>官方例子 Nullrhi 参数</h3><p>下面我们参考 UnrealTestConfiguration 是如何把 Nullrhi 这个参数传入游戏中的</p>
+<p>我们回到 Automation 项目中，查看类型 我们使用的配置类型 UnrealTestConfig 的基类 Gauntlet.UnrealTestConfiguration</p>
+<p>其中有一个函数是</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">ApplyToConfig</span>(<span class="params">UnrealAppConfig AppConfig, UnrealSessionRole ConfigRole, IEnumerable&lt;UnrealSessionRole&gt; OtherRoles</span>)</span></span><br></pre></td></tr></table></figure>
+
+<p>这个函数的作用就是组装测试的配置，其中 UnrealAppConfig 就是实例启动的相关参数</p>
+<p>在 ApplyToConfig 函数中有这几行代码</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (Nullrhi)</span><br><span class="line">&#123;</span><br><span class="line">   AppConfig.CommandLine += <span class="string">&quot; -nullrhi&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>程序读取了 Nullrhi 这个成员变量，并判断如果为 True 则在 AppConfig 的命令行参数，也就是实例启动的命令行参数中加入 “ -nullrhi” ，从而让客户端不进行渲染</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;summary&gt;</span></span></span><br><span class="line"><span class="comment"><span class="doctag">///</span> Use a nullrhi for tests</span></span><br><span class="line"><span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;/summary&gt;</span></span></span><br><span class="line"><span class="comment"><span class="doctag">///</span> </span></span><br><span class="line">[<span class="meta">AutoParam(false)</span>]</span><br><span class="line"><span class="keyword">protected</span> <span class="built_in">bool</span> Nullrhi &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>Nullrhi 成员使用了注解 [AutoParam(false)]</p>
+<p>这个注解的作用是直接从 RunUnreal 的命令行获取参数进行初始化，这个命令行传入有两种写法</p>
+<p>我们下面来尝试用这两种写法来使用 nullrhi 参数</p>
+<p>修改我们的 RunGauntlet.bat</p>
+<p><strong>方法一</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">@<span class="built_in">echo</span> on</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> ProjectPath=D:\Work\GauntletTutorial</span><br><span class="line"><span class="built_in">set</span> StagingDir=%ProjectPath%\Saved\StagedBuilds\</span><br><span class="line"><span class="built_in">set</span> EnginePath=K:\UE4_SourceCode\UE5\unrealengine</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;%EnginePath%\Engine\Build\BatchFiles\RunUAT&quot;</span> RunUnreal -project=%ProjectPath%\GauntletTutorial.uproject ^</span><br><span class="line">-build=%StagingDir% -platform=Win64 -configuration=development ^</span><br><span class="line">-<span class="built_in">test</span>=GauntletTutorial.Automation.GauntletTutorialTest ^</span><br><span class="line">-nullrhi ^</span><br><span class="line">-scriptdir=%ProjectPath%</span><br><span class="line">pause</span><br></pre></td></tr></table></figure>
+
+<p>这里面，我们直接把 nullrhi 当做 RunUnreal 的命令行参数传入</p>
+<p><strong>方法二</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">@<span class="built_in">echo</span> on</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> ProjectPath=D:\Work\GauntletTutorial</span><br><span class="line"><span class="built_in">set</span> StagingDir=%ProjectPath%\Saved\StagedBuilds\</span><br><span class="line"><span class="built_in">set</span> EnginePath=K:\UE4_SourceCode\UE5\unrealengine</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;%EnginePath%\Engine\Build\BatchFiles\RunUAT&quot;</span> RunUnreal -project=%ProjectPath%\GauntletTutorial.uproject ^</span><br><span class="line">-build=%StagingDir% -platform=Win64 -configuration=development ^</span><br><span class="line">-<span class="built_in">test</span>=GauntletTutorial.Automation.GauntletTutorialTest(nullrhi) ^</span><br><span class="line">-scriptdir=%ProjectPath%</span><br><span class="line">pause</span><br></pre></td></tr></table></figure>
+
+<p>这里面，我们可以在 test 参数中的的 Gauntlet  测试类型后打一个括号，传入我们的 nullrhi 参数</p>
+<p>不管是哪种方式，修改后运行批处理，可以发现客户端没有渲染了，可知是 nullrhi 已经传入了游戏中，其完整流程为</p>
+<ol>
+<li>通过命令行，参数被 AutoParam 传给了测试的配置类中的成员变量</li>
+<li>在配置类的 ApplyToConfig 函数中，通过判断成员变量的值，并在 AppConfig 的 Commandline 中加入到游戏命令行</li>
+</ol>
+<p>ApplyToConfig 也不光是可以修改命令行，其他用法也可以根据官方代码学习</p>
+<h3 id="尝试传入-ErrorTest-所需参数"><a href="#尝试传入-ErrorTest-所需参数" class="headerlink" title="尝试传入 ErrorTest 所需参数"></a>尝试传入 ErrorTest 所需参数</h3><p>我们使用的 Controller 中需要传入命令行参数 errortest.delay 和 errotest.type</p>
+<p>于是乎，我们按照上面 nullrhi 的做法，先写一个新的配置类型，继承 UnrealTestConfiguration</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System;</span><br><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"><span class="keyword">using</span> Gauntlet;</span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> <span class="title">GauntletTutorial.Automation</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">class</span> <span class="title">GauntletTutorialConfig</span> : <span class="title">UnrealTestConfiguration</span></span><br><span class="line">    &#123;</span><br><span class="line">        [<span class="meta">AutoParam(5)</span>] </span><br><span class="line">        <span class="keyword">private</span> <span class="built_in">float</span> ErrorDelay &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line">  </span><br><span class="line">        [<span class="meta">AutoParam</span>] </span><br><span class="line">        <span class="keyword">private</span> String ErrorType &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">override</span> <span class="keyword">void</span> <span class="title">ApplyToConfig</span>(<span class="params">UnrealAppConfig AppConfig, UnrealSessionRole ConfigRole,</span></span></span><br><span class="line"><span class="params"><span class="function">            IEnumerable&lt;UnrealSessionRole&gt; OtherRoles</span>)</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">base</span>.ApplyToConfig(AppConfig,ConfigRole,OtherRoles);</span><br><span class="line">            <span class="keyword">if</span> (ErrorDelay &gt; <span class="number">0</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                AppConfig.CommandLine += <span class="string">&quot; -errortest.delay=&quot;</span> + ErrorDelay;</span><br><span class="line">                AppConfig.CommandLine += <span class="string">&quot; -errortest.type=&quot;</span> + ErrorType;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后修改我们的 GauntletTutorialTest 的泛型参数为刚创建的新配置类型</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">GauntletTutorialTest</span> : <span class="title">UnrealTestNode</span>&lt;<span class="title">GauntletTutorialConfig</span>&gt;</span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">GauntletTutorialTest</span>(<span class="params">UnrealTestContext inContext</span>) : <span class="title">base</span>(<span class="params">inContext</span>)</span></span><br><span class="line">    &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">override</span> GauntletTutorialConfig <span class="title">GetConfiguration</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">...</span></span><br></pre></td></tr></table></figure>
+
+<p>然后修改 RunGauntlet.bat 加入参数 ErrorDelay 和 ErrorType</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">@<span class="built_in">echo</span> on</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> ProjectPath=D:\Work\GauntletTutorial</span><br><span class="line"><span class="built_in">set</span> StagingDir=%ProjectPath%\Saved\StagedBuilds\</span><br><span class="line"><span class="built_in">set</span> EnginePath=K:\UE4_SourceCode\UE5\unrealengine</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;%EnginePath%\Engine\Build\BatchFiles\RunUAT&quot;</span> RunUnreal -project=%ProjectPath%\GauntletTutorial.uproject ^</span><br><span class="line">-build=%StagingDir% -platform=Win64 -configuration=development ^</span><br><span class="line">-<span class="built_in">test</span>=GauntletTutorial.Automation.GauntletTutorialTest(ErrorDelay=20,ErrorType=ensure) ^</span><br><span class="line">-scriptdir=%ProjectPath%</span><br><span class="line">pause</span><br></pre></td></tr></table></figure>
+
+<p>重新启动 RunGauntlet.bat ，发现 20 秒后，提示 ensure ，返回测试失败，我们的参数成功传入到游戏中</p>
+<p>至此，我们的整个 Gauntlet 基本流程就算完成了</p>
+<h2 id="实战：实现一个基本的测试需求"><a href="#实战：实现一个基本的测试需求" class="headerlink" title="实战：实现一个基本的测试需求"></a>实战：实现一个基本的测试需求</h2><h3 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h3><p>我们现在需要测试在 N 个客户端开启后登入一个服务器，确定所有客户端正确登入服务器则测试成功</p>
+<h3 id="创建测试配置类型"><a href="#创建测试配置类型" class="headerlink" title="创建测试配置类型"></a>创建测试配置类型</h3><p>创建新的测试配置类型，其中指定一个参数 ClientCount，通过 RunUnreal 命令行传入，用于启动 N 个 Client 实例</p>
+<p>然后用 AppConfig 通过命令行参数 -ClientCountToCheck 传入游戏中</p>
+<p>可以看到我们这里使用的基类 Config 为 EpicGameTestConfig</p>
+<p>使用这个的原因是里面包含了让客户端自动连接服务器的逻辑</p>
+<p>LoginTestConfig.cs</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"><span class="keyword">using</span> Gauntlet;</span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> <span class="title">GauntletTutorial.Automation</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">class</span> <span class="title">LoginTestConfig</span> : <span class="title">EpicGameTestConfig</span></span><br><span class="line">    &#123;</span><br><span class="line">        [<span class="meta">AutoParam(1)</span>] </span><br><span class="line">        <span class="keyword">public</span> <span class="built_in">int</span> ClientCount &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">override</span> <span class="keyword">void</span> <span class="title">ApplyToConfig</span>(<span class="params">UnrealAppConfig AppConfig, UnrealSessionRole ConfigRole, IEnumerable&lt;UnrealSessionRole&gt; OtherRoles</span>)</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">base</span>.ApplyToConfig(AppConfig, ConfigRole, OtherRoles);</span><br><span class="line">            AppConfig.CommandLine += <span class="string">&quot; -ClientCountToCheck=&quot;</span> + ClientCount;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="创建测试类型"><a href="#创建测试类型" class="headerlink" title="创建测试类型"></a>创建测试类型</h3><p>在测试中，我们直接把配置中的 ClientCount 取出来，创建相应数量的客户端</p>
+<p>然后服务器设置 TestController 为 GauntletTestLoginController，客户端不需要 Controller 所以不设置</p>
+<p>设置 NoMCP 为 true，这样可以跳过 Gauntlet 内部客户端登录服务器的账号验证等步骤</p>
+<p>如 60 秒还没测试成功，则判断为失败</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"><span class="keyword">using</span> Gauntlet;</span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> <span class="title">GauntletTutorial.Automation</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">class</span> <span class="title">LoginTest</span> : <span class="title">UnrealTestNode</span>&lt;<span class="title">LoginTestConfig</span>&gt;</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">LoginTest</span>(<span class="params">UnrealTestContext inContext</span>) : <span class="title">base</span>(<span class="params">inContext</span>)</span></span><br><span class="line">        &#123;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">override</span> LoginTestConfig <span class="title">GetConfiguration</span>(<span class="params"></span>)</span></span><br><span class="line">        &#123;</span><br><span class="line">            LoginTestConfig config = <span class="keyword">base</span>.GetConfiguration();</span><br><span class="line">            UnrealTestRole server = config.RequireRole(UnrealTargetRole.Server);</span><br><span class="line">            server.Controllers.Add(<span class="string">&quot;GauntletTestLoginController&quot;</span>);</span><br><span class="line">            <span class="comment">// 直接启动配置数量的客户端</span></span><br><span class="line">            config.RequireRoles(UnrealTargetRole.Client, config.ClientCount);</span><br><span class="line">            <span class="comment">// 60 秒后超时，判定为测试失败</span></span><br><span class="line">            config.MaxDuration = <span class="number">60</span>;</span><br><span class="line">            config.MaxDurationReachedResult = EMaxDurationReachedResult.Failure;</span><br><span class="line">            config.NoMCP = <span class="literal">true</span>;</span><br><span class="line">            <span class="keyword">return</span> config;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="创建-GauntletController"><a href="#创建-GauntletController" class="headerlink" title="创建 GauntletController"></a>创建 GauntletController</h3><p>首先，在游戏项目中的 GauntletTutorial.build.cs 中</p>
+<p>PublicDependencyModuleNames 中加入 “Gauntlet”</p>
+<p>然后创建新 C++ 类型 UGauntletTestLoginController</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Fill out your copyright notice in the Description page of Project Settings.</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> once</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;CoreMinimal.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;GauntletTestController.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;GauntletTestLoginController.generated.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * </span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="built_in">UCLASS</span>()</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">GAUNTLETTUTORIAL_API</span> <span class="title">UGauntletTestLoginController</span> :</span> <span class="keyword">public</span> UGauntletTestController</span><br><span class="line">&#123;</span><br><span class="line">   <span class="built_in">GENERATED_BODY</span>()</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">OnInit</span><span class="params">()</span> <span class="keyword">override</span></span>;</span><br><span class="line">   <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">OnTick</span><span class="params">(<span class="keyword">float</span> TimeDelta)</span> <span class="keyword">override</span></span>;</span><br><span class="line"></span><br><span class="line">   <span class="built_in">UFUNCTION</span>()</span><br><span class="line">   <span class="function"><span class="keyword">void</span> <span class="title">OnClientLogin</span><span class="params">(AGameModeBase* GameMode, APlayerController* NewPlayer)</span></span>;</span><br><span class="line"></span><br><span class="line">   int32 CurrentClientCount;</span><br><span class="line">   int32 ClientCountShouldLogin;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Fill out your copyright notice in the Description page of Project Settings.</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;GauntletTestLoginController.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;GameFramework/GameModeBase.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">UGauntletTestLoginController::OnInit</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   Super::<span class="built_in">OnInit</span>();</span><br><span class="line">   CurrentClientCount = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">   FParse::<span class="built_in">Value</span>(FCommandLine::<span class="built_in">Get</span>(), <span class="built_in">TEXT</span>(<span class="string">&quot;ClientCountToCheck=&quot;</span>), ClientCountShouldLogin);</span><br><span class="line">   FGameModeEvents::GameModePostLoginEvent.<span class="built_in">AddUObject</span>(<span class="keyword">this</span>,&amp;UGauntletTestLoginController::OnClientLogin);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">UGauntletTestLoginController::OnTick</span><span class="params">(<span class="keyword">float</span> TimeDelta)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   Super::<span class="built_in">OnTick</span>(TimeDelta);</span><br><span class="line">   <span class="comment">// 全部都登入啦</span></span><br><span class="line"><span class="keyword">if</span> (CurrentClientCount == ClientCountShouldLogin)</span><br><span class="line">   &#123;</span><br><span class="line">      <span class="built_in">EndTest</span>(<span class="number">0</span>);</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">UGauntletTestLoginController::OnClientLogin</span><span class="params">(AGameModeBase* GameMode, APlayerController* NewPlayer)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   CurrentClientCount++;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们注册全局登入事件，然后判断登录的客户端数量是否能达到配置的人数</p>
+<p>如果进入的数量和配置的数量相等了，则结束测试，返回代表成功的结果0</p>
+<h3 id="编写测试批处理"><a href="#编写测试批处理" class="headerlink" title="编写测试批处理"></a>编写测试批处理</h3><p>在 [ProjectDir]\Scripts 目录下创建 RunLoginTest.bat ，test 传入 LogintTest,  并传入参数 ClientCount 5</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">@<span class="built_in">echo</span> on</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> ProjectPath=D:\Work\GauntletTutorial</span><br><span class="line"><span class="built_in">set</span> StagingDir=%ProjectPath%\Saved\StagedBuilds\</span><br><span class="line"><span class="built_in">set</span> EnginePath=K:\UE4_SourceCode\UE5\unrealengine</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;%EnginePath%\Engine\Build\BatchFiles\RunUAT&quot;</span> RunUnreal -project=%ProjectPath%\GauntletTutorial.uproject ^</span><br><span class="line">-build=%StagingDir% -platform=Win64 -configuration=development ^</span><br><span class="line">-<span class="built_in">test</span>=GauntletTutorial.Automation.LoginTest(ClientCount=5) ^</span><br><span class="line">-scriptdir=%ProjectPath%</span><br><span class="line">pause</span><br></pre></td></tr></table></figure>
+
+<h3 id="打包，运行测试"><a href="#打包，运行测试" class="headerlink" title="打包，运行测试"></a>打包，运行测试</h3><p>运行 Pack.bat 打包</p>
+<p>然后运行 RunLoginTest.bat 开启测试</p>
+<p>可以看到当 6 个 device 都启动后，测试显示成功</p>
+<p>然后查看 Server 的日志</p>
+<p>日志在 [Engin]\GauntletTemp\DeviceCache\Win64[LocalDevice”N”]\UserDir\Saved\Logs 中</p>
+<p>这里的服务器大概率应该是 LocalDevice0，其他的客户端应该是 LocalDevice1 ~ 5</p>
+<p>日志中显示 5 个客户端登录成功，我们的需求完成</p>
+<h1 id="调试-RunUnreal-和-游戏实例"><a href="#调试-RunUnreal-和-游戏实例" class="headerlink" title="调试 RunUnreal 和 游戏实例"></a>调试 RunUnreal 和 游戏实例</h1><p>我们在学习和测试中，经常会有需要调试 Gauntlet Automation 或者在特定实例调试的情况</p>
+<h3 id="调试-RunUnreal"><a href="#调试-RunUnreal" class="headerlink" title="调试 RunUnreal"></a>调试 RunUnreal</h3><p>这时我们只需在 RunUAT 命令行参数中加入 -waitfordebugger</p>
+<p>再运行 Gauntlet 测试，就会在启动时等待调试器接入</p>
+<p>然后我们在 Automation 项目代码中打好断点，然后在 Rider 中选择 Run -&gt; AttachToProcess</p>
+<p>然后过滤输入 Automation ，在进程中选中 dotnet(AutomationTool.dll) 开始调试即可</p>
+<img src="/2023/02/10/UE5%EF%BC%9A%E7%AE%80%E8%BF%B0Gauntlet%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E4%BD%BF%E7%94%A8/%E8%B0%83%E8%AF%95Automation.png" class title="调试Automation">
+
+<h3 id="调试特定游戏实例"><a href="#调试特定游戏实例" class="headerlink" title="调试特定游戏实例"></a>调试特定游戏实例</h3><p>我们知道游戏中传入参数 -waitfordebugger 就可以等待调试器接入</p>
+<p>所以我们只需按照之前传参到特定实例的方法传入参数</p>
+<p>然后在游戏项目中打好断点，attach 到游戏进程即可</p>
+<h1 id="相关学习和参考"><a href="#相关学习和参考" class="headerlink" title="相关学习和参考"></a>相关学习和参考</h1><p>现在我们已经了解了 Gauntlet 的基本使用</p>
+<p>如果需要了解和学习更多的用法，可以</p>
+<ul>
+<li>查看 Gauntlet Automation 项目中相关源代码，学习借鉴其中的用法</li>
+<li>查看相关测官网文档</li>
+<li>查看一些使用案例</li>
+</ul>
+<h2 id="可供参考的项目"><a href="#可供参考的项目" class="headerlink" title="可供参考的项目"></a>可供参考的项目</h2><h3 id="DaedalicTestAutomation-插件"><a href="#DaedalicTestAutomation-插件" class="headerlink" title="DaedalicTestAutomation 插件"></a>DaedalicTestAutomation 插件</h3><p><a target="_blank" rel="noopener" href="https://github.com/DaedalicEntertainment/ue4-test-automation">Github 地址</a></p>
+<p>这个插件写了一套测试框架，然后也集成了使用 Gauntlet 来启动测试的方式，很有参考价值</p>
+<h3 id="ShooterGame-示例项目"><a href="#ShooterGame-示例项目" class="headerlink" title="ShooterGame 示例项目"></a>ShooterGame 示例项目</h3><p>官方示例项目中，包含了一些 Gauntlet Automation 和 Gauntlet Test Controller 的使用实例</p>
+<h3 id="本文项目的-Github-仓库"><a href="#本文项目的-Github-仓库" class="headerlink" title="本文项目的 Github 仓库"></a>本文项目的 Github 仓库</h3><p><a target="_blank" rel="noopener" href="https://github.com/Mapz/GauntletTutorial">Github 仓库地址</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/UE5/" rel="tag"># UE5</a>
+              <a href="/tags/Gauntlet/" rel="tag"># Gauntlet</a>
+              <a href="/tags/Automation/" rel="tag"># Automation</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/02/10/%E8%A7%A3%E5%86%B3Hexo%E6%97%A0%E6%B3%95%E6%98%BE%E7%A4%BA%E5%9B%BE%E7%89%87%E7%9A%84%E9%97%AE%E9%A2%98/" rel="prev" title="解决Hexo无法显示图片的问题">
+      <i class="fa fa-chevron-left"></i> 解决Hexo无法显示图片的问题
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-Gauntlet"><span class="nav-number">1.</span> <span class="nav-text">什么是 Gauntlet</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9C%AC%E6%96%87%E7%9A%84%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83"><span class="nav-number">2.</span> <span class="nav-text">本文的开发环境</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Gauntlet-%E7%9A%84%E5%8E%9F%E7%90%86"><span class="nav-number">3.</span> <span class="nav-text">Gauntlet 的原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%A4%E4%B8%AA%E9%83%A8%E5%88%86"><span class="nav-number">3.1.</span> <span class="nav-text">两个部分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-AutomationTool"><span class="nav-number">3.2.</span> <span class="nav-text">什么是 AutomationTool</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gauntlet-Automation-%E6%B8%B8%E6%88%8F%E5%A4%96%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E5%88%86"><span class="nav-number">3.3.</span> <span class="nav-text">Gauntlet.Automation 游戏外自动化部分</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RunUnreal-%E5%91%BD%E4%BB%A4"><span class="nav-number">3.3.1.</span> <span class="nav-text">RunUnreal 命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E7%9A%84%E5%85%B7%E4%BD%93CSharp%E7%B1%BB%E5%9E%8B"><span class="nav-number">3.3.2.</span> <span class="nav-text">测试的具体CSharp类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#UnrealSession"><span class="nav-number">3.3.3.</span> <span class="nav-text">UnrealSession</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gauntlet-%E6%B8%B8%E6%88%8F%E5%86%85%E6%8F%92%E4%BB%B6%E9%83%A8%E5%88%86"><span class="nav-number">3.4.</span> <span class="nav-text">Gauntlet 游戏内插件部分</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A0%E8%BD%BD-Gauntlet-%E5%91%BD%E4%BB%A4%E8%A1%8C%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="nav-number">3.4.1.</span> <span class="nav-text">加载 Gauntlet 命令行的位置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GauntletTestController-%E7%AE%80%E6%9E%90"><span class="nav-number">3.4.2.</span> <span class="nav-text">GauntletTestController 简析</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E7%9A%84Gauntlet%E5%AE%9E%E6%88%98"><span class="nav-number">4.</span> <span class="nav-text">从零开始的Gauntlet实战</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%90%AD%E5%BB%BA%E6%BA%90%E7%A0%81%E7%8E%AF%E5%A2%83"><span class="nav-number">4.1.</span> <span class="nav-text">搭建源码环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E6%96%B0%E7%9A%84%E6%B8%B8%E6%88%8F%E9%A1%B9%E7%9B%AE"><span class="nav-number">4.2.</span> <span class="nav-text">创建一个新的游戏项目</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%B6%E4%BD%9C-Automation-%E5%B7%A5%E7%A8%8B"><span class="nav-number">4.3.</span> <span class="nav-text">制作 Automation 工程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E9%A1%B9%E7%9B%AE"><span class="nav-number">4.3.1.</span> <span class="nav-text">创建项目</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E5%86%99%E4%B8%80%E4%B8%AA%E6%B5%8B%E8%AF%95"><span class="nav-number">4.3.2.</span> <span class="nav-text">编写一个测试</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%90%E8%A1%8C%E7%BC%96%E5%86%99%E5%A5%BD%E7%9A%84%E6%B5%8B%E8%AF%95"><span class="nav-number">4.4.</span> <span class="nav-text">运行编写好的测试</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%93%E5%8C%85"><span class="nav-number">4.4.1.</span> <span class="nav-text">打包</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C-RunUnreal"><span class="nav-number">4.4.2.</span> <span class="nav-text">执行 RunUnreal</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%A0%E5%85%A5%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%8F%82%E6%95%B0%E5%88%B0-Automation-%E9%A1%B9%E7%9B%AE%E5%92%8C%E6%B8%B8%E6%88%8F%E5%AE%9E%E4%BE%8B%E4%B8%AD"><span class="nav-number">4.5.</span> <span class="nav-text">传入命令行参数到 Automation 项目和游戏实例中</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%98%E6%96%B9%E4%BE%8B%E5%AD%90-Nullrhi-%E5%8F%82%E6%95%B0"><span class="nav-number">4.5.1.</span> <span class="nav-text">官方例子 Nullrhi 参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%9D%E8%AF%95%E4%BC%A0%E5%85%A5-ErrorTest-%E6%89%80%E9%9C%80%E5%8F%82%E6%95%B0"><span class="nav-number">4.5.2.</span> <span class="nav-text">尝试传入 ErrorTest 所需参数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E6%88%98%EF%BC%9A%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E5%9F%BA%E6%9C%AC%E7%9A%84%E6%B5%8B%E8%AF%95%E9%9C%80%E6%B1%82"><span class="nav-number">4.6.</span> <span class="nav-text">实战：实现一个基本的测试需求</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9C%80%E6%B1%82"><span class="nav-number">4.6.1.</span> <span class="nav-text">需求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E6%B5%8B%E8%AF%95%E9%85%8D%E7%BD%AE%E7%B1%BB%E5%9E%8B"><span class="nav-number">4.6.2.</span> <span class="nav-text">创建测试配置类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E6%B5%8B%E8%AF%95%E7%B1%BB%E5%9E%8B"><span class="nav-number">4.6.3.</span> <span class="nav-text">创建测试类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA-GauntletController"><span class="nav-number">4.6.4.</span> <span class="nav-text">创建 GauntletController</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E5%86%99%E6%B5%8B%E8%AF%95%E6%89%B9%E5%A4%84%E7%90%86"><span class="nav-number">4.6.5.</span> <span class="nav-text">编写测试批处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%93%E5%8C%85%EF%BC%8C%E8%BF%90%E8%A1%8C%E6%B5%8B%E8%AF%95"><span class="nav-number">4.6.6.</span> <span class="nav-text">打包，运行测试</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%B0%83%E8%AF%95-RunUnreal-%E5%92%8C-%E6%B8%B8%E6%88%8F%E5%AE%9E%E4%BE%8B"><span class="nav-number">5.</span> <span class="nav-text">调试 RunUnreal 和 游戏实例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B0%83%E8%AF%95-RunUnreal"><span class="nav-number">5.0.1.</span> <span class="nav-text">调试 RunUnreal</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B0%83%E8%AF%95%E7%89%B9%E5%AE%9A%E6%B8%B8%E6%88%8F%E5%AE%9E%E4%BE%8B"><span class="nav-number">5.0.2.</span> <span class="nav-text">调试特定游戏实例</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E5%AD%A6%E4%B9%A0%E5%92%8C%E5%8F%82%E8%80%83"><span class="nav-number">6.</span> <span class="nav-text">相关学习和参考</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E4%BE%9B%E5%8F%82%E8%80%83%E7%9A%84%E9%A1%B9%E7%9B%AE"><span class="nav-number">6.1.</span> <span class="nav-text">可供参考的项目</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#DaedalicTestAutomation-%E6%8F%92%E4%BB%B6"><span class="nav-number">6.1.1.</span> <span class="nav-text">DaedalicTestAutomation 插件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ShooterGame-%E7%A4%BA%E4%BE%8B%E9%A1%B9%E7%9B%AE"><span class="nav-number">6.1.2.</span> <span class="nav-text">ShooterGame 示例项目</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%AC%E6%96%87%E9%A1%B9%E7%9B%AE%E7%9A%84-Github-%E4%BB%93%E5%BA%93"><span class="nav-number">6.1.3.</span> <span class="nav-text">本文项目的 Github 仓库</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Mapz"
+      src="/images/link-300x300.gif">
+  <p class="site-author-name" itemprop="name">Mapz</p>
+  <div class="site-description" itemprop="description">FIND THE CHILD</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Mapz" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Mapz" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
