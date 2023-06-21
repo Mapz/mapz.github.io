@@ -160,6 +160,71 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2022/06/09/UE5%EF%BC%9A%E8%B0%83%E8%AF%95GauntletController/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="FIND THE CHILD">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/06/09/UE5%EF%BC%9A%E8%B0%83%E8%AF%95GauntletController/" class="post-title-link" itemprop="url">UE5：调试GauntletController</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-06-09 16:59:45 / 修改时间：17:05:59" itemprop="dateCreated datePublished" datetime="2022-06-09T16:59:45+08:00">2022-06-09</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>编写 GauntletController 的时候，如何调试呢</p>
+<p>最简单的方式是游戏添加启动参数</p>
+<p>-gauntlet=xxxController1,xxxController2</p>
+<p>然后启动的时候，在加载 </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">FGauntletModuleImpl</span><br></pre></td></tr></table></figure>
+
+<p>的时候，就会自动寻找到 GauntletController 的 UClass，并执行其 OnInit</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2022/06/09/UE5%EF%BC%9A%E8%B0%83%E8%AF%95UAT/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1168,81 +1233,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2021/05/20/UE4%EF%BC%9AC%E7%9B%98%E6%BB%A1%E4%BA%86%EF%BC%8C%E4%BF%AE%E6%94%B9DDC%E7%9B%AE%E5%BD%95%E7%9A%84%E4%BD%8D%E7%BD%AE/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/link-300x300.gif">
-      <meta itemprop="name" content="Mapz">
-      <meta itemprop="description" content="FIND THE CHILD">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Mapz's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/05/20/UE4%EF%BC%9AC%E7%9B%98%E6%BB%A1%E4%BA%86%EF%BC%8C%E4%BF%AE%E6%94%B9DDC%E7%9B%AE%E5%BD%95%E7%9A%84%E4%BD%8D%E7%BD%AE/" class="post-title-link" itemprop="url">UE4：C盘满了，修改DDC目录的位置</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-05-20 11:09:10" itemprop="dateCreated datePublished" datetime="2021-05-20T11:09:10+08:00">2021-05-20</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-24 10:01:10" itemprop="dateModified" datetime="2021-05-24T10:01:10+08:00">2021-05-24</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>电脑上 C 盘空间太小，只有 100 G<br>其他盘的 SSD 也不够大，虚拟内存都快放不下了<br>打开 WinDirStat 一看 UE4 DDC 占了几十个 G 了<br>这就准备移动一下</p>
-<ol>
-<li>打开 UE4安装目录\Engine\Config\BaseEngine.ini</li>
-<li>找到 InstalledDerivedDataBackendGraph 下的</li>
-</ol>
-<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">Local</span>=(Type=FileSystem, ReadOnly=<span class="literal">false</span>, Clean=<span class="literal">false</span>, Flush=<span class="literal">false</span>, PurgeTransient=<span class="literal">true</span>, DeleteUnused=<span class="literal">true</span>, UnusedFileAge=<span class="number">34</span>, FoldersToClean=-<span class="number">1</span>, Path=<span class="string">&quot;%ENGINEVERSIONAGNOSTICUSERDIR%DerivedDataCache&quot;</span>)</span><br></pre></td></tr></table></figure>
-
-<p>修改 Path 到自己的目录即可</p>
-<p>如果没有成功，可以修改环境变量</p>
-<p>UE-LocalDataCachePath</p>
-<p>值修改为自己的目录即可</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1314,14 +1304,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-count">47</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-count">45</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

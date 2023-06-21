@@ -160,6 +160,254 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2023/06/21/UE5%EF%BC%9AIrisReplicationSystem%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E6%88%90%E5%8A%9F%E5%9C%A8%E9%A1%B9%E7%9B%AE%E5%90%AF%E5%8A%A8Iris%E5%90%8C%E6%AD%A5%E4%BB%A5%E5%8F%8A%E5%8F%82%E8%80%83%E9%85%8D%E7%BD%AE%E7%AE%80%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="FIND THE CHILD">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/06/21/UE5%EF%BC%9AIrisReplicationSystem%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E6%88%90%E5%8A%9F%E5%9C%A8%E9%A1%B9%E7%9B%AE%E5%90%AF%E5%8A%A8Iris%E5%90%8C%E6%AD%A5%E4%BB%A5%E5%8F%8A%E5%8F%82%E8%80%83%E9%85%8D%E7%BD%AE%E7%AE%80%E6%9E%90/" class="post-title-link" itemprop="url">UE5：IrisReplicationSystem初探（一）：成功在项目启动Iris同步以及参考配置简析</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2023-06-21 17:40:44 / 修改时间：17:43:01" itemprop="dateCreated datePublished" datetime="2023-06-21T17:40:44+08:00">2023-06-21</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>Iris 从进入 Roadmap 到现在已经过了一段时间了，但是网上相关内容不多，正值 5.2 版本正式发布， Lyra 范例项目也更新了可使用 Iris 的版本</p>
+<p>这里根据 Lyra 的配置方式，在作者的项目中启用成功</p>
+<p>下面我会将成功启动同步的配置方式列出，再逐一的探索解释每个配置的用途</p>
+<p>希望对大家有所帮助</p>
+<p>以下内容全部基于 UE 5.2.0 版本</p>
+<p>阅读时需有一些 UE 网络同步相关的基础知识</p>
+<h1 id="启用-Iris-Replication"><a href="#启用-Iris-Replication" class="headerlink" title="启用 Iris Replication"></a>启用 Iris Replication</h1><h3 id="编译时"><a href="#编译时" class="headerlink" title="编译时"></a>编译时</h3><p>uproject 文件中，添加 plugin</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">    &quot;Name&quot;: &quot;Iris&quot;,</span><br><span class="line"></span><br><span class="line">    &quot;Enabled&quot;: true</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>Build.cs 文件中，添加调用</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">SetupIrisSupport</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><p>DefaultEngine.ini</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="section">[/Script/Engine.Engine]</span></span><br><span class="line"></span><br><span class="line">!<span class="attr">IrisNetDriverConfigs</span>=ClearArray</span><br><span class="line"></span><br><span class="line">+<span class="attr">IrisNetDriverConfigs</span>=(NetDriverDefinition=<span class="string">&quot;你的NetDriver名&quot;</span>,NetDriverName=<span class="string">&quot;你的NetDriver名&quot;</span>,NetDriverWildcardName=<span class="string">&quot;你的NetDriver名*&quot;</span>,bEnableIris=<span class="literal">true</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[/Script/Engine.NetDriver]</span></span><br><span class="line"></span><br><span class="line">+<span class="attr">ChannelDefinitions</span>=(ChannelName=DataStream, ClassName=/Script/Engine.DataStreamChannel, StaticChannelIndex=<span class="number">2</span>, bTickOnCreate=<span class="literal">true</span>, bServerOpen=<span class="literal">true</span>, bClientOpen=<span class="literal">true</span>, bInitialServer=<span class="literal">true</span>, bInitialClient=<span class="literal">true</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[/Script/IrisCore.PartialNetObjectAttachmentHandlerConfig]</span></span><br><span class="line"></span><br><span class="line"><span class="attr">MaxPartCount</span>=<span class="number">4096</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[/Script/IrisCore.NetBlobHandlerDefinitions]</span></span><br><span class="line"></span><br><span class="line">+<span class="attr">NetBlobHandlerDefinitions</span>=(ClassName=NetRPCHandler)</span><br><span class="line"></span><br><span class="line">+<span class="attr">NetBlobHandlerDefinitions</span>=(ClassName=PartialNetObjectAttachmentHandler )</span><br><span class="line"></span><br><span class="line">+<span class="attr">NetBlobHandlerDefinitions</span>=(ClassName=NetObjectBlobHandler)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[/Script/IrisCore.DataStreamDefinitions]</span></span><br><span class="line"></span><br><span class="line">+<span class="attr">DataStreamDefinitions</span>=(DataStreamName=NetToken, ClassName=/Script/IrisCore.NetTokenDataStream, DefaultSendStatus=EDataStreamSendStatus::Send, bAutoCreate=<span class="literal">true</span>)</span><br><span class="line"></span><br><span class="line">+<span class="attr">DataStreamDefinitions</span>=(DataStreamName=Replication, ClassName=/Script/IrisCore.ReplicationDataStream, DefaultSendStatus=EDataStreamSendStatus::Send, bAutoCreate=<span class="literal">true</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[/Script/IrisCore.NetObjectPrioritizerDefinitions]</span></span><br><span class="line"></span><br><span class="line">+<span class="attr">NetObjectPrioritizerDefinitions</span>=(PrioritizerName=Default, ClassName=/Script/IrisCore.SphereNetObjectPrioritizer, ConfigClassName=/Script/IrisCore.SphereNetObjectPrioritizerConfig)</span><br><span class="line"></span><br><span class="line">+<span class="attr">NetObjectPrioritizerDefinitions</span>=(PrioritizerName=PlayerState, ClassName=/Script/IrisCore.NetObjectCountLimiter, ConfigClassName=/Script/Engine.PlayerStateCountLimiterConfig)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[/Script/IrisCore.NetObjectFilterDefinitions]</span></span><br><span class="line"></span><br><span class="line">+<span class="attr">NetObjectFilterDefinitions</span>=(FilterName=Spatial, ClassName=/Script/IrisCore.NetObjectGridFilter, ConfigClassName=/Script/IrisCore.NetObjectGridFilterConfig)</span><br><span class="line"></span><br><span class="line">+<span class="attr">NetObjectFilterDefinitions</span>=(FilterName=NotRouted, ClassName=/Script/IrisCore.FilterOutNetObjectFilter, ConfigClassName=/Script/IrisCore.FilterOutNetObjectFilterConfig)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[/Script/IrisCore.ReplicationStateDescriptorConfig]</span></span><br><span class="line"></span><br><span class="line">+<span class="attr">SupportsStructNetSerializerList</span>=(StructName=GameplayCueParameters)</span><br><span class="line"></span><br><span class="line">+<span class="attr">SupportsStructNetSerializerList</span>=(StructName=GameplayAbilityTargetData_LocationInfo)</span><br><span class="line"></span><br><span class="line">+<span class="attr">SupportsStructNetSerializerList</span>=(StructName=GameplayAbilityTargetData_ActorArray)</span><br><span class="line"></span><br><span class="line">+<span class="attr">SupportsStructNetSerializerList</span>=(StructName=GameplayAbilityTargetData_SingleTargetHit)</span><br><span class="line"></span><br><span class="line">+<span class="attr">SupportsStructNetSerializerList</span>=(StructName=LyraGameplayAbilityTargetData_SingleTargetHit)</span><br><span class="line"></span><br><span class="line">+<span class="attr">SupportsStructNetSerializerList</span>=(StructName=NetLevelVisibilityTransactionId)</span><br><span class="line"></span><br><span class="line">+<span class="attr">SupportsStructNetSerializerList</span>=(StructName=Vector2D)</span><br><span class="line"></span><br><span class="line">+<span class="attr">SupportsStructNetSerializerList</span>=(StructName=GameplayDebuggerNetPack)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[/Script/IrisCore.ObjectReplicationBridgeConfig]</span></span><br><span class="line"></span><br><span class="line"><span class="attr">DefaultSpatialFilterName</span>=Spatial</span><br><span class="line"></span><br><span class="line">!<span class="attr">FilterConfigs</span>=ClearArray</span><br><span class="line"></span><br><span class="line">+<span class="attr">FilterConfigs</span>=(ClassName=/Script/Engine.LevelScriptActor, DynamicFilterName=NotRouted) <span class="comment">; Not needed</span></span><br><span class="line"></span><br><span class="line">+<span class="attr">FilterConfigs</span>=(ClassName=/Script/Engine.Actor, DynamicFilterName=None))</span><br><span class="line"></span><br><span class="line">+<span class="attr">FilterConfigs</span>=(ClassName=/Script/Engine.Info, DynamicFilterName=None)</span><br><span class="line"></span><br><span class="line">+<span class="attr">FilterConfigs</span>=(ClassName=/Script/Engine.PlayerState, DynamicFilterName=None)</span><br><span class="line"></span><br><span class="line">+<span class="attr">FilterConfigs</span>=(ClassName=/Script/Engine.Pawn, DynamicFilterName=Spatial))</span><br><span class="line"></span><br><span class="line">+<span class="attr">FilterConfigs</span>=(ClassName=/Script/EntityActor.SimObject, DynamicFilterName=None))</span><br><span class="line"></span><br><span class="line">+<span class="attr">PrioritizerConfigs</span>=(ClassName=/Script/Engine.PlayerState, PrioritizerName=PlayerState)</span><br><span class="line"></span><br><span class="line">+<span class="attr">DeltaCompressionConfigs</span>=(ClassName=/Script/Engine.Pawn))</span><br><span class="line"></span><br><span class="line">+<span class="attr">DeltaCompressionConfigs</span>=(ClassName=/Script/Engine.PlayerState))</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="自定义-Replication-Bridge"><a href="#自定义-Replication-Bridge" class="headerlink" title="自定义 Replication Bridge"></a>自定义 Replication Bridge</h3><p>DefaultEngine.ini</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="section">[Script/你的NetDriver]</span></span><br><span class="line"></span><br><span class="line"><span class="attr">ReplicationBridgeClassName</span>=你的ReplicationBridge类</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>不配置则使用 UActorReplicationBridge</p>
+<h3 id="默认使用-ReplicateSubObjectList"><a href="#默认使用-ReplicateSubObjectList" class="headerlink" title="默认使用 ReplicateSubObjectList"></a>默认使用 ReplicateSubObjectList</h3><p>DefaultEngine.ini</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="section">[SystemSettings]</span></span><br><span class="line"></span><br><span class="line"><span class="attr">net.SubObjects.DefaultUseSubObjectReplicationList</span>=<span class="number">1</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>如果没有设置这个，则会使用默认版本的 ReplicateSubobjects 函数来同步</p>
+<p>因为 Iris 使用 SubObjectReplicationList 来同步，所以如果没有配置的话，会弹出 Ensure</p>
+<p>并 Log Warning LogIrisBridge</p>
+<h3 id="启动时"><a href="#启动时" class="headerlink" title="启动时"></a>启动时</h3><p>命令行参数添加</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">-UseIrisReplication=1</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>或者</p>
+<p>控制台修改</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">net.Iris.UseIrisReplication1</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>或者在 PostEngineInit 回调中加入</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">#ifUE_WITH_IRIS</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置 Iris 使用 Iris Replication</span></span><br><span class="line"></span><br><span class="line">    UE::Net::<span class="built_in">SetUseIrisReplication</span>(<span class="literal">true</span>);</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>启动项目后，开始成功同步</p>
+<h1 id="配置类型分析"><a href="#配置类型分析" class="headerlink" title="配置类型分析"></a>配置类型分析</h1><p>现在我们来分析配置中用到的类型，从而为学习 Iris 同步的实现方式找一个抓手</p>
+<h3 id="配置项同步桥配置-UObjectReplicationBridgeConfig"><a href="#配置项同步桥配置-UObjectReplicationBridgeConfig" class="headerlink" title="配置项同步桥配置 UObjectReplicationBridgeConfig"></a>配置项同步桥配置 UObjectReplicationBridgeConfig</h3><p>此类型用于每种不同的类型的过滤和优先级等配置</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="section">[/Script/IrisCore.ObjectReplicationBridgeConfig]</span></span><br><span class="line"></span><br><span class="line"><span class="attr">DefaultSpatialFilterName</span>=Spatial</span><br><span class="line"></span><br><span class="line">!<span class="attr">FilterConfigs</span>=ClearArray</span><br><span class="line"></span><br><span class="line">+<span class="attr">FilterConfigs</span>=(ClassName=/Script/Engine.LevelScriptActor, DynamicFilterName=NotRouted) <span class="comment">; Not needed</span></span><br><span class="line"></span><br><span class="line">+<span class="attr">FilterConfigs</span>=(ClassName=/Script/Engine.Actor, DynamicFilterName=None))</span><br><span class="line"></span><br><span class="line">+<span class="attr">FilterConfigs</span>=(ClassName=/Script/Engine.Info, DynamicFilterName=None)</span><br><span class="line"></span><br><span class="line">+<span class="attr">FilterConfigs</span>=(ClassName=/Script/Engine.PlayerState, DynamicFilterName=None)</span><br><span class="line"></span><br><span class="line">+<span class="attr">FilterConfigs</span>=(ClassName=/Script/Engine.Pawn, DynamicFilterName=Spatial))</span><br><span class="line"></span><br><span class="line">+<span class="attr">FilterConfigs</span>=(ClassName=/Script/EntityActor.SimObject, DynamicFilterName=None))</span><br><span class="line"></span><br><span class="line">+<span class="attr">PrioritizerConfigs</span>=(ClassName=/Script/Engine.PlayerState, PrioritizerName=PlayerState)</span><br><span class="line"></span><br><span class="line">+<span class="attr">DeltaCompressionConfigs</span>=(ClassName=/Script/Engine.Pawn))</span><br><span class="line"></span><br><span class="line">+<span class="attr">DeltaCompressionConfigs</span>=(ClassName=/Script/Engine.PlayerState))</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>从配置内容来看，此类似于 Replication Graph 中初始化各 Actor 的同步节点，同步优先级等内容</p>
+<p>用于控制不同类型的对象，在同步的时候同步到哪一些连接，以及同步优先级，压缩等内容</p>
+<p>现在进一步查看类型里面的可配置成员</p>
+<h4 id="同步轮询周期"><a href="#同步轮询周期" class="headerlink" title="同步轮询周期"></a>同步轮询周期</h4><p>用于控制类型查询是否需要同步的帧数周期</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 同步轮询周期配置</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">UPROPERTY</span>(Config)</span><br><span class="line"></span><br><span class="line">TArray&lt;FObjectReplicationBridgePollConfig&gt; PollConfigs;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>其中具体配置有</p>
+<ul>
+<li>ClassName：使用此配置的类型，Actor 以及 UObject 不允许配置</li>
+<li>PollFramePeriod：轮询间隔帧数</li>
+<li>bIncludeSubclasses：是否对子类用相同配置</li>
+</ul>
+<h4 id="类型过滤器配置"><a href="#类型过滤器配置" class="headerlink" title="类型过滤器配置"></a>类型过滤器配置</h4><p>用于控制类型的角色需要同步到哪些连接，例如分块同步</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 过滤器配置</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">UPROPERTY</span>(Config)</span><br><span class="line"></span><br><span class="line">TArray&lt;FObjectReplicationBridgeFilterConfig&gt; FilterConfigs;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>其中具体配置有</p>
+<ul>
+<li>ClassName：使用此配置的类型</li>
+<li>DynamicFilterName：过滤器名称</li>
+</ul>
+<h4 id="同步优先级配置"><a href="#同步优先级配置" class="headerlink" title="同步优先级配置"></a>同步优先级配置</h4><p>用于配置类型同步的优先级，例如距离优先等</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 同步优先级配置</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">UPROPERTY</span>(Config)</span><br><span class="line"></span><br><span class="line">TArray&lt;FObjectReplicationBridgePrioritizerConfig&gt; PrioritizerConfigs;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>其中具体配置有</p>
+<ul>
+<li>ClassName：使用此配置的类型</li>
+<li>PrioritizerName：使用的优先级控制器名称，Default 会使用默认 spatial prioritizer</li>
+</ul>
+<h4 id="增量同步压缩配置"><a href="#增量同步压缩配置" class="headerlink" title="增量同步压缩配置"></a>增量同步压缩配置</h4><p>用于控制是否开启类型的增量同步压缩</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 增量压缩相关配置</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">UPROPERTY</span>(Config)</span><br><span class="line"></span><br><span class="line">TArray&lt;FObjectReplicationBridgeDeltaCompressionConfig&gt; DeltaCompressionConfigs;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>其中具体的配置有</p>
+<ul>
+<li>ClassName：使用此配置的类型</li>
+<li>bEnableDeltaCompression：是否使用增量压缩（子类都会使用此配置）</li>
+</ul>
+<h4 id="默认分块同步的过滤器名称"><a href="#默认分块同步的过滤器名称" class="headerlink" title="默认分块同步的过滤器名称"></a>默认分块同步的过滤器名称</h4><p>由此可知，Iris 的默认同步过滤逻辑还是分块</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="built_in">UPROPERTY</span>(Config)</span><br><span class="line"></span><br><span class="line">FName DefaultSpatialFilterName;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="需要的-NetDriverChannel-名称"><a href="#需要的-NetDriverChannel-名称" class="headerlink" title="需要的 NetDriverChannel 名称"></a>需要的 NetDriverChannel 名称</h4><p>必须要使用的 NetDriverChannel 名称，按注释必须要有这个配置的 Channel 才能让此配置生效，但我没有找到这个逻辑生效的地方</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="built_in">UPROPERTY</span>(Config)</span><br><span class="line"></span><br><span class="line">FName RequiredNetDriverChannelClassName;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="配置项过滤器定义-UNetObjectFilterDefinitions"><a href="#配置项过滤器定义-UNetObjectFilterDefinitions" class="headerlink" title="配置项过滤器定义 UNetObjectFilterDefinitions"></a>配置项过滤器定义 UNetObjectFilterDefinitions</h3><p>此类型用于配置过滤器列表的定义</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="section">[/Script/IrisCore.NetObjectFilterDefinitions]</span></span><br><span class="line"></span><br><span class="line">+<span class="attr">NetObjectFilterDefinitions</span>=(FilterName=Spatial, ClassName=/Script/IrisCore.NetObjectGridFilter, ConfigClassName=/Script/IrisCore.NetObjectGridFilterConfig)</span><br><span class="line"></span><br><span class="line">+<span class="attr">NetObjectFilterDefinitions</span>=(FilterName=NotRouted, ClassName=/Script/IrisCore.FilterOutNetObjectFilter, ConfigClassName=/Script/IrisCore.FilterOutNetObjectFilterConfig)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>其中</p>
+<ul>
+<li>FilterName ：上面 UObjectReplicationBridgeConfig 中用到的过滤器 Name</li>
+<li>ClassName ：过滤器类型</li>
+<li>ConfigClassName ：过滤器配置的类型</li>
+</ul>
+<hr>
+<h3 id="过滤器基类-UNetObjectFilter"><a href="#过滤器基类-UNetObjectFilter" class="headerlink" title="过滤器基类 UNetObjectFilter"></a>过滤器基类 UNetObjectFilter</h3><p>过滤器类型用于处理那些对象同步到哪些连接的问题</p>
+<p>类型中声明了一些可覆写的空函数</p>
+<p>包括初始化，添加连接，移除连接，添加同步对象，移除同步对象，以及过滤相关的内容</p>
+<p>我们可以通过实现自己的过滤逻辑来自定义同步规则，类似于 Replication Graph 中的同步节点编写</p>
+<p>下面我们看一些具体的实现类型</p>
+<h4 id="默认分块同步过滤器-UNetObjectGridFilter"><a href="#默认分块同步过滤器-UNetObjectGridFilter" class="headerlink" title="默认分块同步过滤器 UNetObjectGridFilter"></a>默认分块同步过滤器 UNetObjectGridFilter</h4><p>实现目的应该是同 Replication Graph 的分块同步</p>
+<p>使用网络裁切距离和位置，确定对象可以被同步的 Grid Cell 列表</p>
+<h4 id="过滤所有过滤器-UFilterOutNetObjectFilter"><a href="#过滤所有过滤器-UFilterOutNetObjectFilter" class="headerlink" title="过滤所有过滤器 UFilterOutNetObjectFilter"></a>过滤所有过滤器 UFilterOutNetObjectFilter</h4><p>过滤掉所有东西，不同步</p>
+<h4 id="不过滤任何内容-UNopNetObjectFilter"><a href="#不过滤任何内容-UNopNetObjectFilter" class="headerlink" title="不过滤任何内容 UNopNetObjectFilter"></a>不过滤任何内容 UNopNetObjectFilter</h4><p>不过滤任何东西，全部同步</p>
+<hr>
+<h3 id="过滤器配置基类-UNetObjectFilterConfig"><a href="#过滤器配置基类-UNetObjectFilterConfig" class="headerlink" title="过滤器配置基类 UNetObjectFilterConfig"></a>过滤器配置基类 UNetObjectFilterConfig</h3><p>这是每种过滤器配置的积累，单独提出一个类型，可以方便的在 DefaultEngine.ini 中进行配置</p>
+<p>当前有以下类型</p>
+<h4 id="分块同步配置-UNetObjectGridFilterConfig"><a href="#分块同步配置-UNetObjectGridFilterConfig" class="headerlink" title="分块同步配置 UNetObjectGridFilterConfig"></a>分块同步配置 UNetObjectGridFilterConfig</h4><p>用于分块同步过滤器，配置分块大小，最大默认同步距离等</p>
+<h4 id="过滤任何内容-UFilterOutNetObjectFilterConfig"><a href="#过滤任何内容-UFilterOutNetObjectFilterConfig" class="headerlink" title="过滤任何内容 UFilterOutNetObjectFilterConfig"></a>过滤任何内容 UFilterOutNetObjectFilterConfig</h4><p>无需配置，占位，其实无用</p>
+<h4 id="不过滤任何内容-UNopNetObjectFilterConfig"><a href="#不过滤任何内容-UNopNetObjectFilterConfig" class="headerlink" title="不过滤任何内容 UNopNetObjectFilterConfig"></a>不过滤任何内容 UNopNetObjectFilterConfig</h4><p>无需配置，占位，其实无用</p>
+<hr>
+<h3 id="配置项优先级控制器定义-UNetObjectPrioritizerDefinitions"><a href="#配置项优先级控制器定义-UNetObjectPrioritizerDefinitions" class="headerlink" title="配置项优先级控制器定义 UNetObjectPrioritizerDefinitions"></a>配置项优先级控制器定义 UNetObjectPrioritizerDefinitions</h3><p>用于定义项目中的优先级控制器</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="section">[/Script/IrisCore.NetObjectPrioritizerDefinitions]</span></span><br><span class="line"></span><br><span class="line">+<span class="attr">NetObjectPrioritizerDefinitions</span>=(PrioritizerName=Default, ClassName=/Script/IrisCore.SphereNetObjectPrioritizer, ConfigClassName=/Script/IrisCore.SphereNetObjectPrioritizerConfig)</span><br><span class="line"></span><br><span class="line">+<span class="attr">NetObjectPrioritizerDefinitions</span>=(PrioritizerName=PlayerState, ClassName=/Script/IrisCore.NetObjectCountLimiter, ConfigClassName=/Script/Engine.PlayerStateCountLimiterConfig)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>其中配置项</p>
+<ul>
+<li>PrioritizerName ：配置的优先级处理器名称，用于配置 Replication Bridge</li>
+<li>ClassName ：同步器的类型</li>
+<li>ConfigClassName ：同步器的配置类型</li>
+</ul>
+<hr>
+<h3 id="优先级处理器基类-UNetObjectPrioritizer"><a href="#优先级处理器基类-UNetObjectPrioritizer" class="headerlink" title="优先级处理器基类 UNetObjectPrioritizer"></a>优先级处理器基类 UNetObjectPrioritizer</h3><p>用于处理同步对象的优先级</p>
+<p>同过滤器基类，有一些空的虚函数，可自行扩展</p>
+<p>我们来看一些具体类型</p>
+<h4 id="ULocationBasedNetObjectPrioritizer"><a href="#ULocationBasedNetObjectPrioritizer" class="headerlink" title="ULocationBasedNetObjectPrioritizer"></a>ULocationBasedNetObjectPrioritizer</h4><p>基于位置的优先级处理器，没有实际处理优先级的部分，只是处理了位置信息的设置，所以只作为基类存在</p>
+<h4 id="USphereNetObjectPrioritizer"><a href="#USphereNetObjectPrioritizer" class="headerlink" title="USphereNetObjectPrioritizer"></a>USphereNetObjectPrioritizer</h4><p>ULocationBasedNetObjectPrioritizer 的子类</p>
+<p>会根据不同个数的 View 位置来进行不同的优先级设置</p>
+<p>总体来说是根据和 View 的距离来设置不同的优先级，在一定范围内则优先级高，在外则低，一定距离外非常低</p>
+<h4 id="USphereWithOwnerBoostNetObjectPrioritizer"><a href="#USphereWithOwnerBoostNetObjectPrioritizer" class="headerlink" title="USphereWithOwnerBoostNetObjectPrioritizer"></a>USphereWithOwnerBoostNetObjectPrioritizer</h4><p>USphereNetObjectPrioritizer 的子类</p>
+<p>在其基础上，对于 Connection 的 Owning Object 附加一定的优先级</p>
+<h4 id="UNetObjectCountLimiter"><a href="#UNetObjectCountLimiter" class="headerlink" title="UNetObjectCountLimiter"></a>UNetObjectCountLimiter</h4><p>根据配置的对象个数来限制同步频率</p>
+<p>有两种模式</p>
+<ul>
+<li>RoundRobin : 每次同步轮流同步后面的 N 个对象</li>
+<li>Fill ：每次同步的时候，同步最久没有被同步的 N 个对象</li>
+</ul>
+<h4 id="UPlayerStateCountLimiterConfig"><a href="#UPlayerStateCountLimiterConfig" class="headerlink" title="UPlayerStateCountLimiterConfig"></a>UPlayerStateCountLimiterConfig</h4><p>UNetObjectCountLimiter 的子类，作为同步 PlayerState 的 Limiter</p>
+<p>没有具体逻辑，只是对父类的一些参数做特化</p>
+<hr>
+<h3 id="优先级处理器配置类-UNetObjectPrioritizerConfig"><a href="#优先级处理器配置类-UNetObjectPrioritizerConfig" class="headerlink" title="优先级处理器配置类 UNetObjectPrioritizerConfig"></a>优先级处理器配置类 UNetObjectPrioritizerConfig</h3><p>用于配置优先级处理器的 Config，与过滤器 Config 类似</p>
+<p>每种优先级处理器都有其专用的类型</p>
+<p>具体的子类此略</p>
+<hr>
+<h3 id="配置项数据流定义-UDataStreamDefinitions"><a href="#配置项数据流定义-UDataStreamDefinitions" class="headerlink" title="配置项数据流定义 UDataStreamDefinitions"></a>配置项数据流定义 UDataStreamDefinitions</h3><p>Iris 使用数据流 DataStream 的方式来在 Bunch 的基础上传输数据</p>
+<p>在这个里面，我们定义项目中使用到的数据流类型</p>
+<p>在启用 Iris 之后，数据同步内容均经由 ReplicationDataStream 来传输</p>
+<p>其中配置如下</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="section">[/Script/IrisCore.DataStreamDefinitions]</span></span><br><span class="line"></span><br><span class="line">+<span class="attr">DataStreamDefinitions</span>=(DataStreamName=NetToken, ClassName=/Script/IrisCore.NetTokenDataStream, DefaultSendStatus=EDataStreamSendStatus::Send, bAutoCreate=<span class="literal">true</span>)</span><br><span class="line"></span><br><span class="line">+<span class="attr">DataStreamDefinitions</span>=(DataStreamName=Replication, ClassName=/Script/IrisCore.ReplicationDataStream, DefaultSendStatus=EDataStreamSendStatus::Send, bAutoCreate=<span class="literal">true</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>DataStreamName ：数据流名称</li>
+<li>ClassName : 数据流的类</li>
+<li>DefaultSendStatus：创建时默认的发送状态</li>
+<li>bAutoCreate：是否为每个连接自动创建，如果不是 true 则需要手动创建</li>
+</ul>
+<hr>
+<h3 id="配置项-NetBlob-处理器定义-UNetBlobHandlerDefinitions"><a href="#配置项-NetBlob-处理器定义-UNetBlobHandlerDefinitions" class="headerlink" title="配置项 NetBlob 处理器定义 UNetBlobHandlerDefinitions"></a>配置项 NetBlob 处理器定义 UNetBlobHandlerDefinitions</h3><p>Iris 在传输上使用数据块 FNetBlob 来传输</p>
+<p>每个 NetBlob 会有一个 FNetBlobCreationInfo CreationInfo 来标识其创建 Flag 和 Blob 的类型</p>
+<p>以便使用特定的 Blob 处理器来处理</p>
+<p>此处配置 NetBlob 的处理器定义列表</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="section">[/Script/IrisCore.NetBlobHandlerDefinitions]</span></span><br><span class="line"></span><br><span class="line">+<span class="attr">NetBlobHandlerDefinitions</span>=(ClassName=NetRPCHandler)</span><br><span class="line"></span><br><span class="line">+<span class="attr">NetBlobHandlerDefinitions</span>=(ClassName=PartialNetObjectAttachmentHandler )</span><br><span class="line"></span><br><span class="line">+<span class="attr">NetBlobHandlerDefinitions</span>=(ClassName=NetObjectBlobHandler)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>其中</p>
+<ul>
+<li>UNetPRCHandler 用于处理 RPC</li>
+<li>PartialNetObjectAttachmentHandler 用于处理分块大型 Blob</li>
+<li>UNetObjectBlobHandler 用于处理 NetObjectBlob</li>
+</ul>
+<hr>
+<h3 id="使用的同步-Channel-DataStreamChannel"><a href="#使用的同步-Channel-DataStreamChannel" class="headerlink" title="使用的同步 Channel DataStreamChannel"></a>使用的同步 Channel DataStreamChannel</h3><p>Iris 使用 DataSteam Channel 用于同步数据流</p>
+<p>所以需要添加配置</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="section">[/Script/Engine.NetDriver]</span></span><br><span class="line"></span><br><span class="line">+<span class="attr">ChannelDefinitions</span>=(ChannelName=DataStream, ClassName=/Script/Engine.DataStreamChannel, StaticChannelIndex=<span class="number">2</span>, bTickOnCreate=<span class="literal">true</span>, bServerOpen=<span class="literal">true</span>, bClientOpen=<span class="literal">true</span>, bInitialServer=<span class="literal">true</span>, bInitialClient=<span class="literal">true</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>在 NetDriver 上添加 DataStreamChannel 以开启通道</p>
+<hr>
+<h3 id="配置项自定义序列化-UReplicationStateDescriptorConfig"><a href="#配置项自定义序列化-UReplicationStateDescriptorConfig" class="headerlink" title="配置项自定义序列化 UReplicationStateDescriptorConfig"></a>配置项自定义序列化 UReplicationStateDescriptorConfig</h3><p>配置 Struct 是否可以使用 Iris 默认的 StructNetSerializer</p>
+<p>因为 Iris 在序列化 Struct 的时候，会默认使用 StructNetSerializer</p>
+<p>如果需要自定义序列化的话，用从前的 TStructOpsTypeTraits WithNetSerializer Trait 是不行的</p>
+<p>需要自己去使用 UE_NET_IMPLEMENT_SERIALIZER 来定义自定义序列化处理器</p>
+<p>如果有使用了 WithNetSerializer Trait 自定义序列化的内容，却没有用新的方式去实现的话，会提示 Warning</p>
+<p>所以这个配置仅用于使用了 NetSerialize Trait</p>
+<p>但是可以使用 Iris 自己创建的同步信息</p>
+<p>不想要提示 Warning 的情况</p>
+<p>如果提示 Warning 了，可检查对应 Struct 的同步功能是否正常，正常则加入此配置中</p>
+<p>否则需要重新写自己的对应类型的 Serializer</p>
+<p>配置如下：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="section">[/Script/IrisCore.ReplicationStateDescriptorConfig]</span></span><br><span class="line"></span><br><span class="line">+<span class="attr">SupportsStructNetSerializerList</span>=(StructName=GameplayCueParameters)</span><br><span class="line"></span><br><span class="line">+<span class="attr">SupportsStructNetSerializerList</span>=(StructName=GameplayAbilityTargetData_LocationInfo)</span><br><span class="line"></span><br><span class="line">+<span class="attr">SupportsStructNetSerializerList</span>=(StructName=GameplayAbilityTargetData_ActorArray)</span><br><span class="line"></span><br><span class="line">+<span class="attr">SupportsStructNetSerializerList</span>=(StructName=GameplayAbilityTargetData_SingleTargetHit)</span><br><span class="line"></span><br><span class="line">+<span class="attr">SupportsStructNetSerializerList</span>=(StructName=LyraGameplayAbilityTargetData_SingleTargetHit)</span><br><span class="line"></span><br><span class="line">+<span class="attr">SupportsStructNetSerializerList</span>=(StructName=NetLevelVisibilityTransactionId)</span><br><span class="line"></span><br><span class="line">+<span class="attr">SupportsStructNetSerializerList</span>=(StructName=Vector2D)</span><br><span class="line"></span><br><span class="line">+<span class="attr">SupportsStructNetSerializerList</span>=(StructName=GameplayDebuggerNetPack)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="结尾"><a href="#结尾" class="headerlink" title="结尾"></a>结尾</h1><p>本文通过对成功启动 Iris 的配置的内容分析</p>
+<p>揭开了 Iris 机制的冰山一角</p>
+<p>后续我将继续分享 Iris 同步的其他内容</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2023/02/10/UE5%EF%BC%9A%E7%AE%80%E8%BF%B0Gauntlet%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E4%BD%BF%E7%94%A8/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1228,71 +1476,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2022/06/09/UE5%EF%BC%9A%E8%B0%83%E8%AF%95GauntletController/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/link-300x300.gif">
-      <meta itemprop="name" content="Mapz">
-      <meta itemprop="description" content="FIND THE CHILD">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Mapz's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/06/09/UE5%EF%BC%9A%E8%B0%83%E8%AF%95GauntletController/" class="post-title-link" itemprop="url">UE5：调试GauntletController</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2022-06-09 16:59:45 / 修改时间：17:05:59" itemprop="dateCreated datePublished" datetime="2022-06-09T16:59:45+08:00">2022-06-09</time>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>编写 GauntletController 的时候，如何调试呢</p>
-<p>最简单的方式是游戏添加启动参数</p>
-<p>-gauntlet=xxxController1,xxxController2</p>
-<p>然后启动的时候，在加载 </p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">FGauntletModuleImpl</span><br></pre></td></tr></table></figure>
-
-<p>的时候，就会自动寻找到 GauntletController 的 UClass，并执行其 OnInit</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1364,14 +1547,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-count">47</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-count">45</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
