@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/link-300x300.gif">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/link-300x300.gif">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/link-300x300.gif">
+  <link rel="mask-icon" href="/images/link-300x300.gif" color="#222">
+  <link rel="manifest" href="/images/manifest.json">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"mapz.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="关于 Iris 自定义序列化由于 Iris 的同步逻辑发生了变更，所以从前的使用 TStructOpsTypeTraits WithNetSerializer Trait 并定义 1bool NetSerialize(FArchive&amp; Ar, class UPackageMap* Map, bool&amp; bOutSuccess);  的方式也被废弃 我们需要使用新的方式来实现对象的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UE5-2-IrisReplicationSystem初探（二）：关于Iris的自定义序列化">
+<meta property="og:url" content="http://mapz.github.io/2023/06/29/UE5-2-IrisReplicationSystem%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E5%85%B3%E4%BA%8EIris%E7%9A%84%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BA%8F%E5%88%97%E5%8C%96/index.html">
+<meta property="og:site_name" content="Mapz&#39;s Blog">
+<meta property="og:description" content="关于 Iris 自定义序列化由于 Iris 的同步逻辑发生了变更，所以从前的使用 TStructOpsTypeTraits WithNetSerializer Trait 并定义 1bool NetSerialize(FArchive&amp; Ar, class UPackageMap* Map, bool&amp; bOutSuccess);  的方式也被废弃 我们需要使用新的方式来实现对象的">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-06-29T08:27:56.000Z">
+<meta property="article:modified_time" content="2023-06-29T08:29:15.071Z">
+<meta property="article:author" content="Mapz">
+<meta property="article:tag" content="UE5">
+<meta property="article:tag" content="Iris">
+<meta property="article:tag" content="网络同步">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://mapz.github.io/2023/06/29/UE5-2-IrisReplicationSystem%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E5%85%B3%E4%BA%8EIris%E7%9A%84%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BA%8F%E5%88%97%E5%8C%96/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>UE5-2-IrisReplicationSystem初探（二）：关于Iris的自定义序列化 | Mapz's Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?69c67c43ced4b46e7ba1656a83e9c872";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Mapz's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">可以递归的函数指针</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://mapz.github.io/2023/06/29/UE5-2-IrisReplicationSystem%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E5%85%B3%E4%BA%8EIris%E7%9A%84%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BA%8F%E5%88%97%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/link-300x300.gif">
+      <meta itemprop="name" content="Mapz">
+      <meta itemprop="description" content="FIND THE CHILD">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mapz's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          UE5-2-IrisReplicationSystem初探（二）：关于Iris的自定义序列化
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2023-06-29 16:27:56 / 修改时间：16:29:15" itemprop="dateCreated datePublished" datetime="2023-06-29T16:27:56+08:00">2023-06-29</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="关于-Iris-自定义序列化"><a href="#关于-Iris-自定义序列化" class="headerlink" title="关于 Iris 自定义序列化"></a>关于 Iris 自定义序列化</h1><p>由于 Iris 的同步逻辑发生了变更，所以从前的使用 TStructOpsTypeTraits WithNetSerializer Trait</p>
+<p>并定义</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">NetSerialize</span><span class="params">(FArchive&amp; Ar, class UPackageMap* Map, <span class="keyword">bool</span>&amp; bOutSuccess)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>的方式也被废弃</p>
+<p>我们需要使用新的方式来实现对象的自定义序列化</p>
+<p>Iris 使用船新的 FNetSerializer 来进行自定义序列化</p>
+<p>如果我们声明了 WithNetSerializer 的 Trait</p>
+<p>但是又没有注册 Iris 的 FNetSerializer</p>
+<p>会在启动后 Log Warning</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Generating descriptor for struct XXX that has custom serialization.</span><br></pre></td></tr></table></figure>
+
+<p>提示你要重新搞个 Serializer，如果没有搞的话</p>
+<p>会使用默认的 StructSerializer 来进行处理</p>
+<p>默认的 StructSerializer 会遍历所有的 Property 来使用其 Member Serializer 来进行同步</p>
+<p>但是由于我们在使用旧版的自定义序列化的时候，通常会有其他的逻辑，不光是同步，所以使用默认的 Iris 同步一般会出现逻辑问题</p>
+<p>所以大概率仍需要重新编写 NetSerializer</p>
+<p>NetSerializer 主要做的事情大致可以看做下面除去传输过程外的内容</p>
+<p>游戏数据-&gt;压缩装箱-&gt;序列化-&gt;[传输过程]-&gt;反序列化-&gt;开箱解压缩-&gt;游戏数据</p>
+<p>下面我们以 FHitResultNetSerializer 为例，继续从自定义同步的实现来入手分析 Iris 这部分的工作原理</p>
+<p>由于系统中使用了很多编译期逻辑</p>
+<p>所以阅读代码需要掌握一些编译期模版元编程的知识</p>
+<h1 id="FHitResultNetSerializer-的实现"><a href="#FHitResultNetSerializer-的实现" class="headerlink" title="FHitResultNetSerializer 的实现"></a>FHitResultNetSerializer 的实现</h1><p>HitResultNetSerializer 用于实现 HitResult 的同步</p>
+<h2 id="NetSerializer-的定义"><a href="#NetSerializer-的定义" class="headerlink" title="NetSerializer 的定义"></a>NetSerializer 的定义</h2><p>先查看头文件</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Copyright Epic Games, Inc. All Rights Reserved.</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> once</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;Iris/Serialization/NetSerializer.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;HitResultNetSerializer.generated.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="built_in">USTRUCT</span>()</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">FHitResultNetSerializerConfig</span> :</span> <span class="keyword">public</span> FNetSerializerConfig</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">GENERATED_BODY</span>()</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> UE::Net</span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line"><span class="built_in">UE_NET_DECLARE_SERIALIZER</span>(FHitResultNetSerializer, ENGINE_API);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>先是继承 FNetSerializerConfig 实现一个 Config</p>
+<p>而后使用宏 UE_NET_DECLARE_SERIALIZER 定义一个 NetSerializer 以及导出</p>
+<p>其中宏定义</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** Declare a serializer. */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> UE_NET_DECLARE_SERIALIZER(SerializerName, Api) struct Api SerializerName ## NetSerializerInfo  \</span></span><br><span class="line"><span class="meta">&#123; \</span></span><br><span class="line"><span class="meta">    static const UE::Net::FNetSerializer Serializer; \</span></span><br><span class="line"><span class="meta">    static uint32 GetQuantizedTypeSize(); \</span></span><br><span class="line"><span class="meta">    static uint32 GetQuantizedTypeAlignment(); \</span></span><br><span class="line"><span class="meta">    static const FNetSerializerConfig* GetDefaultConfig(); \</span></span><br><span class="line"><span class="meta">&#125;;</span></span><br></pre></td></tr></table></figure>
+
+<p>其中声明了一个 FHitResultNetSerializerNetSerializerInfo 的 struct，其成员为</p>
+<ul>
+<li>static 的 FNetSerializer，这是通用的 Serializer 的内部数据结构，会根据实现类的信息在编译期设置内容</li>
+<li>获取压缩装箱后的类型内存大小的函数</li>
+<li>获取压缩装箱后的类型内存对齐的函数</li>
+<li>获取同步 Config 的函数</li>
+</ul>
+<h2 id="NetSerializer-的静态初始化"><a href="#NetSerializer-的静态初始化" class="headerlink" title="NetSerializer 的静态初始化"></a>NetSerializer 的静态初始化</h2><p>那么这些内容是如何初始化的呢？</p>
+<p>我们接着查看源文件</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">namespace</span> UE::Net</span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">FHitResultNetSerializer</span></span></span><br><span class="line"><span class="class">    &#123;</span></span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">UE_NET_IMPLEMENT_SERIALIZER</span>(FHitResultNetSerializer);</span><br></pre></td></tr></table></figure>
+
+<p>声明了我们在头文件中使用的那个 FHitResultNetSerializer 实现类</p>
+<p>然后使用宏 UE_NET_IMPLEMENT_SERIALIZER 实现其初始化</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** Implement a serializer using the struct named SerializerName. */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> UE_NET_IMPLEMENT_SERIALIZER(SerializerName) const UE::Net::FNetSerializer SerializerName ## NetSerializerInfo::Serializer = UE::Net::TNetSerializer<span class="meta-string">&lt;SerializerName&gt;</span>::ConstructNetSerializer(TEXT(#SerializerName)); \</span></span><br><span class="line"><span class="meta">    uint32 SerializerName ## NetSerializerInfo::GetQuantizedTypeSize() &#123; return UE::Net::TNetSerializerBuilder<span class="meta-string">&lt;SerializerName&gt;</span>::GetQuantizedTypeSize(); &#125;; \</span></span><br><span class="line"><span class="meta">    uint32 SerializerName ## NetSerializerInfo::GetQuantizedTypeAlignment() &#123; return UE::Net::TNetSerializerBuilder<span class="meta-string">&lt;SerializerName&gt;</span>::GetQuantizedTypeAlignment(); &#125;; \</span></span><br><span class="line"><span class="meta">    const FNetSerializerConfig* SerializerName ## NetSerializerInfo::GetDefaultConfig() &#123; return UE::Net::TNetSerializerBuilder<span class="meta-string">&lt;SerializerName&gt;</span>::GetDefaultConfig(); &#125;;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>首先是内部 Serializer 的初始化</p>
+<p>使用了模版</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UE::Net::TNetSerializer&lt;FHitResultNetSerializer&gt;::<span class="built_in">ConstructNetSerializer</span>(<span class="string">&quot;FHitResultNetSerializer&quot;</span>); </span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> NetSerializerImpl&gt;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TNetSerializer</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">constexpr</span> FNetSerializer <span class="title">ConstructNetSerializer</span><span class="params">(<span class="keyword">const</span> TCHAR* Name)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        TNetSerializerBuilder&lt;NetSerializerImpl&gt; Builder;</span><br><span class="line">        Builder.<span class="built_in">Validate</span>();</span><br><span class="line"></span><br><span class="line">        FNetSerializer Serializer = &#123;&#125;;</span><br><span class="line">        Serializer.Version = Builder.<span class="built_in">GetVersion</span>();</span><br><span class="line">        Serializer.Traits = Builder.<span class="built_in">GetTraits</span>();</span><br><span class="line"></span><br><span class="line">        Serializer.Serialize = Builder.<span class="built_in">GetSerializeFunction</span>();</span><br><span class="line">        Serializer.Deserialize = Builder.<span class="built_in">GetDeserializeFunction</span>();</span><br><span class="line">        Serializer.SerializeDelta = Builder.<span class="built_in">GetSerializeDeltaFunction</span>();</span><br><span class="line">        Serializer.DeserializeDelta = Builder.<span class="built_in">GetDeserializeDeltaFunction</span>();</span><br><span class="line">        Serializer.Quantize = Builder.<span class="built_in">GetQuantizeFunction</span>();</span><br><span class="line">        Serializer.Dequantize = Builder.<span class="built_in">GetDequantizeFunction</span>();</span><br><span class="line">        Serializer.IsEqual = Builder.<span class="built_in">GetIsEqualFunction</span>();</span><br><span class="line">        Serializer.Validate = Builder.<span class="built_in">GetValidateFunction</span>();</span><br><span class="line">        Serializer.CloneDynamicState = Builder.<span class="built_in">GetCloneDynamicStateFunction</span>();</span><br><span class="line">        Serializer.FreeDynamicState = Builder.<span class="built_in">GetFreeDynamicStateFunction</span>();</span><br><span class="line">        Serializer.CollectNetReferences = Builder.<span class="built_in">GetCollectNetReferencesFunction</span>();</span><br><span class="line"></span><br><span class="line">        Serializer.DefaultConfig = Builder.<span class="built_in">GetDefaultConfig</span>();</span><br><span class="line"></span><br><span class="line">        Serializer.QuantizedTypeSize = Builder.<span class="built_in">GetQuantizedTypeSize</span>();</span><br><span class="line">        Serializer.QuantizedTypeAlignment = Builder.<span class="built_in">GetQuantizedTypeAlignment</span>();</span><br><span class="line"></span><br><span class="line">        Serializer.ConfigTypeSize = Builder.<span class="built_in">GetConfigTypeSize</span>();</span><br><span class="line">        Serializer.ConfigTypeAlignment = Builder.<span class="built_in">GetConfigTypeAlignment</span>();</span><br><span class="line"></span><br><span class="line">        Serializer.Name = Name;</span><br><span class="line">        <span class="keyword">return</span> Serializer;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>此模版类的用处是使用 NetSerializer 的实现类，来静态初始化 NetSerizlierInfo 中的 Serializer 内容</p>
+<p>初始化过程都是在编译期执行的</p>
+<p>查看 Builder 的模版类，这是静态初始化的具体逻辑内容</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> NetSerializerImpl&gt;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TNetSerializerBuilder</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中使用了大量的编译期逻辑来给不同类型的 Serializer 赋值不同的参数</p>
+<p>例如 Version ，各种 Traits 等</p>
+<p>如</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Version check</span></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> U&gt; <span class="keyword">static</span> ETrueType <span class="title">TestHasVersion</span><span class="params">(<span class="keyword">typename</span> TEnableIf&lt;std::is_same_v&lt;<span class="keyword">decltype</span>(&amp;FVersion::Version), <span class="keyword">decltype</span>(&amp;U::Version)&gt;&gt;::Type*)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span>&gt; <span class="keyword">static</span> EFalseType <span class="title">TestHasVersion</span><span class="params">(...)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="NetSerializer-的内容简析"><a href="#NetSerializer-的内容简析" class="headerlink" title="NetSerializer 的内容简析"></a>NetSerializer 的内容简析</h2><p>我们来看看 FHitResultNetSerializer 的内容</p>
+<h3 id="Version"><a href="#Version" class="headerlink" title="Version"></a>Version</h3><p>自定义序列化的版本号</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Version</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> uint32 Version = <span class="number">0</span>;</span><br></pre></td></tr></table></figure>
+
+<p>编译期如果有这个成员，则 Builder 中 TestHasVersion 为 True</p>
+<p>则 Builder 的 Etraits 中的 HasVersion 会设置为 True</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">enum</span> <span class="title">ETraits</span> :</span> <span class="keyword">unsigned</span></span><br><span class="line">&#123;</span><br><span class="line">HasVersion = <span class="built_in"><span class="keyword">unsigned</span></span>(<span class="keyword">decltype</span>(TestHasVersion&lt;NetSerializerImpl&gt;(<span class="literal">nullptr</span>))::Value),</span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从而 Builder 的 GetVersion 函数可得其值</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T = <span class="keyword">void</span>, <span class="keyword">typename</span> U = <span class="keyword">typename</span> TEnableIf&lt;HasVersion, T&gt;::Type, <span class="keyword">bool</span> V = <span class="literal">true</span>&gt;</span><br><span class="line"><span class="keyword">static</span> <span class="keyword">constexpr</span> uint32 <span class="built_in">GetVersion</span>() &#123; <span class="keyword">return</span> NetSerializerImpl::Version; &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T = <span class="keyword">void</span>, <span class="keyword">typename</span> U = <span class="keyword">typename</span> TEnableIf&lt;!HasVersion, T&gt;::Type, <span class="keyword">char</span> V = <span class="number">0</span>&gt;</span><br><span class="line"><span class="keyword">static</span> <span class="keyword">constexpr</span> uint32 <span class="built_in">GetVersion</span>() &#123; <span class="keyword">return</span> ~<span class="number">0U</span>; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后在静态初始化的时候，设置到类型的 NetSerializerInfo 的 NetSerialzier 中</p>
+<p>当前 Version 参数在同步中我没有找到使用的位置</p>
+<p>预计是用于同步数据的版本管理</p>
+<h3 id="bIsForwardingSerializer"><a href="#bIsForwardingSerializer" class="headerlink" title="bIsForwardingSerializer"></a>bIsForwardingSerializer</h3><p>是否是转发序列化器</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">bool</span> bIsForwardingSerializer = <span class="literal">true</span>; <span class="comment">// Triggers asserts if a function is missing</span></span><br></pre></td></tr></table></figure>
+
+<p>如果有这个成员</p>
+<p>在 Builder 中设置后，获取函数为</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T = <span class="keyword">void</span>, <span class="keyword">typename</span> U = <span class="keyword">typename</span> TEnableIf&lt;IsForwardingSerializerIsBool, T&gt;::Type, <span class="keyword">bool</span> V = <span class="literal">true</span>&gt;</span><br><span class="line"><span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">bool</span> <span class="built_in">IsForwardingSerializer</span>() &#123; <span class="keyword">return</span> NetSerializerImpl::bIsForwardingSerializer; &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T = <span class="keyword">void</span>, <span class="keyword">typename</span> U = <span class="keyword">typename</span> TEnableIf&lt;!IsForwardingSerializerIsBool, T&gt;::Type, <span class="keyword">char</span> V = <span class="number">0</span>&gt;</span><br><span class="line"><span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">bool</span> <span class="built_in">IsForwardingSerializer</span>() &#123; <span class="keyword">return</span> <span class="literal">false</span>; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果设置为 true，则需要在 NetSerialzer 实现中实现下面所有的检查所检查的成员，否则编译会失败</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T = <span class="keyword">void</span>, <span class="keyword">typename</span> U = <span class="keyword">typename</span> TEnableIf&lt;<span class="built_in">IsForwardingSerializer</span>(), T&gt;::Type, <span class="keyword">bool</span> V = <span class="literal">true</span>&gt;</span><br><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> <span class="built_in">ValidateForwardingSerializer</span>()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in"><span class="keyword">static_assert</span></span>(HasSerialize, <span class="string">&quot;Forwarding FNetSerializer must implement Serialize.&quot;</span>);</span><br><span class="line">    <span class="built_in"><span class="keyword">static_assert</span></span>(HasDeserialize, <span class="string">&quot;Forwarding FNetSerializer must implement Deserialize.&quot;</span>);</span><br><span class="line">    <span class="built_in"><span class="keyword">static_assert</span></span>(HasSerializeDelta, <span class="string">&quot;Forwarding FNetSerializer must implement SerializeDelta.&quot;</span>);</span><br><span class="line">    <span class="built_in"><span class="keyword">static_assert</span></span>(HasDeserializeDelta, <span class="string">&quot;Forwarding FNetSerializer must implement DeserializeDelta.&quot;</span>);</span><br><span class="line">    <span class="built_in"><span class="keyword">static_assert</span></span>(HasQuantize, <span class="string">&quot;Forwarding FNetSerializer must implement Quantize.&quot;</span>);</span><br><span class="line">    <span class="built_in"><span class="keyword">static_assert</span></span>(HasDequantize, <span class="string">&quot;Forwarding FNetSerializer must implement Dequantize.&quot;</span>);</span><br><span class="line">    <span class="built_in"><span class="keyword">static_assert</span></span>(HasIsEqual, <span class="string">&quot;Forwarding FNetSerializer must implement IsEqual.&quot;</span>);</span><br><span class="line">    <span class="built_in"><span class="keyword">static_assert</span></span>(HasValidate, <span class="string">&quot;Forwarding FNetSerializer must implement Validate.&quot;</span>);</span><br><span class="line">    <span class="built_in"><span class="keyword">static_assert</span></span>(HasCloneDynamicState, <span class="string">&quot;Forwarding FNetSerializer must implement CloneDynamicState.&quot;</span>);</span><br><span class="line">    <span class="built_in"><span class="keyword">static_assert</span></span>(HasFreeDynamicState, <span class="string">&quot;Forwarding FNetSerializer must implement FreeDynamicState.&quot;</span>);</span><br><span class="line">    <span class="built_in"><span class="keyword">static_assert</span></span>(HasCollectNetReferences, <span class="string">&quot;Forwarding FNetSerializer must implement CollectNetReferences.&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T = <span class="keyword">void</span>, <span class="keyword">typename</span> U = <span class="keyword">typename</span> TEnableIf&lt;!<span class="built_in">IsForwardingSerializer</span>(), T&gt;::Type, <span class="keyword">char</span> V = <span class="number">0</span>&gt;</span><br><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> <span class="built_in">ValidateForwardingSerializer</span>()</span><br><span class="line">&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="bHasCustomNetReference"><a href="#bHasCustomNetReference" class="headerlink" title="bHasCustomNetReference"></a>bHasCustomNetReference</h3><p>是否有自定义的 NetReference，如果有的话，可以自己收集需要同步的 NetReference</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">bool</span> bHasCustomNetReference = <span class="literal">true</span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果设置了此参数，会在 Validate 静态检查</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in"><span class="keyword">static_assert</span></span>(!<span class="built_in">HasCustomNetReference</span>() || (<span class="built_in">HasCustomNetReference</span>() &amp;&amp; HasCollectNetReferences), <span class="string">&quot;FNetSerializer with bHasCustomNetReference = true must implement CollectNetReferences method.&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>如果序列化器没有实现 CollectNetReferences 函数，则会编译失败</p>
+<h3 id="bHasDynamicState"><a href="#bHasDynamicState" class="headerlink" title="bHasDynamicState"></a>bHasDynamicState</h3><p>是否有动态 State<br>State 是序列化器用到的数据 Buffer<br>如果有动态 State 意味着需要手动处理 State 的拷贝和释放</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">bool</span> bHasDynamicState = <span class="literal">true</span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果设置了此参数，会在 NetSerializer 中增加 Trait</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Traits |= (<span class="built_in">HasDynamicState</span>() ? ENetSerializerTraits::HasDynamicState : ENetSerializerTraits::None);</span><br></pre></td></tr></table></figure>
+
+<p>并且必须添加 CloneDynamicState 和 FreeDynamicState 成员函数</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in"><span class="keyword">static_assert</span></span>(!HasDynamicStateIsBool || (HasFreeDynamicState &amp;&amp; HasCloneDynamicState), <span class="string">&quot;FNetSerializer must implement CloneDynamicState and FreeDynamicState when it has dynamic state.&quot;</span>);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="定义需要同步的内容数据结构"><a href="#定义需要同步的内容数据结构" class="headerlink" title="定义需要同步的内容数据结构"></a>定义需要同步的内容数据结构</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Types</span></span><br><span class="line"><span class="class"><span class="keyword">enum</span> <span class="title">EReplicationFlags</span> :</span> uint32</span><br><span class="line">&#123;</span><br><span class="line">    BlockingHit = <span class="number">1U</span>,</span><br><span class="line">    StartPenetrating = BlockingHit &lt;&lt; <span class="number">1U</span>,</span><br><span class="line">    ImpactPointEqualsLocation = StartPenetrating &lt;&lt; <span class="number">1U</span>,</span><br><span class="line">    ImpactNormalEqualsNormal = ImpactPointEqualsLocation &lt;&lt; <span class="number">1U</span>,</span><br><span class="line">    InvalidItem  = ImpactNormalEqualsNormal &lt;&lt; <span class="number">1U</span>,</span><br><span class="line">    InvalidFaceIndex = InvalidItem &lt;&lt; <span class="number">1U</span>,</span><br><span class="line">    NoPenetrationDepth = InvalidFaceIndex &lt;&lt; <span class="number">1U</span>,</span><br><span class="line">    InvalidElementIndex = NoPenetrationDepth &lt;&lt; <span class="number">1U</span>,</span><br><span class="line">    InvalidMyItem = InvalidElementIndex &lt;&lt; <span class="number">1U</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">constexpr</span> uint32 ReplicatedFlagCount = <span class="number">9U</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">FQuantizedType</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="built_in"><span class="keyword">alignas</span></span>(<span class="number">16</span>) uint8 HitResult[<span class="number">316</span>];</span><br><span class="line">    uint32 ReplicationFlags;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> FHitResult SourceType;</span><br><span class="line"><span class="keyword">typedef</span> FQuantizedType QuantizedType;</span><br><span class="line"><span class="keyword">typedef</span> FHitResultNetSerializerConfig ConfigType;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> ConfigType DefaultConfig;</span><br></pre></td></tr></table></figure>
+
+<p>Flags 用于标记需要同步的内容<br>而后面的 FQuantizedType 用于存储压缩后的数据<br>其中使用了一个 uint8 数组来存储压缩后的数据，其大小是通过计算原 Struct 所需的最大内存来计算的<br>而后面的 ReplicationFlags 是用于存储标记位的<br>SourceType 是原始数据类型<br>QuantizedType 是装箱后的数据类型<br>ConfigType 是同步配置类型</p>
+<h3 id="实现的成员函数"><a href="#实现的成员函数" class="headerlink" title="实现的成员函数"></a>实现的成员函数</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Serialize</span><span class="params">(FNetSerializationContext&amp;, <span class="keyword">const</span> FNetSerializeArgs&amp; Args)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Deserialize</span><span class="params">(FNetSerializationContext&amp;, <span class="keyword">const</span> FNetDeserializeArgs&amp; Args)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">SerializeDelta</span><span class="params">(FNetSerializationContext&amp;, <span class="keyword">const</span> FNetSerializeDeltaArgs&amp; Args)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">DeserializeDelta</span><span class="params">(FNetSerializationContext&amp;, <span class="keyword">const</span> FNetDeserializeDeltaArgs&amp; Args)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Quantize</span><span class="params">(FNetSerializationContext&amp;, <span class="keyword">const</span> FNetQuantizeArgs&amp; Args)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Dequantize</span><span class="params">(FNetSerializationContext&amp;, <span class="keyword">const</span> FNetDequantizeArgs&amp; Args)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">bool</span> <span class="title">IsEqual</span><span class="params">(FNetSerializationContext&amp;, <span class="keyword">const</span> FNetIsEqualArgs&amp; Args)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">bool</span> <span class="title">Validate</span><span class="params">(FNetSerializationContext&amp;, <span class="keyword">const</span> FNetValidateArgs&amp; Args)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">CloneDynamicState</span><span class="params">(FNetSerializationContext&amp;, <span class="keyword">const</span> FNetCloneDynamicStateArgs&amp;)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">FreeDynamicState</span><span class="params">(FNetSerializationContext&amp;, <span class="keyword">const</span> FNetFreeDynamicStateArgs&amp;)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">CollectNetReferences</span><span class="params">(FNetSerializationContext&amp;, <span class="keyword">const</span> FNetCollectReferencesArgs&amp;)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Serialize"><a href="#Serialize" class="headerlink" title="Serialize"></a>Serialize</h4><p>用于从 Internal Buffer 到 比特流的 序列化数据</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FHitResultNetSerializer::Serialize</span><span class="params">(FNetSerializationContext&amp; Context, <span class="keyword">const</span> FNetSerializeArgs&amp; Args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 注 ：Args.Source 是指向序列化数据的指针</span></span><br><span class="line">    <span class="keyword">const</span> QuantizedType&amp; Value = *<span class="keyword">reinterpret_cast</span>&lt;QuantizedType*&gt;(Args.Source);</span><br><span class="line"></span><br><span class="line">    FNetBitStreamWriter* Writer = Context.<span class="built_in">GetBitStreamWriter</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 注 ：直接写入标记位</span></span><br><span class="line">    <span class="keyword">const</span> uint32 ReplicationFlags = Value.ReplicationFlags;</span><br><span class="line">    Writer-&gt;<span class="built_in">WriteBits</span>(ReplicationFlags, FHitResultNetSerializer::ReplicatedFlagCount);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// We need to manually serialize the properties as there are some replicated properties that don&#x27;t need to be replicated depending on the data</span></span><br><span class="line">    <span class="comment">// as is the case with some of the bools that are covered by the ReplicationFlags.</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> FReplicationStateDescriptor* Descriptor = StructNetSerializerConfigForHitResult.StateDescriptor.<span class="built_in">GetReference</span>();</span><br><span class="line">    <span class="keyword">const</span> FReplicationStateMemberDescriptor* MemberDescriptors = Descriptor-&gt;MemberDescriptors;</span><br><span class="line">    <span class="keyword">const</span> FReplicationStateMemberSerializerDescriptor* MemberSerializerDescriptors = Descriptor-&gt;MemberSerializerDescriptors;</span><br><span class="line">    <span class="keyword">const</span> FReplicationStateMemberDebugDescriptor* MemberDebugDescriptors = Descriptor-&gt;MemberDebugDescriptors;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> uint32 MemberCount = Descriptor-&gt;MemberCount;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Initalize mask as all dirty  </span></span><br><span class="line">    uint32 MemberMaskStorage = ~<span class="number">0U</span>;</span><br><span class="line">    <span class="comment">// 注 ：获得需要同步的可选 Struct 成员</span></span><br><span class="line">    FNetBitArrayView MemberMask = <span class="built_in">GetMemberChangeMask</span>(&amp;MemberMaskStorage, MemberCount, ReplicationFlags);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (uint32 MemberIndex = <span class="number">0</span>; MemberIndex &lt; MemberCount; ++MemberIndex)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (!MemberMask.<span class="built_in">GetBit</span>(MemberIndex))</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 注 ： 序列化需要同步的成员</span></span><br><span class="line">        <span class="keyword">const</span> FReplicationStateMemberDescriptor&amp; MemberDescriptor = MemberDescriptors[MemberIndex];</span><br><span class="line">        <span class="keyword">const</span> FReplicationStateMemberSerializerDescriptor&amp; MemberSerializerDescriptor = MemberSerializerDescriptors[MemberIndex];</span><br><span class="line"></span><br><span class="line">        <span class="built_in">UE_NET_TRACE_DYNAMIC_NAME_SCOPE</span>(MemberDebugDescriptors[MemberIndex].DebugName, *Context.<span class="built_in">GetBitStreamWriter</span>(), Context.<span class="built_in">GetTraceCollector</span>(), ENetTraceVerbosity::Verbose);</span><br><span class="line">        <span class="built_in">UE_NET_TRACE_DYNAMIC_NAME_SCOPE</span>(MemberSerializerDescriptor.Serializer-&gt;Name, *Context.<span class="built_in">GetBitStreamWriter</span>(), Context.<span class="built_in">GetTraceCollector</span>(), ENetTraceVerbosity::VeryVerbose);</span><br><span class="line"></span><br><span class="line">        FNetSerializeArgs MemberSerializeArgs;</span><br><span class="line">        MemberSerializeArgs.NetSerializerConfig = MemberSerializerDescriptor.SerializerConfig;</span><br><span class="line">        MemberSerializeArgs.Source = <span class="keyword">reinterpret_cast</span>&lt;NetSerializerValuePointer&gt;(&amp;Value.HitResult) + MemberDescriptor.InternalMemberOffset;</span><br><span class="line">        <span class="comment">// 注 ：序列化成员</span></span><br><span class="line">        MemberSerializerDescriptor.Serializer-&gt;<span class="built_in">Serialize</span>(Context, MemberSerializeArgs);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Deserialize"><a href="#Deserialize" class="headerlink" title="Deserialize"></a>Deserialize</h4><p>用于从头 比特流 反序列化数据 到 Internal Buffer</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FHitResultNetSerializer::Deserialize</span><span class="params">(FNetSerializationContext&amp; Context, <span class="keyword">const</span> FNetDeserializeArgs&amp; Args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    QuantizedType&amp; Target = *<span class="keyword">reinterpret_cast</span>&lt;QuantizedType*&gt;(Args.Target);</span><br><span class="line"></span><br><span class="line">    FNetBitStreamReader* Reader = Context.<span class="built_in">GetBitStreamReader</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 注：先读取标记位</span></span><br><span class="line">    <span class="keyword">const</span> uint32 ReplicationFlags = Reader-&gt;<span class="built_in">ReadBits</span>(FHitResultNetSerializer::ReplicatedFlagCount);</span><br><span class="line">    Target.ReplicationFlags = ReplicationFlags;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// We need to manually serialize the properties as there are some replicated properties that don&#x27;t need to be replicated depending on the data</span></span><br><span class="line">    <span class="comment">// as is the case with some of the bools that are covered by the ReplicationFlags.</span></span><br><span class="line">    <span class="keyword">const</span> FReplicationStateDescriptor* Descriptor = StructNetSerializerConfigForHitResult.StateDescriptor.<span class="built_in">GetReference</span>();</span><br><span class="line">    <span class="keyword">const</span> FReplicationStateMemberDescriptor* MemberDescriptors = Descriptor-&gt;MemberDescriptors;</span><br><span class="line">    <span class="keyword">const</span> FReplicationStateMemberSerializerDescriptor* MemberSerializerDescriptors = Descriptor-&gt;MemberSerializerDescriptors;</span><br><span class="line">    <span class="keyword">const</span> FReplicationStateMemberDebugDescriptor* MemberDebugDescriptors = Descriptor-&gt;MemberDebugDescriptors;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> uint32 MemberCount = Descriptor-&gt;MemberCount;   </span><br><span class="line"></span><br><span class="line">    <span class="comment">// Initalize mask as all dirty  </span></span><br><span class="line">    uint32 MemberMaskStorage = ~<span class="number">0U</span>;</span><br><span class="line">    <span class="comment">// 获取要反序列化的内容</span></span><br><span class="line">    FNetBitArrayView MemberMask = <span class="built_in">GetMemberChangeMask</span>(&amp;MemberMaskStorage, MemberCount, ReplicationFlags);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (uint32 MemberIndex = <span class="number">0</span>; MemberIndex &lt; MemberCount; ++MemberIndex)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (!MemberMask.<span class="built_in">GetBit</span>(MemberIndex))</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">const</span> FReplicationStateMemberDescriptor&amp; MemberDescriptor = MemberDescriptors[MemberIndex];</span><br><span class="line">        <span class="keyword">const</span> FReplicationStateMemberSerializerDescriptor&amp; MemberSerializerDescriptor = MemberSerializerDescriptors[MemberIndex];</span><br><span class="line"></span><br><span class="line">        <span class="built_in">UE_NET_TRACE_DYNAMIC_NAME_SCOPE</span>(MemberDebugDescriptors[MemberIndex].DebugName, *Context.<span class="built_in">GetBitStreamReader</span>(), Context.<span class="built_in">GetTraceCollector</span>(), ENetTraceVerbosity::Verbose);</span><br><span class="line">        <span class="built_in">UE_NET_TRACE_DYNAMIC_NAME_SCOPE</span>(MemberSerializerDescriptor.Serializer-&gt;Name, *Context.<span class="built_in">GetBitStreamReader</span>(), Context.<span class="built_in">GetTraceCollector</span>(), ENetTraceVerbosity::VeryVerbose);</span><br><span class="line"></span><br><span class="line">        FNetDeserializeArgs MemberDeserializeArgs;</span><br><span class="line">        MemberDeserializeArgs.NetSerializerConfig = MemberSerializerDescriptor.SerializerConfig;</span><br><span class="line">        MemberDeserializeArgs.Target = <span class="keyword">reinterpret_cast</span>&lt;NetSerializerValuePointer&gt;(&amp;Target.HitResult) + MemberDescriptor.InternalMemberOffset;</span><br><span class="line">        MemberSerializerDescriptor.Serializer-&gt;<span class="built_in">Deserialize</span>(Context, MemberDeserializeArgs);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="SerializeDelta-和-DeserializeDelta"><a href="#SerializeDelta-和-DeserializeDelta" class="headerlink" title="SerializeDelta 和 DeserializeDelta"></a>SerializeDelta 和 DeserializeDelta</h4><p>用于序列化和反序列化 Delta 数据</p>
+<p>可以在前面的 State 的基础上，做增量序列化</p>
+<p>这样可以只同步变化内容，进一步减少同步所需数据量</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// For now just use normal serialization for delta as this struct typically is a one off.</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FHitResultNetSerializer::SerializeDelta</span><span class="params">(FNetSerializationContext&amp; Context, <span class="keyword">const</span> FNetSerializeDeltaArgs&amp; Args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    NetSerializeDeltaDefault&lt;Serialize&gt;(Context, Args);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FHitResultNetSerializer::DeserializeDelta</span><span class="params">(FNetSerializationContext&amp; Context, <span class="keyword">const</span> FNetDeserializeDeltaArgs&amp; Args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    NetDeserializeDeltaDefault&lt;Deserialize&gt;(Context, Args);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>阅读模版函数 NetSerializeDeltaDefault 和 NetDeserializeDeltaDefault</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;NetSerializeFunction Serialize&gt;</span></span><br><span class="line"><span class="function"><span class="keyword">void</span></span></span><br><span class="line"><span class="function"><span class="title">NetSerializeDeltaDefault</span><span class="params">(FNetSerializationContext&amp; Context, <span class="keyword">const</span> FNetSerializeDeltaArgs&amp; Args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">Serialize</span>(Context, Args);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;NetDeserializeFunction Deserialize&gt;</span></span><br><span class="line"><span class="function"><span class="keyword">void</span></span></span><br><span class="line"><span class="function"><span class="title">NetDeserializeDeltaDefault</span><span class="params">(FNetSerializationContext&amp; Context, <span class="keyword">const</span> FNetDeserializeDeltaArgs&amp; Args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">Deserialize</span>(Context, Args);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可知本 Serializer 中直接使用了 Serialize 和 Deserialize 来处理 Delta Serialize 的内容，并没有做增量优化</p>
+<h4 id="Quantize-和-Dequantize"><a href="#Quantize-和-Dequantize" class="headerlink" title="Quantize 和 Dequantize"></a>Quantize 和 Dequantize</h4><p>用于从 External Buffer 到 Internal Buffer 的 “量子化” 和 “逆量子化”<br>可以理解为装箱和开箱，装箱指把原始数据处理成可用来同步的数据，开箱指把同步数据处理成原始数据</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br></pre></td><td class="code"><pre><span class="line">在 HitResult 中，做了一次全量的量子化和逆量子化，并处理了 Flag 的更新</span><br><span class="line">由于 Quantize 是在 Serialize 之前调用的，所以在 Serialize 中可以直接使用量子化后的数据</span><br><span class="line"></span><br><span class="line">```<span class="function">cpp</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FHitResultNetSerializer::Quantize</span><span class="params">(FNetSerializationContext&amp; Context, <span class="keyword">const</span> FNetQuantizeArgs&amp; Args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">const</span> SourceType&amp; SourceValue = *<span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> SourceType*&gt;(Args.Source);</span><br><span class="line">    QuantizedType&amp; TargetValue = *<span class="keyword">reinterpret_cast</span>&lt;QuantizedType*&gt;(Args.Target);</span><br><span class="line">    </span><br><span class="line">    uint32 ReplicationFlags = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Update flags based on SourceValue</span></span><br><span class="line">    <span class="comment">// 注：根据 SourceValue 的内容更新标记位</span></span><br><span class="line">    ReplicationFlags |= SourceValue.ImpactPoint == SourceValue.Location ? EReplicationFlags::ImpactPointEqualsLocation : <span class="number">0U</span>;</span><br><span class="line">    ReplicationFlags |= SourceValue.ImpactNormal == SourceValue.Normal ? EReplicationFlags::ImpactNormalEqualsNormal : <span class="number">0U</span>;</span><br><span class="line">    ReplicationFlags |= SourceValue.MyItem == INDEX_NONE ? EReplicationFlags::InvalidMyItem : <span class="number">0U</span>;</span><br><span class="line">    ReplicationFlags |= SourceValue.Item == INDEX_NONE ? EReplicationFlags::InvalidItem : <span class="number">0U</span>;</span><br><span class="line">    ReplicationFlags |= SourceValue.FaceIndex == INDEX_NONE ? EReplicationFlags::InvalidFaceIndex : <span class="number">0U</span>;</span><br><span class="line">    ReplicationFlags |= (SourceValue.PenetrationDepth == <span class="number">0.0f</span>) ? EReplicationFlags::NoPenetrationDepth : <span class="number">0U</span>;</span><br><span class="line">    ReplicationFlags |= SourceValue.ElementIndex == INDEX_NONE ? EReplicationFlags::InvalidElementIndex : <span class="number">0U</span>;</span><br><span class="line">    ReplicationFlags |= SourceValue.bBlockingHit ? EReplicationFlags::BlockingHit : <span class="number">0U</span>;</span><br><span class="line">    ReplicationFlags |= SourceValue.bStartPenetrating ? EReplicationFlags::StartPenetrating : <span class="number">0U</span>;</span><br><span class="line">    </span><br><span class="line">    TargetValue.ReplicationFlags = ReplicationFlags;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// We do a full quantize even though we wont necessarily serialize them.</span></span><br><span class="line">    <span class="comment">// 注：做了一次 Full Quantize</span></span><br><span class="line">    FNetQuantizeArgs HitResultQuantizeArgs = &#123;&#125;;</span><br><span class="line">    HitResultQuantizeArgs.NetSerializerConfig = &amp;StructNetSerializerConfigForHitResult;</span><br><span class="line">    HitResultQuantizeArgs.Source = Args.Source;</span><br><span class="line">    HitResultQuantizeArgs.Target = <span class="built_in">NetSerializerValuePointer</span>(&amp;TargetValue.HitResult);</span><br><span class="line">    StructNetSerializer-&gt;<span class="built_in">Quantize</span>(Context, HitResultQuantizeArgs);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FHitResultNetSerializer::Dequantize</span><span class="params">(FNetSerializationContext&amp; Context, <span class="keyword">const</span> FNetDequantizeArgs&amp; Args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">const</span> QuantizedType&amp; SourceValue = *<span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> QuantizedType*&gt;(Args.Source);</span><br><span class="line">    SourceType&amp; TargetValue = *<span class="keyword">reinterpret_cast</span>&lt;SourceType*&gt;(Args.Target);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> uint32 ReplicatonFlags = SourceValue.ReplicationFlags;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Dequantize all and fixup afterwards</span></span><br><span class="line">    FNetDequantizeArgs HitResultQuantizeArgs = &#123;&#125;;</span><br><span class="line">    HitResultQuantizeArgs.NetSerializerConfig = &amp;StructNetSerializerConfigForHitResult;</span><br><span class="line">    HitResultQuantizeArgs.Source = <span class="built_in">NetSerializerValuePointer</span>(&amp;SourceValue.HitResult);</span><br><span class="line">    HitResultQuantizeArgs.Target = Args.Target;</span><br><span class="line">    StructNetSerializer-&gt;<span class="built_in">Dequantize</span>(Context, HitResultQuantizeArgs);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (ReplicatonFlags &amp; EReplicationFlags::ImpactPointEqualsLocation)</span><br><span class="line">    &#123;</span><br><span class="line">        TargetValue.ImpactPoint = TargetValue.Location;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (ReplicatonFlags &amp; EReplicationFlags::ImpactNormalEqualsNormal)</span><br><span class="line">    &#123;</span><br><span class="line">        TargetValue.ImpactNormal = TargetValue.Normal;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (ReplicatonFlags &amp; EReplicationFlags::InvalidMyItem)</span><br><span class="line">    &#123;</span><br><span class="line">        TargetValue.MyItem = INDEX_NONE;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (ReplicatonFlags &amp; EReplicationFlags::InvalidItem)</span><br><span class="line">    &#123;</span><br><span class="line">        TargetValue.Item = INDEX_NONE;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (ReplicatonFlags &amp; EReplicationFlags::InvalidFaceIndex)</span><br><span class="line">    &#123;</span><br><span class="line">        TargetValue.FaceIndex = INDEX_NONE;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (ReplicatonFlags &amp; EReplicationFlags::NoPenetrationDepth)</span><br><span class="line">    &#123;</span><br><span class="line">        TargetValue.PenetrationDepth = <span class="number">0.f</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (ReplicatonFlags &amp; EReplicationFlags::InvalidElementIndex)</span><br><span class="line">    &#123;</span><br><span class="line">        TargetValue.ElementIndex = INDEX_NONE;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Calculate distance</span></span><br><span class="line">    TargetValue.Distance = (TargetValue.ImpactPoint - TargetValue.TraceStart).<span class="built_in">Size</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Set the bBlockingHit and bStartPenetrating from the flags</span></span><br><span class="line">    TargetValue.bBlockingHit = (ReplicatonFlags &amp; EReplicationFlags::BlockingHit) != <span class="number">0U</span> ? <span class="number">1</span> : <span class="number">0</span>;</span><br><span class="line">    TargetValue.bStartPenetrating = (ReplicatonFlags &amp; EReplicationFlags::StartPenetrating) != <span class="number">0U</span> ? <span class="number">1</span> : <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="IsEqual"><a href="#IsEqual" class="headerlink" title="IsEqual"></a>IsEqual</h4><p>用于对比两个 Internal Buffer 的内容是否相同，用于确认对象是否 Dirty 从而确认是否需要同步<br>这里分别对比了 State 是 装箱 后的数据的情况和 State 是原始数据的情况</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">FHitResultNetSerializer::IsEqual</span><span class="params">(FNetSerializationContext&amp; Context, <span class="keyword">const</span> FNetIsEqualArgs&amp; Args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (Args.bStateIsQuantized)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">const</span> QuantizedType&amp; Value0 = *<span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> QuantizedType*&gt;(Args.Source0);</span><br><span class="line">        <span class="keyword">const</span> QuantizedType&amp; Value1 = *<span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> QuantizedType*&gt;(Args.Source1);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (Value0.ReplicationFlags != Value1.ReplicationFlags)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Do a per member compare of relevant members</span></span><br><span class="line">        <span class="keyword">const</span> FReplicationStateDescriptor* Descriptor = StructNetSerializerConfigForHitResult.StateDescriptor.<span class="built_in">GetReference</span>();</span><br><span class="line">        <span class="keyword">const</span> FReplicationStateMemberDescriptor* MemberDescriptors = Descriptor-&gt;MemberDescriptors;</span><br><span class="line">        <span class="keyword">const</span> FReplicationStateMemberSerializerDescriptor* MemberSerializerDescriptors = Descriptor-&gt;MemberSerializerDescriptors;</span><br><span class="line">        <span class="keyword">const</span> FReplicationStateMemberDebugDescriptor* MemberDebugDescriptors = Descriptor-&gt;MemberDebugDescriptors;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">const</span> uint32 MemberCount = Descriptor-&gt;MemberCount;</span><br><span class="line">    </span><br><span class="line">        <span class="comment">// Initalize mask as all dirty  </span></span><br><span class="line">        uint32 MemberMaskStorage = ~<span class="number">0U</span>;</span><br><span class="line">        FNetBitArrayView MemberMask = <span class="built_in">GetMemberChangeMask</span>(&amp;MemberMaskStorage, MemberCount, Value0.ReplicationFlags);</span><br><span class="line"></span><br><span class="line">        FNetIsEqualArgs MemberArgs;</span><br><span class="line">        MemberArgs.Version = <span class="number">0</span>;</span><br><span class="line">        MemberArgs.bStateIsQuantized = Args.bStateIsQuantized;</span><br><span class="line">    </span><br><span class="line">        <span class="keyword">for</span> (uint32 MemberIt = <span class="number">0</span>; MemberIt &lt; MemberCount; ++MemberIt)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (!MemberMask.<span class="built_in">GetBit</span>(MemberIt))</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">const</span> FReplicationStateMemberDescriptor&amp; MemberDescriptor = MemberDescriptors[MemberIt];</span><br><span class="line">            <span class="keyword">const</span> FReplicationStateMemberSerializerDescriptor&amp; MemberSerializerDescriptor = MemberSerializerDescriptors[MemberIt];</span><br><span class="line">            <span class="keyword">const</span> FNetSerializer* Serializer = MemberSerializerDescriptor.Serializer;</span><br><span class="line"></span><br><span class="line">            MemberArgs.NetSerializerConfig = MemberSerializerDescriptor.SerializerConfig;</span><br><span class="line">            <span class="keyword">const</span> uint32 MemberOffset = MemberDescriptor.InternalMemberOffset;</span><br><span class="line">            MemberArgs.Source0 = <span class="keyword">reinterpret_cast</span>&lt;NetSerializerValuePointer&gt;(&amp;Value0.HitResult) + MemberDescriptor.InternalMemberOffset;</span><br><span class="line">            MemberArgs.Source1 = <span class="keyword">reinterpret_cast</span>&lt;NetSerializerValuePointer&gt;(&amp;Value1.HitResult) + MemberDescriptor.InternalMemberOffset;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (!Serializer-&gt;<span class="built_in">IsEqual</span>(Context, MemberArgs))</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        FNetIsEqualArgs HitResultEqualArgs = Args;</span><br><span class="line">        HitResultEqualArgs.NetSerializerConfig = &amp;StructNetSerializerConfigForHitResult;</span><br><span class="line">        HitResultEqualArgs.Source0 = <span class="built_in">NetSerializerValuePointer</span>(Args.Source0);</span><br><span class="line">        HitResultEqualArgs.Source1 = <span class="built_in">NetSerializerValuePointer</span>(Args.Source1);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!StructNetSerializer-&gt;<span class="built_in">IsEqual</span>(Context, HitResultEqualArgs))</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Validate"><a href="#Validate" class="headerlink" title="Validate"></a>Validate</h4><p>校验正确性，我暂时没有找到使用的地方</p>
+<h4 id="FreeDynamicState-和-CloneDynamicState"><a href="#FreeDynamicState-和-CloneDynamicState" class="headerlink" title="FreeDynamicState 和 CloneDynamicState"></a>FreeDynamicState 和 CloneDynamicState</h4><p>用于自定义动态的 State 数据的拷贝和释放</p>
+<p>释放一般调用于 NetBlob 的释放的时候</p>
+<p>例如发送收到临时的传输，比如 Unreliable 信息的传输，就会在发送或者收到后立即释放其 State</p>
+<p>又例如在 Array 中，如果有元素移除，也会释放其 State</p>
+<p>而克隆会在需要拷贝 State 的时候调用</p>
+<p>例如发送信息后，会把当前的 State 拷贝一份作为基准，用于后续的 Delta 比较</p>
+<p>具体实现内容略</p>
+<h4 id="CollectNetReferences"><a href="#CollectNetReferences" class="headerlink" title="CollectNetReferences"></a>CollectNetReferences</h4><p>用于收集需要同步的内容</p>
+<p>例如发送和接收 RPC 的参数</p>
+<p>发送数据的时候</p>
+<p>HitResult 内此函数只做了转发，所以内容略去</p>
+<h3 id="注册同步类型到自定义-Serializer"><a href="#注册同步类型到自定义-Serializer" class="headerlink" title="注册同步类型到自定义 Serializer"></a>注册同步类型到自定义 Serializer</h3><p>我们可以看到在 Serializer 的实现中，声明了一个内部类</p>
+<p>并指定了一个静态成员用于注册类型</p>
+<p>这个内部类用于处理注册 Serializer 到系统中，以及初始化相关 Serializer 的相关参数</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">FHitResultNetSerializer</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">...</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="comment">// 用于注册的内部类</span></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">FNetSerializerRegistryDelegates</span> <span class="keyword">final</span> :</span> <span class="keyword">private</span> UE::Net::FNetSerializerRegistryDelegates</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">        <span class="keyword">virtual</span> ~<span class="built_in">FNetSerializerRegistryDelegates</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">        <span class="comment">// 委托的挂载会在和卸载会在父类的构造函数和析构函数中自动执行，这里只需要重写两个虚函数即可</span></span><br><span class="line">        <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">OnPreFreezeNetSerializerRegistry</span><span class="params">()</span> <span class="keyword">override</span></span>;</span><br><span class="line">        <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">OnPostFreezeNetSerializerRegistry</span><span class="params">()</span> <span class="keyword">override</span></span>;</span><br><span class="line">    &#125;;</span><br><span class="line">...</span><br><span class="line">    <span class="comment">// 静态成员</span></span><br><span class="line">    <span class="keyword">static</span> FHitResultNetSerializer::FNetSerializerRegistryDelegates NetSerializerRegistryDelegates;</span><br><span class="line">...</span><br><span class="line">&#125;;</span><br><span class="line">...</span><br><span class="line"><span class="comment">// 创建内部类的静态成员实例</span></span><br><span class="line">FHitResultNetSerializer::FNetSerializerRegistryDelegates FHitResultNetSerializer::NetSerializerRegistryDelegates;</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>具体的注册过程如下</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 注册一个名称，这个名称和 Struct 的名称一致</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">const</span> FName <span class="title">PropertyNetSerializerRegistry_NAME_HitResult</span><span class="params">(<span class="string">&quot;HitResult&quot;</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用这个宏，会实现一个 FPropertyNetSerializerInfo ，其中包含其类型的序列化名称和其 Serializer</span></span><br><span class="line"><span class="built_in">UE_NET_IMPLEMENT_NAMED_STRUCT_NETSERIALIZER_INFO</span>(PropertyNetSerializerRegistry_NAME_HitResult, FHitResultNetSerializer);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在 FNetSerializerRegistryDelegates 的析构函数中，我们注销 NetSerializer Info</span></span><br><span class="line">FHitResultNetSerializer::FNetSerializerRegistryDelegates::~<span class="built_in">FNetSerializerRegistryDelegates</span>()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 这个宏用于注销类型的序列化器，必须依托 UE_NET_IMPLEMENT_NAMED_STRUCT_NETSERIALIZER_INFO</span></span><br><span class="line">    <span class="built_in">UE_NET_UNREGISTER_NETSERIALIZER_INFO</span>(PropertyNetSerializerRegistry_NAME_HitResult);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在 OnPreFreezeNetSerializerRegistry 中，我们注册 NetSerializer Info</span></span><br><span class="line"><span class="keyword">void</span> FHitResultNetSerializer::FNetSerializerRegistryDelegates::<span class="built_in">OnPreFreezeNetSerializerRegistry</span>()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 这个宏用于注册类型的序列化器，必须依托 UE_NET_IMPLEMENT_NAMED_STRUCT_NETSERIALIZER_INFO</span></span><br><span class="line">    <span class="built_in">UE_NET_REGISTER_NETSERIALIZER_INFO</span>(PropertyNetSerializerRegistry_NAME_HitResult);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在 OnPostFreezeNetSerializerRegistry 中，我们可以配置序列化器</span></span><br><span class="line"><span class="comment">// 并初始化一些需要使用的内容</span></span><br><span class="line"><span class="comment">// 通常是写自己的 StateDescriptor</span></span><br><span class="line"><span class="comment">// Desriptor 属性包括</span></span><br><span class="line"><span class="comment">// 是否包括 Super Class 的 Descriptor</span></span><br><span class="line"><span class="comment">// GetLifeTimeProperties 的属性 (class 适用)</span></span><br><span class="line"><span class="comment">// 是否启用 FastArraySerializer </span></span><br><span class="line"><span class="comment">// 等</span></span><br><span class="line"><span class="keyword">void</span> FHitResultNetSerializer::FNetSerializerRegistryDelegates::<span class="built_in">OnPostFreezeNetSerializerRegistry</span>()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Setup serializer</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// In this case we want to build a descriptor based on the struct members rather than the serializer we try to register</span></span><br><span class="line">        FReplicationStateDescriptorBuilder::FParameters Params;</span><br><span class="line">        Params.SkipCheckForCustomNetSerializerForStruct = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">const</span> UStruct* HitResultStruct = FHitResult::<span class="built_in">StaticStruct</span>();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Had do comment this out as the size differs between editor and non-editor builds.</span></span><br><span class="line">        <span class="comment">//if (HitResultStruct-&gt;GetStructureSize() != 240 || HitResultStruct-&gt;GetMinAlignment() != 8)</span></span><br><span class="line">        <span class="comment">//&#123;</span></span><br><span class="line">        <span class="comment">//  LowLevelFatalError(TEXT(&quot;%s Size: %d Alignment: %d&quot;), TEXT(&quot;FHitResult layout has changed. Need to update FHitResultNetSerializer.&quot;), HitResultStruct-&gt;GetStructureSize(), HitResultStruct-&gt;GetMinAlignment());</span></span><br><span class="line">        <span class="comment">//&#125;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 设置 StateDescriptor</span></span><br><span class="line">        StructNetSerializerConfigForHitResult.StateDescriptor = FReplicationStateDescriptorBuilder::<span class="built_in">CreateDescriptorForStruct</span>(HitResultStruct, Params);</span><br><span class="line">        <span class="keyword">const</span> FReplicationStateDescriptor* Descriptor = StructNetSerializerConfigForHitResult.StateDescriptor.<span class="built_in">GetReference</span>();</span><br><span class="line">        <span class="built_in">check</span>(Descriptor != <span class="literal">nullptr</span>);</span><br><span class="line">        HitResultStateTraits = Descriptor-&gt;Traits;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 用于检查 Serializer 是否适配当前版本的 Struct，这里粗暴的使用了 MemberCount</span></span><br><span class="line">        <span class="keyword">if</span> (Descriptor-&gt;MemberCount &gt; <span class="number">32U</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">LowLevelFatalError</span>(<span class="built_in">TEXT</span>(<span class="string">&quot;%s Has more than 32 replicated members.&quot;</span>), <span class="built_in">TEXT</span>(<span class="string">&quot;FHitResult has changed. Need to update FHitResultNetSerializer.&quot;</span>), Descriptor-&gt;MemberCount);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Build property -&gt; Member index lookup table</span></span><br><span class="line">        FName PropertyNames[EPropertyName::PropertyName_ConditionallyReplicatedPropertyCount];</span><br><span class="line"></span><br><span class="line">        PropertyNames[PropertyName_FaceIndex] = <span class="built_in">FName</span>(<span class="string">&quot;FaceIndex&quot;</span>);</span><br><span class="line">        PropertyNames[PropertyName_Distance] =  <span class="built_in">FName</span>(<span class="string">&quot;Distance&quot;</span>);</span><br><span class="line">        PropertyNames[PropertyName_ImpactPoint] = <span class="built_in">FName</span>(<span class="string">&quot;ImpactPoint&quot;</span>);</span><br><span class="line">        PropertyNames[PropertyName_ImpactNormal] = <span class="built_in">FName</span>(<span class="string">&quot;ImpactNormal&quot;</span>);</span><br><span class="line">        PropertyNames[PropertyName_PenetrationDepth] = <span class="built_in">FName</span>(<span class="string">&quot;PenetrationDepth&quot;</span>);</span><br><span class="line">        PropertyNames[PropertyName_MyItem] = <span class="built_in">FName</span>(<span class="string">&quot;MyItem&quot;</span>);</span><br><span class="line">        PropertyNames[PropertyName_Item] = <span class="built_in">FName</span>(<span class="string">&quot;Item&quot;</span>);</span><br><span class="line">        PropertyNames[PropertyName_ElementIndex] = <span class="built_in">FName</span>(<span class="string">&quot;ElementIndex&quot;</span>);</span><br><span class="line">        PropertyNames[PropertyName_bBlockingHit] = <span class="built_in">FName</span>(<span class="string">&quot;bBlockingHit&quot;</span>);</span><br><span class="line">        PropertyNames[PropertyName_bStartPenetrating] = <span class="built_in">FName</span>(<span class="string">&quot;bStartPenetrating&quot;</span>);</span><br><span class="line"></span><br><span class="line">        uint32 FoundPropertyMask = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Find all replicated properties of interest.</span></span><br><span class="line">        <span class="comment">// 这里遍历所有同步成员，制作了一个 PropertyToMemberIndex，可用于标记 MemberMark ，标识哪一个成员发生了变化，并只同步变化的内容</span></span><br><span class="line">        <span class="comment">// 使用见 GetMemberChangeMask 和 Serializer 函数</span></span><br><span class="line">        <span class="keyword">const</span> FProperty*<span class="keyword">const</span>*MemberProperties = Descriptor-&gt;MemberProperties;</span><br><span class="line">        <span class="keyword">for</span> (uint32 PropertyIndex = <span class="number">0</span>; PropertyIndex != EPropertyName::PropertyName_ConditionallyReplicatedPropertyCount; ++PropertyIndex)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">const</span> FProperty*<span class="keyword">const</span>&amp; MemberProperty : <span class="built_in">MakeArrayView</span>(MemberProperties, Descriptor-&gt;MemberCount))</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">const</span> SIZE_T MemberIndex = &amp;MemberProperty - MemberProperties;</span><br><span class="line">                <span class="keyword">if</span> (MemberProperty-&gt;<span class="built_in">GetFName</span>() == PropertyNames[PropertyIndex])</span><br><span class="line">                &#123;</span><br><span class="line">                    FoundPropertyMask |= <span class="number">1U</span> &lt;&lt; PropertyIndex;</span><br><span class="line"></span><br><span class="line">                    FHitResultNetSerializer::PropertyToMemberIndex[PropertyIndex] = MemberIndex;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (FoundPropertyMask != (<span class="number">1U</span> &lt;&lt;  EPropertyName::PropertyName_ConditionallyReplicatedPropertyCount) - <span class="number">1U</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">LowLevelFatalError</span>(<span class="built_in">TEXT</span>(<span class="string">&quot;%s&quot;</span>), <span class="built_in">TEXT</span>(<span class="string">&quot;Couldn&#x27;t find expected replicated members in FHitResult.&quot;</span>)); </span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 校验空间大小是否正确</span></span><br><span class="line">        <span class="comment">// Validate our assumptions regarding quantized state size and alignment.</span></span><br><span class="line">        <span class="keyword">constexpr</span> SIZE_T OffsetOfHitResult = <span class="built_in">offsetof</span>(FQuantizedType, HitResult);</span><br><span class="line">        <span class="keyword">if</span> ((<span class="built_in"><span class="keyword">sizeof</span></span>(FQuantizedType::HitResult) &lt; Descriptor-&gt;InternalSize) || (((OffsetOfHitResult/Descriptor-&gt;InternalAlignment)*Descriptor-&gt;InternalAlignment) != OffsetOfHitResult))</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">LowLevelFatalError</span>(<span class="built_in">TEXT</span>(<span class="string">&quot;FQuantizedType::HitResult has size %u but requires size %u and alignment %u.&quot;</span>), <span class="built_in">uint32</span>(<span class="built_in"><span class="keyword">sizeof</span></span>(FQuantizedType::HitResult)), <span class="built_in">uint32</span>(Descriptor-&gt;InternalSize), <span class="built_in">uint32</span>(Descriptor-&gt;InternalAlignment));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Verify traits</span></span><br><span class="line">    <span class="comment">// 校验生成的 Traits 是否正确</span></span><br><span class="line">    <span class="built_in">ValidateForwardingNetSerializerTraits</span>(&amp;<span class="built_in">UE_NET_GET_SERIALIZER</span>(FHitResultNetSerializer), HitResultStateTraits);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>至此，我们的 HitResult 的自定义同步编写和注册完成了</p>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>在新的架构下，编写自定义序列化，功能更加齐全，也可以全流程掌控和优化</p>
+<p>但是当前版本中</p>
+<p>编写自定义序列化的工作，变得异常复杂，成本陡增，甚至需要专人去做维护</p>
+<p>有时候我们只是希望省去几个字节的流量，却要编写一大堆公式化的内容</p>
+<p>并且由于结构体和 Serializer 内容的逻辑分开了</p>
+<p>维护也产生了困难</p>
+<p>例如结构体发生改变后，Serializer 并没有更新，有可能在没有任何提示的情况下，出现未知的问题</p>
+<p>希望在 Iris 继续迭代后</p>
+<p>能在用户侧简化 NetSerializer 的编写或者定制</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/UE5/" rel="tag"># UE5</a>
+              <a href="/tags/Iris/" rel="tag"># Iris</a>
+              <a href="/tags/%E7%BD%91%E7%BB%9C%E5%90%8C%E6%AD%A5/" rel="tag"># 网络同步</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/06/21/UE5%EF%BC%9AIrisReplicationSystem%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E6%88%90%E5%8A%9F%E5%9C%A8%E9%A1%B9%E7%9B%AE%E5%90%AF%E5%8A%A8Iris%E5%90%8C%E6%AD%A5%E4%BB%A5%E5%8F%8A%E5%8F%82%E8%80%83%E9%85%8D%E7%BD%AE%E7%AE%80%E6%9E%90/" rel="prev" title="UE5：IrisReplicationSystem初探（一）：成功在项目启动Iris同步以及参考配置简析">
+      <i class="fa fa-chevron-left"></i> UE5：IrisReplicationSystem初探（一）：成功在项目启动Iris同步以及参考配置简析
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-Iris-%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-number">1.</span> <span class="nav-text">关于 Iris 自定义序列化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#FHitResultNetSerializer-%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.</span> <span class="nav-text">FHitResultNetSerializer 的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#NetSerializer-%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="nav-number">2.1.</span> <span class="nav-text">NetSerializer 的定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NetSerializer-%E7%9A%84%E9%9D%99%E6%80%81%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">2.2.</span> <span class="nav-text">NetSerializer 的静态初始化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NetSerializer-%E7%9A%84%E5%86%85%E5%AE%B9%E7%AE%80%E6%9E%90"><span class="nav-number">2.3.</span> <span class="nav-text">NetSerializer 的内容简析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Version"><span class="nav-number">2.3.1.</span> <span class="nav-text">Version</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bIsForwardingSerializer"><span class="nav-number">2.3.2.</span> <span class="nav-text">bIsForwardingSerializer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bHasCustomNetReference"><span class="nav-number">2.3.3.</span> <span class="nav-text">bHasCustomNetReference</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bHasDynamicState"><span class="nav-number">2.3.4.</span> <span class="nav-text">bHasDynamicState</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89%E9%9C%80%E8%A6%81%E5%90%8C%E6%AD%A5%E7%9A%84%E5%86%85%E5%AE%B9%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-number">2.3.5.</span> <span class="nav-text">定义需要同步的内容数据结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E7%9A%84%E6%88%90%E5%91%98%E5%87%BD%E6%95%B0"><span class="nav-number">2.3.6.</span> <span class="nav-text">实现的成员函数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Serialize"><span class="nav-number">2.3.6.1.</span> <span class="nav-text">Serialize</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Deserialize"><span class="nav-number">2.3.6.2.</span> <span class="nav-text">Deserialize</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SerializeDelta-%E5%92%8C-DeserializeDelta"><span class="nav-number">2.3.6.3.</span> <span class="nav-text">SerializeDelta 和 DeserializeDelta</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Quantize-%E5%92%8C-Dequantize"><span class="nav-number">2.3.6.4.</span> <span class="nav-text">Quantize 和 Dequantize</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IsEqual"><span class="nav-number">2.3.6.5.</span> <span class="nav-text">IsEqual</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Validate"><span class="nav-number">2.3.6.6.</span> <span class="nav-text">Validate</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FreeDynamicState-%E5%92%8C-CloneDynamicState"><span class="nav-number">2.3.6.7.</span> <span class="nav-text">FreeDynamicState 和 CloneDynamicState</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CollectNetReferences"><span class="nav-number">2.3.6.8.</span> <span class="nav-text">CollectNetReferences</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B3%A8%E5%86%8C%E5%90%8C%E6%AD%A5%E7%B1%BB%E5%9E%8B%E5%88%B0%E8%87%AA%E5%AE%9A%E4%B9%89-Serializer"><span class="nav-number">2.3.7.</span> <span class="nav-text">注册同步类型到自定义 Serializer</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-number">2.4.</span> <span class="nav-text">结论</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Mapz"
+      src="/images/link-300x300.gif">
+  <p class="site-author-name" itemprop="name">Mapz</p>
+  <div class="site-description" itemprop="description">FIND THE CHILD</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Mapz" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Mapz" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
